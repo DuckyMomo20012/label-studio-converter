@@ -1,0 +1,79 @@
+{
+  "name": "label-studio-converter",
+  "version": "1.2.1",
+  "author": "DuckyMomo20012",
+  "description": "Convert between Label Studio OCR format and PPOCRLabelv2 format",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DuckyMomo20012/label-studio-converter.git"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "liturgical"
+  ],
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "label-studio-converter": "./dist/cli.js",
+    "__label-studio-converter_bash_complete": "./dist/bash-complete.js"
+  },
+  "scripts": {
+    "prepare": "husky",
+    "lint": "tsc",
+    "build": "tsc && tsup",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm",
+    "prepublish": "pnpm run build && pnpm run check-exports && pnpm run lint",
+    "postinstall": "npx @stricli/auto-complete@latest install label-studio-converter --bash __label-studio-converter_bash_complete"
+  },
+  "dependencies": {
+    "@stricli/auto-complete": "1.2.4",
+    "@stricli/core": "1.2.4",
+    "@turf/turf": "7.3.1",
+    "chalk": "5.6.2",
+    "es-toolkit": "1.43.0",
+    "image-size": "2.0.2",
+    "zod": "4.2.1"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.2",
+    "@babel/core": "7.28.5",
+    "@commitlint/cli": "20.2.0",
+    "@commitlint/config-conventional": "20.2.0",
+    "@types/node": "24.10.4",
+    "@typescript-eslint/eslint-plugin": "8.51.0",
+    "@typescript-eslint/parser": "8.51.0",
+    "@vitest/eslint-plugin": "1.6.4",
+    "@vitest/ui": "4.0.16",
+    "eslint": "9.39.2",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-import-resolver-typescript": "4.4.4",
+    "eslint-plugin-import": "2.32.0",
+    "eslint-plugin-prettier": "5.5.4",
+    "globals": "16.5.0",
+    "husky": "9.1.7",
+    "lint-staged": "16.2.7",
+    "prettier": "3.7.4",
+    "tsup": "8.5.1",
+    "typescript": "5.9.3",
+    "vitest": "4.0.16"
+  }
+}

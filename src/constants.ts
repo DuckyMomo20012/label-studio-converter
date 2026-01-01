@@ -1,0 +1,32 @@
+export const OUTPUT_BASE_DIR = './output';
+
+export const DEFAULT_LABEL_NAME = 'Text';
+export const DEFAULT_LABEL_STUDIO_FULL_JSON = true;
+export const DEFAULT_CREATE_FILE_PER_IMAGE = false;
+export const DEFAULT_CREATE_FILE_LIST_FOR_SERVING = true;
+export const DEFAULT_FILE_LIST_NAME = 'files.txt';
+export const DEFAULT_BASE_SERVER_URL = 'http://localhost:8081';
+
+export const DEFAULT_PPOCR_FILE_NAME = 'Label.txt';
+
+// Vertical sorting options
+export const SORT_VERTICAL_NONE = 'none';
+export const SORT_VERTICAL_TOP_BOTTOM = 'top-bottom';
+export const SORT_VERTICAL_BOTTOM_TOP = 'bottom-top';
+export const DEFAULT_SORT_VERTICAL = SORT_VERTICAL_NONE;
+
+// Horizontal sorting options
+export const SORT_HORIZONTAL_NONE = 'none';
+export const SORT_HORIZONTAL_LTR = 'ltr';
+export const SORT_HORIZONTAL_RTL = 'rtl';
+export const DEFAULT_SORT_HORIZONTAL = SORT_HORIZONTAL_NONE;
+
+export type VerticalSortOrder =
+  | typeof SORT_VERTICAL_NONE
+  | typeof SORT_VERTICAL_TOP_BOTTOM
+  | typeof SORT_VERTICAL_BOTTOM_TOP;
+
+export type HorizontalSortOrder =
+  | typeof SORT_HORIZONTAL_NONE
+  | typeof SORT_HORIZONTAL_LTR
+  | typeof SORT_HORIZONTAL_RTL;
