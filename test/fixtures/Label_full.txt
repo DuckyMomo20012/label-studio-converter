@@ -1,0 +1,1 @@
+output/example.jpg	[{"transcription": "ACUTE CORONARY SYNDROME", "points": [[243, 302], [623, 302], [623, 332], [243, 332]], "difficult": false}, {"transcription": "UNSTABLE ANGINA", "points": [[250, 338], [478, 337], [478, 357], [250, 356]], "difficult": false}]

@@ -1,0 +1,37 @@
+[
+{
+  "ocr": "\/data\/upload\/2\/5b1e3483-example.jpg",
+  "id": 1,
+  "bbox": [
+    {
+      "x": 27.44656917885264,
+      "y": 58.07692307692308,
+      "width": 42.63217097862767,
+      "height": 5.961538461538453,
+      "rotation": 0,
+      "original_width": 889,
+      "original_height": 520
+    }
+  ],
+  "label": [
+    {
+      "x": 27.44656917885264,
+      "y": 58.07692307692308,
+      "width": 42.63217097862767,
+      "height": 5.961538461538453,
+      "rotation": 0,
+      "labels": [
+        "Text"
+      ],
+      "original_width": 889,
+      "original_height": 520
+    }
+  ],
+  "transcription": "ACUTE CORONARY SYNDROME",
+  "annotator": 1,
+  "annotation_id": 201,
+  "created_at": "2026-01-07T03:14:39.424067Z",
+  "updated_at": "2026-01-07T05:27:48.035959Z",
+  "lead_time": 65.172
+}
+]
