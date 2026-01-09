@@ -1,6 +1,6 @@
 {
   "name": "label-studio-converter",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "author": "DuckyMomo20012",
   "description": "Convert between Label Studio OCR format and PPOCRLabelv2 format",
   "repository": {
