@@ -345,4 +345,52 @@ describe('minLabelStudioToPPOCR', () => {
     expect(imageAnnotations).toHaveLength(1);
     expect(imageAnnotations![0]!.transcription).toBe('');
   });
+
+  it('should round coordinates to specified precision for minLabelStudio', async () => {
+    const input: MinOCRLabelStudio = [
+      {
+        ocr: 'http://localhost:8081/test.jpg',
+        id: 1,
+        bbox: [],
+        label: [],
+        transcription: ['Test'],
+        poly: [
+          {
+            points: [
+              [10.12345, 20.98765],
+              [30.55555, 20.44444],
+              [30.77777, 40.33333],
+              [10.99999, 40.11111],
+            ],
+            closed: true,
+            original_width: 1920,
+            original_height: 1080,
+          },
+        ],
+        annotator: 1,
+        annotation_id: 1,
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
+        lead_time: 0,
+      },
+    ];
+
+    // Test with precision = 0 (integers)
+    const resultInt = await minLabelStudioToPPOCR(input, { precision: 0 });
+    const annotInt = resultInt.get('test.jpg')![0]!;
+    expect(annotInt.points[0]).toEqual([10, 21]);
+    expect(annotInt.points[1]).toEqual([31, 20]);
+
+    // Test with precision = 2 (two decimal places)
+    const resultDecimal = await minLabelStudioToPPOCR(input, { precision: 2 });
+    const annotDecimal = resultDecimal.get('test.jpg')![0]!;
+    expect(annotDecimal.points[0]).toEqual([10.12, 20.99]);
+    expect(annotDecimal.points[1]).toEqual([30.56, 20.44]);
+
+    // Test with precision = -1 (no rounding)
+    const resultFull = await minLabelStudioToPPOCR(input, { precision: -1 });
+    const annotFull = resultFull.get('test.jpg')![0]!;
+    expect(annotFull.points[0]).toEqual([10.12345, 20.98765]);
+    expect(annotFull.points[1]).toEqual([30.55555, 20.44444]);
+  });
 });

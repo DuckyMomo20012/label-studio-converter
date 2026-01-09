@@ -2,6 +2,7 @@ import { buildCommand } from '@stricli/core';
 import {
   DEFAULT_HEIGHT_INCREMENT,
   DEFAULT_PPOCR_FILE_NAME,
+  DEFAULT_PPOCR_PRECISION,
   DEFAULT_WIDTH_INCREMENT,
   OUTPUT_BASE_DIR,
   SHAPE_NORMALIZE_NONE,
@@ -75,6 +76,12 @@ export const toPPOCRCommand = buildCommand({
       heightIncrement: {
         kind: 'parsed',
         brief: `Increase bounding box height by this amount (in pixels). Can be negative to decrease. Default: ${DEFAULT_HEIGHT_INCREMENT}`,
+        parse: Number,
+        optional: true,
+      },
+      precision: {
+        kind: 'parsed',
+        brief: `Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: ${DEFAULT_PPOCR_PRECISION} (integers)`,
         parse: Number,
         optional: true,
       },

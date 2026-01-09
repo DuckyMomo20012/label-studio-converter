@@ -9,6 +9,7 @@ import {
   DEFAULT_HEIGHT_INCREMENT,
   DEFAULT_LABEL_NAME,
   DEFAULT_LABEL_STUDIO_FULL_JSON,
+  DEFAULT_LABEL_STUDIO_PRECISION,
   DEFAULT_SHAPE_NORMALIZE,
   DEFAULT_SORT_HORIZONTAL,
   DEFAULT_SORT_VERTICAL,
@@ -37,6 +38,7 @@ interface CommandFlags {
   normalizeShape?: string;
   widthIncrement?: number;
   heightIncrement?: number;
+  precision?: number;
 }
 
 export async function convertToLabelStudio(
@@ -57,6 +59,7 @@ export async function convertToLabelStudio(
     normalizeShape = DEFAULT_SHAPE_NORMALIZE,
     widthIncrement = DEFAULT_WIDTH_INCREMENT,
     heightIncrement = DEFAULT_HEIGHT_INCREMENT,
+    precision = DEFAULT_LABEL_STUDIO_PRECISION,
   } = flags;
 
   // NOTE: Ensure baseServerUrl ends with a single slash, but keeps empty string
@@ -135,6 +138,7 @@ export async function convertToLabelStudio(
                 : undefined,
             widthIncrement,
             heightIncrement,
+            precision,
           });
 
           if (toFullJson) {

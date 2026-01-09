@@ -4,6 +4,7 @@ import chalk from 'chalk';
 import {
   DEFAULT_HEIGHT_INCREMENT,
   DEFAULT_PPOCR_FILE_NAME,
+  DEFAULT_PPOCR_PRECISION,
   DEFAULT_SHAPE_NORMALIZE,
   DEFAULT_SORT_HORIZONTAL,
   DEFAULT_SORT_VERTICAL,
@@ -34,6 +35,7 @@ interface CommandFlags {
   normalizeShape?: string;
   widthIncrement?: number;
   heightIncrement?: number;
+  precision?: number;
 }
 
 const isLabelStudioFullJSON = (
@@ -79,6 +81,7 @@ export async function convertToPPOCR(
     normalizeShape = DEFAULT_SHAPE_NORMALIZE,
     widthIncrement = DEFAULT_WIDTH_INCREMENT,
     heightIncrement = DEFAULT_HEIGHT_INCREMENT,
+    precision = DEFAULT_PPOCR_PRECISION,
   } = flags;
 
   // Create output directory if it doesn't exist
@@ -113,6 +116,7 @@ export async function convertToPPOCR(
                   : undefined,
               widthIncrement,
               heightIncrement,
+              precision,
             })
           : await minLabelStudioToPPOCR(data as MinOCRLabelStudio, {
               baseImageDir,
@@ -122,6 +126,7 @@ export async function convertToPPOCR(
                   : undefined,
               widthIncrement,
               heightIncrement,
+              precision,
             });
 
         // Format output as PPOCR label format: image_path<tab>[{JSON array}]

@@ -7,6 +7,36 @@ import type { ShapeNormalizeOption } from '@/constants';
 export type Point = [number, number];
 
 /**
+ * Round a number to a specified precision
+ * @param value - The number to round
+ * @param precision - Number of decimal places (-1 means no rounding)
+ * @returns Rounded number
+ */
+export function roundToPrecision(value: number, precision: number): number {
+  if (precision < 0) {
+    return value; // No rounding
+  }
+  const multiplier = Math.pow(10, precision);
+  return Math.round(value * multiplier) / multiplier;
+}
+
+/**
+ * Round points array to a specified precision
+ * @param points - Array of points to round
+ * @param precision - Number of decimal places (-1 means no rounding)
+ * @returns Rounded points
+ */
+export function roundPoints(points: Point[], precision: number): Point[] {
+  if (precision < 0) {
+    return points; // No rounding
+  }
+  return points.map(
+    ([x, y]) =>
+      [roundToPrecision(x, precision), roundToPrecision(y, precision)] as Point,
+  );
+}
+
+/**
  * Calculate the center point of a polygon
  */
 export function calculateCenter(points: Point[]): Point {

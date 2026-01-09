@@ -7,6 +7,7 @@ import {
   DEFAULT_HEIGHT_INCREMENT,
   DEFAULT_LABEL_NAME,
   DEFAULT_LABEL_STUDIO_FULL_JSON,
+  DEFAULT_LABEL_STUDIO_PRECISION,
   DEFAULT_WIDTH_INCREMENT,
   OUTPUT_BASE_DIR,
   SHAPE_NORMALIZE_NONE,
@@ -100,6 +101,12 @@ export const toLabelStudioCommand = buildCommand({
       heightIncrement: {
         kind: 'parsed',
         brief: `Increase bounding box height by this amount (in pixels). Can be negative to decrease. Default: ${DEFAULT_HEIGHT_INCREMENT}`,
+        parse: Number,
+        optional: true,
+      },
+      precision: {
+        kind: 'parsed',
+        brief: `Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: ${DEFAULT_LABEL_STUDIO_PRECISION}`,
         parse: Number,
         optional: true,
       },

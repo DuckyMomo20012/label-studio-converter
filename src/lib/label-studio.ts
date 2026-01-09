@@ -1,6 +1,6 @@
 import * as turf from '@turf/turf';
 import { type ShapeNormalizeOption } from '@/constants';
-import { type Point, transformPoints } from '@/lib/geometry';
+import { type Point, roundPoints, transformPoints } from '@/lib/geometry';
 import {
   type FullOCRLabelStudio,
   type MinOCRLabelStudio,
@@ -12,6 +12,7 @@ export interface ConversionOptions {
   normalizeShape?: ShapeNormalizeOption;
   widthIncrement?: number;
   heightIncrement?: number;
+  precision?: number;
 }
 
 export const labelStudioToPPOCR = async (
@@ -23,6 +24,7 @@ export const labelStudioToPPOCR = async (
     normalizeShape,
     widthIncrement = 0,
     heightIncrement = 0,
+    precision = 0,
   } = options || {};
   const resultMap = new Map<string, PPOCRLabel>();
 
@@ -117,6 +119,9 @@ export const labelStudioToPPOCR = async (
             heightIncrement,
           });
 
+          // Round points to specified precision
+          points = roundPoints(points as Point[], precision);
+
           // Calculate dt_score based on polygon area
           let dt_score = 1.0;
           try {
@@ -156,6 +161,7 @@ export const minLabelStudioToPPOCR = async (
     normalizeShape,
     widthIncrement = 0,
     heightIncrement = 0,
+    precision = 0,
   } = options || {};
   const resultMap = new Map<string, PPOCRLabel>();
 
@@ -217,6 +223,9 @@ export const minLabelStudioToPPOCR = async (
         widthIncrement,
         heightIncrement,
       });
+
+      // Round points to specified precision
+      points = roundPoints(points as Point[], precision);
 
       // Get transcription text for this annotation
       const transcription =

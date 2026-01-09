@@ -43,3 +43,9 @@ export type ShapeNormalizeOption =
 // Bounding box resize options
 export const DEFAULT_WIDTH_INCREMENT = 0;
 export const DEFAULT_HEIGHT_INCREMENT = 0;
+
+// Number precision options
+// For Label Studio: keep full precision (no rounding) by default
+export const DEFAULT_LABEL_STUDIO_PRECISION = -1; // -1 means no rounding
+// For PPOCR: round to integers
+export const DEFAULT_PPOCR_PRECISION = 0;

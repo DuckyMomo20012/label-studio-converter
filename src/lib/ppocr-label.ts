@@ -2,8 +2,12 @@ import { randomUUID } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import sizeOf from 'image-size';
-import { DEFAULT_LABEL_NAME, type ShapeNormalizeOption } from '@/constants';
-import { type Point, transformPoints } from '@/lib/geometry';
+import {
+  DEFAULT_LABEL_NAME,
+  DEFAULT_LABEL_STUDIO_PRECISION,
+  type ShapeNormalizeOption,
+} from '@/constants';
+import { type Point, roundToPrecision, transformPoints } from '@/lib/geometry';
 import {
   type FullOCRLabelStudio,
   type MinOCRLabelStudio,
@@ -20,6 +24,7 @@ export type ToLabelStudioOptions = {
   normalizeShape?: ShapeNormalizeOption;
   widthIncrement?: number;
   heightIncrement?: number;
+  precision?: number;
 };
 
 export const ppocrToLabelStudio = async (
@@ -36,6 +41,7 @@ export const ppocrToLabelStudio = async (
     normalizeShape,
     widthIncrement = 0,
     heightIncrement = 0,
+    precision = DEFAULT_LABEL_STUDIO_PRECISION,
   } = options || {};
 
   if (toFullJson) {
@@ -49,6 +55,7 @@ export const ppocrToLabelStudio = async (
       normalizeShape,
       widthIncrement,
       heightIncrement,
+      precision,
     );
   } else {
     return ppocrToMinLabelStudio(
@@ -60,6 +67,7 @@ export const ppocrToLabelStudio = async (
       normalizeShape,
       widthIncrement,
       heightIncrement,
+      precision,
     );
   }
 };
@@ -74,6 +82,7 @@ export const ppocrToFullLabelStudio = (
   normalizeShape?: ShapeNormalizeOption,
   widthIncrement: number = 0,
   heightIncrement: number = 0,
+  precision: number = DEFAULT_LABEL_STUDIO_PRECISION,
 ): FullOCRLabelStudio => {
   const newBaseServerUrl =
     baseServerUrl.replace(/\/+$/, '') + (baseServerUrl === '' ? '' : '/');
@@ -126,8 +135,8 @@ export const ppocrToFullLabelStudio = (
               // Generate a single ID for all three related annotations
               const annotationId = randomUUID().slice(0, 10);
               const polygonPoints = points.map(([x, y]) => [
-                ((x ?? 0) / original_width) * 100,
-                ((y ?? 0) / original_height) * 100,
+                roundToPrecision(((x ?? 0) / original_width) * 100, precision),
+                roundToPrecision(((y ?? 0) / original_height) * 100, precision),
               ]);
 
               // Create result items: polygon, labels, and textarea
@@ -235,6 +244,7 @@ export const ppocrToMinLabelStudio = (
   normalizeShape?: ShapeNormalizeOption,
   widthIncrement: number = 0,
   heightIncrement: number = 0,
+  precision: number = DEFAULT_LABEL_STUDIO_PRECISION,
 ): MinOCRLabelStudio => {
   const newBaseServerUrl =
     baseServerUrl.replace(/\/+$/, '') + (baseServerUrl === '' ? '' : '/');
@@ -272,12 +282,21 @@ export const ppocrToMinLabelStudio = (
       heightIncrement,
     });
 
-    // Calculate bbox from points
+    // Round coordinates based on precision first
+    const roundedPoints = points.map(
+      ([x, y]) =>
+        [
+          roundToPrecision(x ?? 0, precision),
+          roundToPrecision(y ?? 0, precision),
+        ] as [number, number],
+    );
+
+    // Calculate bbox from rounded points
     let minX = Infinity;
     let minY = Infinity;
     let maxX = -Infinity;
     let maxY = -Infinity;
-    for (const point of points) {
+    for (const point of roundedPoints) {
       const [x, y] = point;
       if (x !== undefined && y !== undefined) {
         minX = Math.min(minX, x);
@@ -297,8 +316,8 @@ export const ppocrToMinLabelStudio = (
         {
           x: minX,
           y: minY,
-          width,
-          height,
+          width: width,
+          height: height,
           rotation: 0,
           original_width,
           original_height,
@@ -306,7 +325,7 @@ export const ppocrToMinLabelStudio = (
       ],
       label: [
         {
-          points: points,
+          points: roundedPoints,
           closed: true,
           labels: [labelName],
           original_width,
@@ -316,7 +335,7 @@ export const ppocrToMinLabelStudio = (
       transcription: [item.transcription],
       poly: [
         {
-          points: points,
+          points: roundedPoints,
           closed: true,
           original_width,
           original_height,

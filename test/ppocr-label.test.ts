@@ -350,4 +350,70 @@ describe('ppocrToMinLabelStudio', () => {
 
     expect(result[0]!.label[0]!.labels).toEqual(['text']);
   });
+
+  it('should round coordinates to specified precision', () => {
+    const input: PPOCRLabel = [
+      {
+        transcription: 'Precision Test',
+        points: [
+          [10.12345, 20.98765],
+          [30.55555, 20.44444],
+          [30.77777, 40.33333],
+          [10.99999, 40.11111],
+        ],
+        dt_score: 0.9,
+      },
+    ];
+
+    // Test with precision = 0 (integers)
+    const resultInt = ppocrToMinLabelStudio(
+      input,
+      'test/fixtures/images/example.jpg',
+      '',
+      undefined,
+      'text',
+      undefined,
+      0,
+      0,
+      0,
+    );
+
+    expect(resultInt[0]!.bbox[0]!.x).toBe(10);
+    expect(resultInt[0]!.bbox[0]!.y).toBe(20);
+    expect(resultInt[0]!.poly[0]!.points[0]).toEqual([10, 21]);
+
+    // Test with precision = 2 (two decimal places)
+    const resultDecimal = ppocrToMinLabelStudio(
+      input,
+      'test/fixtures/images/example.jpg',
+      '',
+      undefined,
+      'text',
+      undefined,
+      0,
+      0,
+      2,
+    );
+
+    expect(resultDecimal[0]!.bbox[0]!.x).toBe(10.12);
+    expect(resultDecimal[0]!.bbox[0]!.y).toBe(20.44);
+    expect(resultDecimal[0]!.poly[0]!.points[0]).toEqual([10.12, 20.99]);
+
+    // Test with precision = -1 (no rounding)
+    const resultFull = ppocrToMinLabelStudio(
+      input,
+      'test/fixtures/images/example.jpg',
+      '',
+      undefined,
+      'text',
+      undefined,
+      0,
+      0,
+      -1,
+    );
+
+    expect(resultFull[0]!.bbox[0]!.x).toBe(10.12345);
+    expect(resultFull[0]!.bbox[0]!.y).toBe(20.44444);
+    expect(resultFull[0]!.poly[0]!.points[0]).toEqual([10.12345, 20.98765]);
+  });
 });
