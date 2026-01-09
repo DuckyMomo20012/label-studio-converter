@@ -1,14 +1,29 @@
 import * as turf from '@turf/turf';
+import { type ShapeNormalizeOption } from '@/constants';
+import { type Point, transformPoints } from '@/lib/geometry';
 import {
   type FullOCRLabelStudio,
   type MinOCRLabelStudio,
   type PPOCRLabel,
 } from '@/lib/schema';
 
+export interface ConversionOptions {
+  baseImageDir?: string;
+  normalizeShape?: ShapeNormalizeOption;
+  widthIncrement?: number;
+  heightIncrement?: number;
+}
+
 export const labelStudioToPPOCR = async (
   data: FullOCRLabelStudio,
-  baseImageDir?: string,
+  options?: ConversionOptions,
 ): Promise<Map<string, PPOCRLabel>> => {
+  const {
+    baseImageDir,
+    normalizeShape,
+    widthIncrement = 0,
+    heightIncrement = 0,
+  } = options || {};
   const resultMap = new Map<string, PPOCRLabel>();
 
   for (const task of data) {
@@ -95,6 +110,13 @@ export const labelStudioToPPOCR = async (
 
         // If we have points, create a PPOCRLabel entry
         if (points && points.length > 0) {
+          // Apply geometry transformations
+          points = transformPoints(points as Point[], {
+            normalizeShape,
+            widthIncrement,
+            heightIncrement,
+          });
+
           // Calculate dt_score based on polygon area
           let dt_score = 1.0;
           try {
@@ -127,8 +149,14 @@ export const labelStudioToPPOCR = async (
 
 export const minLabelStudioToPPOCR = async (
   data: MinOCRLabelStudio,
-  baseImageDir?: string,
+  options?: ConversionOptions,
 ): Promise<Map<string, PPOCRLabel>> => {
+  const {
+    baseImageDir,
+    normalizeShape,
+    widthIncrement = 0,
+    heightIncrement = 0,
+  } = options || {};
   const resultMap = new Map<string, PPOCRLabel>();
 
   for (const item of data) {
@@ -182,6 +210,13 @@ export const minLabelStudioToPPOCR = async (
       if (!points) {
         continue;
       }
+
+      // Apply geometry transformations
+      points = transformPoints(points as Point[], {
+        normalizeShape,
+        widthIncrement,
+        heightIncrement,
+      });
 
       // Get transcription text for this annotation
       const transcription =

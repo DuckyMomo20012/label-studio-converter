@@ -103,6 +103,38 @@ describe('Full Label Studio Format - Fixtures', () => {
     // Should return empty map or map with empty annotations
     expect(result.size).toBe(0);
   });
+
+  it('should convert full_label_studio_diamond.json with diamond shape', async () => {
+    const fileContent = await readFile(
+      './test/fixtures/full_label_studio_diamond.json',
+      'utf-8',
+    );
+    const input = FullOCRLabelStudioSchema.parse(JSON.parse(fileContent));
+
+    const result = await labelStudioToPPOCR(input);
+
+    expect(result.size).toBe(1);
+    const annotations = Array.from(result.values())[0];
+    expect(annotations).toHaveLength(1);
+    expect(annotations![0]!.transcription).toBe('ACUTE CORONARY SYNDROME');
+    expect(annotations![0]!.points).toHaveLength(4); // Diamond has 4 points
+  });
+
+  it('should convert full_label_studio_diamond_vert.json with vertical diamond shape', async () => {
+    const fileContent = await readFile(
+      './test/fixtures/full_label_studio_diamond_vert.json',
+      'utf-8',
+    );
+    const input = FullOCRLabelStudioSchema.parse(JSON.parse(fileContent));
+
+    const result = await labelStudioToPPOCR(input);
+
+    expect(result.size).toBe(1);
+    const annotations = Array.from(result.values())[0];
+    expect(annotations).toHaveLength(1);
+    expect(annotations![0]!.transcription).toBe('PLAN');
+    expect(annotations![0]!.points).toHaveLength(4); // Diamond has 4 points
+  });
 });
 
 describe('Min Label Studio Format - Fixtures', () => {
@@ -196,6 +228,38 @@ describe('Min Label Studio Format - Fixtures', () => {
     // Should return empty map since there are no geometries to convert
     expect(result.size).toBe(0);
   });
+
+  it('should convert min_label_studio_diamond.json with diamond shape', async () => {
+    const fileContent = await readFile(
+      './test/fixtures/min_label_studio_diamond.json',
+      'utf-8',
+    );
+    const input = MinOCRLabelStudioSchema.parse(JSON.parse(fileContent));
+
+    const result = await minLabelStudioToPPOCR(input);
+
+    expect(result.size).toBe(1);
+    const annotations = Array.from(result.values())[0];
+    expect(annotations).toHaveLength(1);
+    expect(annotations![0]!.transcription).toBe('ACUTE CORONARY SYNDROME');
+    expect(annotations![0]!.points).toHaveLength(4); // Diamond has 4 points
+  });
+
+  it('should convert min_label_studio_diamond_vert.json with vertical diamond shape', async () => {
+    const fileContent = await readFile(
+      './test/fixtures/min_label_studio_diamond_vert.json',
+      'utf-8',
+    );
+    const input = MinOCRLabelStudioSchema.parse(JSON.parse(fileContent));
+
+    const result = await minLabelStudioToPPOCR(input);
+
+    expect(result.size).toBe(1);
+    const annotations = Array.from(result.values())[0];
+    expect(annotations).toHaveLength(1);
+    expect(annotations![0]!.transcription).toBe('PLAN');
+    expect(annotations![0]!.points).toHaveLength(4); // Diamond has 4 points
+  });
 });
 
 describe('Schema Validation', () => {
@@ -207,6 +271,8 @@ describe('Schema Validation', () => {
       'full_label_studio_poly_multi.json',
       'full_label_studio_all.json',
       'full_label_studio_no_anno.json',
+      'full_label_studio_diamond.json',
+      'full_label_studio_diamond_vert.json',
     ];
 
     for (const fixture of fixtures) {
@@ -226,6 +292,8 @@ describe('Schema Validation', () => {
       'min_label_studio_poly_multi.json',
       'min_label_studio_all.json',
       'min_label_studio_no_anno.json',
+      'min_label_studio_diamond.json',
+      'min_label_studio_diamond_vert.json',
     ];
 
     for (const fixture of fixtures) {

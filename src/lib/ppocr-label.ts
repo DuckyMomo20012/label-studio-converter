@@ -2,7 +2,8 @@ import { randomUUID } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import sizeOf from 'image-size';
-import { DEFAULT_LABEL_NAME } from '@/constants';
+import { DEFAULT_LABEL_NAME, type ShapeNormalizeOption } from '@/constants';
+import { type Point, transformPoints } from '@/lib/geometry';
 import {
   type FullOCRLabelStudio,
   type MinOCRLabelStudio,
@@ -16,6 +17,9 @@ export type ToLabelStudioOptions = {
   toFullJson?: boolean;
   taskId?: number;
   labelName?: string;
+  normalizeShape?: ShapeNormalizeOption;
+  widthIncrement?: number;
+  heightIncrement?: number;
 };
 
 export const ppocrToLabelStudio = async (
@@ -29,6 +33,9 @@ export const ppocrToLabelStudio = async (
     toFullJson = true,
     taskId = 1,
     labelName = DEFAULT_LABEL_NAME,
+    normalizeShape,
+    widthIncrement = 0,
+    heightIncrement = 0,
   } = options || {};
 
   if (toFullJson) {
@@ -39,6 +46,9 @@ export const ppocrToLabelStudio = async (
       inputDir,
       taskId,
       labelName,
+      normalizeShape,
+      widthIncrement,
+      heightIncrement,
     );
   } else {
     return ppocrToMinLabelStudio(
@@ -47,6 +57,9 @@ export const ppocrToLabelStudio = async (
       baseServerUrl,
       inputDir,
       labelName,
+      normalizeShape,
+      widthIncrement,
+      heightIncrement,
     );
   }
 };
@@ -58,6 +71,9 @@ export const ppocrToFullLabelStudio = (
   inputDir?: string,
   taskId: number = 1,
   labelName: string = DEFAULT_LABEL_NAME,
+  normalizeShape?: ShapeNormalizeOption,
+  widthIncrement: number = 0,
+  heightIncrement: number = 0,
 ): FullOCRLabelStudio => {
   const newBaseServerUrl =
     baseServerUrl.replace(/\/+$/, '') + (baseServerUrl === '' ? '' : '/');
@@ -98,7 +114,14 @@ export const ppocrToFullLabelStudio = (
           completed_by: 1,
           result: data
             .map((item) => {
-              const { points } = item;
+              let { points } = item;
+
+              // Apply geometry transformations
+              points = transformPoints(points as Point[], {
+                normalizeShape,
+                widthIncrement,
+                heightIncrement,
+              });
 
               // Generate a single ID for all three related annotations
               const annotationId = randomUUID().slice(0, 10);
@@ -209,6 +232,9 @@ export const ppocrToMinLabelStudio = (
   baseServerUrl: string,
   inputDir?: string,
   labelName: string = 'text',
+  normalizeShape?: ShapeNormalizeOption,
+  widthIncrement: number = 0,
+  heightIncrement: number = 0,
 ): MinOCRLabelStudio => {
   const newBaseServerUrl =
     baseServerUrl.replace(/\/+$/, '') + (baseServerUrl === '' ? '' : '/');
@@ -237,7 +263,14 @@ export const ppocrToMinLabelStudio = (
   original_height = dimensions.height;
 
   return data.map((item, index) => {
-    const { points } = item;
+    let { points } = item;
+
+    // Apply geometry transformations
+    points = transformPoints(points as Point[], {
+      normalizeShape,
+      widthIncrement,
+      heightIncrement,
+    });
 
     // Calculate bbox from points
     let minX = Infinity;

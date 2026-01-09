@@ -2,11 +2,16 @@ import { mkdir, readFile, readdir, writeFile } from 'fs/promises';
 import { join } from 'path';
 import chalk from 'chalk';
 import {
+  DEFAULT_HEIGHT_INCREMENT,
   DEFAULT_PPOCR_FILE_NAME,
+  DEFAULT_SHAPE_NORMALIZE,
   DEFAULT_SORT_HORIZONTAL,
   DEFAULT_SORT_VERTICAL,
+  DEFAULT_WIDTH_INCREMENT,
   type HorizontalSortOrder,
   OUTPUT_BASE_DIR,
+  SHAPE_NORMALIZE_NONE,
+  type ShapeNormalizeOption,
   type VerticalSortOrder,
 } from '@/constants';
 import type { LocalContext } from '@/context';
@@ -26,6 +31,9 @@ interface CommandFlags {
   baseImageDir?: string;
   sortVertical?: string;
   sortHorizontal?: string;
+  normalizeShape?: string;
+  widthIncrement?: number;
+  heightIncrement?: number;
 }
 
 const isLabelStudioFullJSON = (
@@ -68,6 +76,9 @@ export async function convertToPPOCR(
     baseImageDir,
     sortVertical = DEFAULT_SORT_VERTICAL,
     sortHorizontal = DEFAULT_SORT_HORIZONTAL,
+    normalizeShape = DEFAULT_SHAPE_NORMALIZE,
+    widthIncrement = DEFAULT_WIDTH_INCREMENT,
+    heightIncrement = DEFAULT_HEIGHT_INCREMENT,
   } = flags;
 
   // Create output directory if it doesn't exist
@@ -94,11 +105,24 @@ export async function convertToPPOCR(
 
         // Convert based on format type
         const ppocrDataMap = isFull
-          ? await labelStudioToPPOCR(data as FullOCRLabelStudio, baseImageDir)
-          : await minLabelStudioToPPOCR(
-              data as MinOCRLabelStudio,
+          ? await labelStudioToPPOCR(data as FullOCRLabelStudio, {
               baseImageDir,
-            );
+              normalizeShape:
+                normalizeShape !== SHAPE_NORMALIZE_NONE
+                  ? (normalizeShape as ShapeNormalizeOption)
+                  : undefined,
+              widthIncrement,
+              heightIncrement,
+            })
+          : await minLabelStudioToPPOCR(data as MinOCRLabelStudio, {
+              baseImageDir,
+              normalizeShape:
+                normalizeShape !== SHAPE_NORMALIZE_NONE
+                  ? (normalizeShape as ShapeNormalizeOption)
+                  : undefined,
+              widthIncrement,
+              heightIncrement,
+            });
 
         // Format output as PPOCR label format: image_path<tab>[{JSON array}]
         const outputLines: string[] = [];

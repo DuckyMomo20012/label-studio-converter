@@ -30,3 +30,16 @@ export type HorizontalSortOrder =
   | typeof SORT_HORIZONTAL_NONE
   | typeof SORT_HORIZONTAL_LTR
   | typeof SORT_HORIZONTAL_RTL;
+
+// Shape normalization options
+export const SHAPE_NORMALIZE_NONE = 'none';
+export const SHAPE_NORMALIZE_RECTANGLE = 'rectangle';
+export const DEFAULT_SHAPE_NORMALIZE = SHAPE_NORMALIZE_NONE;
+
+export type ShapeNormalizeOption =
+  | typeof SHAPE_NORMALIZE_NONE
+  | typeof SHAPE_NORMALIZE_RECTANGLE;
+
+// Bounding box resize options
+export const DEFAULT_WIDTH_INCREMENT = 0;
+export const DEFAULT_HEIGHT_INCREMENT = 0;
