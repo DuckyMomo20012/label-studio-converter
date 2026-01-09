@@ -24,6 +24,7 @@
     - [Interface setup](#interface-setup)
     - [Serving annotation files locally](#serving-annotation-files-locally)
   - [Using generated files with PPOCRLabelv2](#using-generated-files-with-ppocrlabelv2)
+  - [Conversion Margin of Error](#conversion-margin-of-error)
 - [Roadmap](#compass-roadmap)
 - [Contributing](#wave-contributing)
   - [Code of Conduct](#scroll-code-of-conduct)
@@ -39,12 +40,20 @@
 
 ### :bangbang: Prerequisites
 
-This project uses [pnpm](https://pnpm.io/) as package manager:
+- This project uses [pnpm](https://pnpm.io/) as package manager:
 
-```bash
-npm install --global pnpm
-```
+  ```bash
+  npm install --global pnpm
+  ```
 
+- [Label Studio](https://labelstud.io/): Tested with version `1.22.0` and above.
+
+- PPOCRLabelv2 from
+  [`PFCCLab/PPOCRLabel`](https://github.com/PFCCLab/PPOCRLabel): Tested with
+  latest commit
+  [04928bf](https://github.com/PFCCLab/PPOCRLabel/tree/04928bf015656e41ba5569877df9b0666ca90f89)
+
+- [Node.js](https://nodejs.org/): Tested with version `22.x` and above.
 <!-- Run Locally -->
 
 ### :running: Run Locally
@@ -71,6 +80,13 @@ pnpm install
 
 ## :eyes: Usage
 
+> [!IMPORTANT]
+> This tool only supports conversion between PPOCRLabelv2 format and Label
+> Studio ["OCR"
+> template](https://labelstud.io/templates/optical_character_recognition). For
+> setting up Label Studio for OCR tasks, please refer to the [Using generated
+> files with Label Studio](#using-generated-files-with-label-studio) section.
+
 ### Basic Usage
 
 ```ts
@@ -88,6 +104,10 @@ await toLabelStudio({
   baseServerUrl: 'http://localhost:8081',
   sortVertical: 'none',
   sortHorizontal: 'none',
+  normalizeShape: 'none', // Options: 'none', 'rectangle'
+  widthIncrement: 0, // Increase width in pixels (can be negative)
+  heightIncrement: 0, // Increase height in pixels (can be negative)
+  precision: -1, // Number precision: -1 = full precision (default for Label Studio)
 });
 
 // Convert Label Studio files to PPOCRLabel format
@@ -98,15 +118,19 @@ await toPPOCR({
   baseImageDir: 'images/ch',
   sortVertical: 'none',
   sortHorizontal: 'none',
+  normalizeShape: 'none', // Options: 'none', 'rectangle'
+  widthIncrement: 0, // Increase width in pixels (can be negative)
+  heightIncrement: 0, // Increase height in pixels (can be negative)
+  precision: 0, // Number precision: 0 = integers (default for PPOCR)
 });
 ```
 
 ### CLI Usage
 
-```
+```bash
 USAGE
-  label-studio-converter toLabelStudio [--outDir value] [--defaultLabelName value] [--toFullJson] [--createFilePerImage] [--createFileListForServing] [--fileListName value] [--baseServerUrl value] [--sortVertical value] [--sortHorizontal value] <args>...
-  label-studio-converter toPPOCR [--outDir value] [--fileName value] [--baseImageDir value] [--sortVertical value] [--sortHorizontal value] <args>...
+  label-studio-converter toLabelStudio [--outDir value] [--defaultLabelName value] [--toFullJson] [--createFilePerImage] [--createFileListForServing] [--fileListName value] [--baseServerUrl value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] <args>...
+  label-studio-converter toPPOCR [--outDir value] [--fileName value] [--baseImageDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] <args>...
   label-studio-converter --help
   label-studio-converter --version
 
@@ -123,9 +147,11 @@ COMMANDS
 
 Subcommands:
 
-```
+**toLabelStudio**:
+
+```bash
 USAGE
-  label-studio-converter toLabelStudio [--outDir value] [--defaultLabelName value] [--toFullJson] [--createFilePerImage] [--createFileListForServing] [--fileListName value] [--baseServerUrl value] [--sortVertical value] [--sortHorizontal value] <args>...
+  label-studio-converter toLabelStudio [--outDir value] [--defaultLabelName value] [--toFullJson] [--createFilePerImage] [--createFileListForServing] [--fileListName value] [--baseServerUrl value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] <args>...
   label-studio-converter toLabelStudio --help
 
 Convert PPOCRLabel files to Label Studio format
@@ -140,26 +166,36 @@ FLAGS
      [--baseServerUrl]                                          Base server URL for constructing image URLs in the file list. Default to "http://localhost:8081"
      [--sortVertical]                                           Sort bounding boxes vertically. Options: "none" (default), "top-bottom", "bottom-top"
      [--sortHorizontal]                                         Sort bounding boxes horizontally. Options: "none" (default), "ltr", "rtl"
+     [--normalizeShape]                                         Normalize diamond-like shapes to axis-aligned rectangles. Options: "none" (default), "rectangle"
+     [--widthIncrement]                                         Increase bounding box width by this amount (in pixels). Can be negative to decrease. Default: 0
+     [--heightIncrement]                                        Increase bounding box height by this amount (in pixels). Can be negative to decrease. Default: 0
+     [--precision]                                              Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: -1
   -h  --help                                                    Print help information and exit
 
 ARGUMENTS
   args...  Input directories containing PPOCRLabel files
 ```
 
-```
+**toPPOCR**:
+
+```bash
 USAGE
-  label-studio-converter toPPOCR [--outDir value] [--fileName value] [--baseImageDir value] [--sortVertical value] [--sortHorizontal value] <args>...
+  label-studio-converter toPPOCR [--outDir value] [--fileName value] [--baseImageDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] <args>...
   label-studio-converter toPPOCR --help
 
 Convert Label Studio files to PPOCRLabel format
 
 FLAGS
-     [--outDir]          Output directory. Default to "./output"
-     [--fileName]        Output PPOCR file name. Default to "Label.txt"
-     [--baseImageDir]    Base directory path to prepend to image filenames in output (e.g., "ch" or "images/ch")
-     [--sortVertical]    Sort bounding boxes vertically. Options: "none" (default), "top-bottom", "bottom-top"
-     [--sortHorizontal]  Sort bounding boxes horizontally. Options: "none" (default), "ltr", "rtl"
-  -h  --help             Print help information and exit
+     [--outDir]           Output directory. Default to "./output"
+     [--fileName]         Output PPOCR file name. Default to "Label.txt"
+     [--baseImageDir]     Base directory path to prepend to image filenames in output (e.g., "ch" or "images/ch")
+     [--sortVertical]     Sort bounding boxes vertically. Options: "none" (default), "top-bottom", "bottom-top"
+     [--sortHorizontal]   Sort bounding boxes horizontally. Options: "none" (default), "ltr", "rtl"
+     [--normalizeShape]   Normalize diamond-like shapes to axis-aligned rectangles. Options: "none" (default), "rectangle"
+     [--widthIncrement]   Increase bounding box width by this amount (in pixels). Can be negative to decrease. Default: 0
+     [--heightIncrement]  Increase bounding box height by this amount (in pixels). Can be negative to decrease. Default: 0
+     [--precision]        Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: 0 (integers)
+  -h  --help              Print help information and exit
 
 ARGUMENTS
   args...  Input directories containing Label Studio files
@@ -172,6 +208,9 @@ ARGUMENTS
 ```bash
 label-studio-converter toLabelStudio ./input-ppocr --outDir ./output-label-studio --defaultLabelName Text --toFullJson --createFileListForServing --fileListName files.txt --baseServerUrl http://localhost:8081 --sortVertical none --sortHorizontal none
 ```
+
+> [!NOTE]
+> By default, all PPOCRLabel positions are treated as **polygons** in Label Studio.
 
 **Convert Label Studio files to PPOCRLabel format:**
 
@@ -191,11 +230,134 @@ label-studio-converter toLabelStudio ./input-ppocr --outDir ./output-label-studi
 label-studio-converter toLabelStudio ./input-ppocr --outDir ./output-label-studio --defaultLabelName Text --noToFullJson --sortVertical none --sortHorizontal none
 ```
 
+> [!IMPORTANT]
+> Minimal Label Studio format cannot be used for serving in Label Studio, as it
+> lacks necessary fields such as `id` and `data`. So you can only use minimal
+> format for conversion back to PPOCRLabelv2 format or other purposes.
+
+**Shape Normalization**
+
+Convert diamond-like or irregular quadrilateral shapes to axis-aligned
+rectangles. This is useful when your annotations have irregular shapes that you
+want to normalize to clean, horizontal/vertical bounding boxes:
+
+```bash
+# Convert to axis-aligned rectangles
+label-studio-converter toLabelStudio ./input-ppocr --outDir ./output --normalizeShape rectangle
+
+# For toPPOCR command
+label-studio-converter toPPOCR ./input-label-studio --outDir ./output --normalizeShape rectangle
+```
+
+<details>
+<summary>
+  <b>Before normalization</b> (diamond-like shapes):
+</summary>
+
+![Before normalization](./docs/images/LabelStudio_original_diamond.png)
+
+</details>
+
+<details>
+<summary>
+  <b>After normalization</b> (axis-aligned rectangles):
+</summary>
+
+Command:
+
+```bash
+./dist/cli.js toPPOCR ./tmp --baseImageDir output --normalizeShape rectangle
+```
+
+![After normalization](./docs/images/LabelStudio_converted_diamond.png)
+
+</details>
+
+<details>
+<summary>
+  <b>Before normalization</b> (diamond-like vertical shapes):
+</summary>
+
+![Before normalization (vert)](./docs/images/LabelStudio_original_diamond_vert.png)
+
+</details>
+
+<details>
+<summary>
+  <b>After normalization</b> (axis-aligned vertical rectangles):
+</summary>
+
+Command:
+
+```bash
+./dist/cli.js toPPOCR ./tmp --baseImageDir output --normalizeShape rectangle
+```
+
+![After normalization (vert)](./docs/images/LabelStudio_converted_diamond_vert.png)
+
+</details>
+
+**Bounding Box Resizing**
+
+Increase or decrease bounding box dimensions while keeping them centered. This
+is useful for adjusting annotation margins:
+
+```bash
+# Increase width by 10 pixels and height by 20 pixels
+label-studio-converter toLabelStudio ./input-ppocr --outDir ./output --widthIncrement 10 --heightIncrement 20
+
+# Decrease width by 5 pixels (negative increment)
+label-studio-converter toLabelStudio ./input-ppocr --outDir ./output --widthIncrement -5
+
+# Works with toPPOCR as well
+label-studio-converter toPPOCR ./input-label-studio --outDir ./output --widthIncrement 10 --heightIncrement 10
+```
+
+**Combining Features**
+
+You can combine shape normalization and resizing:
+
+```bash
+# Normalize to rectangle and increase size
+label-studio-converter toLabelStudio ./input-ppocr --outDir ./output --normalizeShape rectangle --widthIncrement 5 --heightIncrement 5
+
+# Also works with sorting
+label-studio-converter toLabelStudio ./input-ppocr --outDir ./output --normalizeShape rectangle --widthIncrement 10 --sortVertical top-bottom --sortHorizontal ltr
+```
+
+**Number Precision Control**
+
+Control the precision of coordinate values in the output. This is useful for
+matching format expectations or reducing file size:
+
+```bash
+# Convert to Label Studio with full precision (default: -1)
+label-studio-converter toLabelStudio ./input-ppocr --outDir ./output --precision -1
+
+# Convert to PPOCR with integer coordinates (default: 0)
+label-studio-converter toPPOCR ./input-label-studio --outDir ./output --precision 0
+
+# Use 2 decimal places for more compact but still precise coordinates
+label-studio-converter toLabelStudio ./input-ppocr --outDir ./output --precision 2
+```
+
+Precision values:
+
+- `-1`: Full floating-point precision (default for Label Studio output)
+- `0`: Round to integers (default for PPOCR output)
+- `1+`: Round to specified number of decimal places
+
+> [!NOTE]
+> The default precision matches typical format conventions: Label Studio uses
+> full precision for percentage-based coordinates, while PPOCR format typically
+> uses integer pixel coordinates.
+
 ### Using generated files with Label Studio
 
 #### Interface setup
 
-When creating a new labeling project in Label Studio, choose the "OCR" template.
+When creating a new labeling project in Label Studio, choose the ["OCR"
+template](https://labelstud.io/templates/optical_character_recognition).
 This will set up the appropriate interface for text recognition tasks.
 
 This project uses the following Label Studio interface configuration:
@@ -216,8 +378,8 @@ This project uses the following Label Studio interface configuration:
 This setup includes:
 
 - An `Image` tag to display the image to be annotated.
-- A `Labels` tag with two label options: "Text" and "Handwriting". By default,
-  all annotations will be labeled as "Text". You can modify this based on your
+- A `Labels` tag with two label options: `Text` and `Handwriting`. By default,
+  all annotations will be labeled as `Text`. You can modify this based on your
   needs.
 - A `Rectangle` tag to allow annotators to draw bounding boxes around text regions.
 - A `Polygon` tag to allow annotators to draw polygons around text regions.
@@ -297,6 +459,404 @@ files in the dataset directories.
 
 If the images are put in a different directory, make sure to update the image
 directory path by specifying the `baseImageDir` option during conversion.
+
+### Conversion Margin of Error
+
+During conversion between two formats, which are PPOCRLabelv2 and Label Studio,
+margin of errors may occur due to differences in how each format handles certain
+aspects of the data.
+
+**Convert from Label Studio to PPOCRLabelv2**
+
+Label Studio annotation:
+
+![Label Studio annotation](./docs/images/LabelStudio_original_example.png)
+
+Generated PPOCRLabelv2 annotation:
+
+![PPOCRLabelv2 annotation](./docs/images/PPOCRLabel_converted_example.png)
+
+Converted back to Label Studio annotation:
+
+![Converted back to Label Studio annotation](./docs/images/LabelStudio_converted_back_example.png)
+
+<details>
+<summary>
+  <b>Original data</b> (<code>full_label_studio.json</code>):
+</summary>
+
+```json
+[
+  {
+    "id": 1,
+    "annotations": [
+      {
+        "id": 201,
+        "completed_by": 1,
+        "result": [
+          {
+            "original_width": 889,
+            "original_height": 520,
+            "image_rotation": 0,
+            "value": {
+              "x": 27.44656917885264,
+              "y": 58.07692307692308,
+              "width": 42.63217097862767,
+              "height": 5.961538461538453,
+              "rotation": 0
+            },
+            "id": "JQAipC-2LH",
+            "from_name": "bbox",
+            "to_name": "image",
+            "type": "rectangle",
+            "origin": "manual"
+          },
+          {
+            "original_width": 889,
+            "original_height": 520,
+            "image_rotation": 0,
+            "value": {
+              "x": 27.44656917885264,
+              "y": 58.07692307692308,
+              "width": 42.63217097862767,
+              "height": 5.961538461538453,
+              "rotation": 0,
+              "labels": ["Text"]
+            },
+            "id": "JQAipC-2LH",
+            "from_name": "label",
+            "to_name": "image",
+            "type": "labels",
+            "origin": "manual"
+          },
+          {
+            "original_width": 889,
+            "original_height": 520,
+            "image_rotation": 0,
+            "value": {
+              "x": 27.44656917885264,
+              "y": 58.07692307692308,
+              "width": 42.63217097862767,
+              "height": 5.961538461538453,
+              "rotation": 0,
+              "text": ["ACUTE CORONARY SYNDROME"]
+            },
+            "id": "JQAipC-2LH",
+            "from_name": "transcription",
+            "to_name": "image",
+            "type": "textarea",
+            "origin": "manual"
+          },
+          {
+            "original_width": 889,
+            "original_height": 520,
+            "image_rotation": 0,
+            "value": {
+              "x": 27.559055118110237,
+              "y": 64.8076923076923,
+              "width": 26.884374807767497,
+              "height": 4.423038206853052,
+              "rotation": 359.76027010391914
+            },
+            "id": "gydCl1Q9Nt",
+            "from_name": "bbox",
+            "to_name": "image",
+            "type": "rectangle",
+            "origin": "manual"
+          },
+          {
+            "original_width": 889,
+            "original_height": 520,
+            "image_rotation": 0,
+            "value": {
+              "x": 27.559055118110237,
+              "y": 64.8076923076923,
+              "width": 26.884374807767497,
+              "height": 4.423038206853052,
+              "rotation": 359.76027010391914,
+              "labels": ["Handwriting"]
+            },
+            "id": "gydCl1Q9Nt",
+            "from_name": "label",
+            "to_name": "image",
+            "type": "labels",
+            "origin": "manual"
+          },
+          {
+            "original_width": 889,
+            "original_height": 520,
+            "image_rotation": 0,
+            "value": {
+              "x": 27.559055118110237,
+              "y": 64.8076923076923,
+              "width": 26.884374807767497,
+              "height": 4.423038206853052,
+              "rotation": 359.76027010391914,
+              "text": ["UNSTABLE ANGINA"]
+            },
+            "id": "gydCl1Q9Nt",
+            "from_name": "transcription",
+            "to_name": "image",
+            "type": "textarea",
+            "origin": "manual"
+          }
+        ],
+        "was_cancelled": false,
+        "ground_truth": false,
+        "created_at": "2026-01-07T03:14:39.424067Z",
+        "updated_at": "2026-01-07T03:14:39.424096Z",
+        "draft_created_at": "2026-01-07T03:14:04.596361Z",
+        "lead_time": 56.087,
+        "prediction": {},
+        "result_count": 2,
+        "unique_id": "7e8c79f1-49ce-471c-8b26-8b8c6f9c3401",
+        "import_id": null,
+        "last_action": null,
+        "bulk_created": false,
+        "task": 1,
+        "project": 2,
+        "updated_by": 1,
+        "parent_prediction": null,
+        "parent_annotation": null,
+        "last_created_by": null
+      }
+    ],
+    "file_upload": "5b1e3483-example.jpg",
+    "drafts": [],
+    "predictions": [],
+    "data": { "ocr": "\/data\/upload\/2\/5b1e3483-example.jpg" },
+    "meta": {},
+    "created_at": "2026-01-07T03:13:41.175183Z",
+    "updated_at": "2026-01-07T03:14:39.478016Z",
+    "allow_skip": true,
+    "inner_id": 1,
+    "total_annotations": 1,
+    "cancelled_annotations": 0,
+    "total_predictions": 0,
+    "comment_count": 0,
+    "unresolved_comment_count": 0,
+    "last_comment_updated_at": null,
+    "project": 2,
+    "updated_by": 1,
+    "comment_authors": []
+  }
+]
+```
+
+</details>
+
+<details>
+<summary>
+  <b>Converted data</b> (<code>output/Label.txt</code>):
+</summary>
+
+Command:
+
+```bash
+./dist/cli.js toPPOCR ./tmp --baseImageDir output
+```
+
+Output:
+
+```
+output/5b1e3483-example.jpg	[{"transcription":"ACUTE CORONARY SYNDROME","points":[[243.99999999999997,302],[623,302],[623,332.99999999999994],[243.99999999999997,332.99999999999994]],"dt_score":1},{"transcription":"UNSTABLE ANGINA","points":[[245,337],[484.00209204105306,337],[484.00209204105306,359.9997986756359],[245,359.9997986756359]],"dt_score":1}]
+```
+
+</details>
+
+<details>
+<summary>
+  <b>Convert back to Label Studio</b> (<code>output/Label_full.json</code>):
+</summary>
+
+Command:
+
+```bash
+./dist/cli.js toLabelStudio ./tmp
+```
+
+Output:
+
+```json
+[
+  {
+    "id": 1,
+    "annotations": [
+      {
+        "id": 1,
+        "completed_by": 1,
+        "result": [
+          {
+            "original_width": 889,
+            "original_height": 520,
+            "image_rotation": 0,
+            "value": {
+              "points": [
+                [27.44656917885264, 58.07692307692308],
+                [70.07874015748031, 58.07692307692308],
+                [70.07874015748031, 64.03846153846153],
+                [27.44656917885264, 64.03846153846153]
+              ],
+              "closed": true
+            },
+            "id": "4ebb52a4-d",
+            "from_name": "poly",
+            "to_name": "image",
+            "type": "polygon",
+            "origin": "manual"
+          },
+          {
+            "original_width": 889,
+            "original_height": 520,
+            "image_rotation": 0,
+            "value": {
+              "points": [
+                [27.44656917885264, 58.07692307692308],
+                [70.07874015748031, 58.07692307692308],
+                [70.07874015748031, 64.03846153846153],
+                [27.44656917885264, 64.03846153846153]
+              ],
+              "closed": true,
+              "labels": ["Text"]
+            },
+            "id": "4ebb52a4-d",
+            "from_name": "label",
+            "to_name": "image",
+            "type": "labels",
+            "origin": "manual"
+          },
+          {
+            "original_width": 889,
+            "original_height": 520,
+            "image_rotation": 0,
+            "value": {
+              "points": [
+                [27.44656917885264, 58.07692307692308],
+                [70.07874015748031, 58.07692307692308],
+                [70.07874015748031, 64.03846153846153],
+                [27.44656917885264, 64.03846153846153]
+              ],
+              "closed": true,
+              "text": ["ACUTE CORONARY SYNDROME"]
+            },
+            "id": "4ebb52a4-d",
+            "from_name": "transcription",
+            "to_name": "image",
+            "type": "textarea",
+            "origin": "manual"
+          },
+          {
+            "original_width": 889,
+            "original_height": 520,
+            "image_rotation": 0,
+            "value": {
+              "points": [
+                [27.559055118110237, 64.8076923076923],
+                [54.44342992587774, 64.8076923076923],
+                [54.44342992587774, 69.23073051454536],
+                [27.559055118110237, 69.23073051454536]
+              ],
+              "closed": true
+            },
+            "id": "06aa0669-d",
+            "from_name": "poly",
+            "to_name": "image",
+            "type": "polygon",
+            "origin": "manual"
+          },
+          {
+            "original_width": 889,
+            "original_height": 520,
+            "image_rotation": 0,
+            "value": {
+              "points": [
+                [27.559055118110237, 64.8076923076923],
+                [54.44342992587774, 64.8076923076923],
+                [54.44342992587774, 69.23073051454536],
+                [27.559055118110237, 69.23073051454536]
+              ],
+              "closed": true,
+              "labels": ["Text"]
+            },
+            "id": "06aa0669-d",
+            "from_name": "label",
+            "to_name": "image",
+            "type": "labels",
+            "origin": "manual"
+          },
+          {
+            "original_width": 889,
+            "original_height": 520,
+            "image_rotation": 0,
+            "value": {
+              "points": [
+                [27.559055118110237, 64.8076923076923],
+                [54.44342992587774, 64.8076923076923],
+                [54.44342992587774, 69.23073051454536],
+                [27.559055118110237, 69.23073051454536]
+              ],
+              "closed": true,
+              "text": ["UNSTABLE ANGINA"]
+            },
+            "id": "06aa0669-d",
+            "from_name": "transcription",
+            "to_name": "image",
+            "type": "textarea",
+            "origin": "manual"
+          }
+        ],
+        "was_cancelled": false,
+        "ground_truth": false,
+        "created_at": "2026-01-07T04:16:31.329Z",
+        "updated_at": "2026-01-07T04:16:31.329Z",
+        "draft_created_at": "2026-01-07T04:16:31.329Z",
+        "lead_time": 0,
+        "prediction": {},
+        "result_count": 6,
+        "unique_id": "b471a896-b002-4b52-b3a4-36f810c3ca16",
+        "import_id": null,
+        "last_action": null,
+        "bulk_created": false,
+        "task": 1,
+        "project": 1,
+        "updated_by": 1,
+        "parent_prediction": null,
+        "parent_annotation": null,
+        "last_created_by": null
+      }
+    ],
+    "file_upload": "5b1e3483-example.jpg",
+    "drafts": [],
+    "predictions": [],
+    "data": {
+      "ocr": "http://localhost:8081/output/5b1e3483-example.jpg"
+    },
+    "meta": {},
+    "created_at": "2026-01-07T04:16:31.329Z",
+    "updated_at": "2026-01-07T04:16:31.329Z",
+    "allow_skip": false,
+    "inner_id": 1,
+    "total_annotations": 1,
+    "cancelled_annotations": 0,
+    "total_predictions": 0,
+    "comment_count": 0,
+    "unresolved_comment_count": 0,
+    "last_comment_updated_at": null,
+    "project": 1,
+    "updated_by": 1,
+    "comment_authors": []
+  }
+]
+```
+
+</details>
+
+> [!IMPORTANT]
+> So as you can see, after converting from Label Studio to PPOCRLabelv2 and then
+> back to Label Studio, the positions of the bounding boxes have slight
+> differences due to the conversion process. This may affect the accuracy of the
+> annotations, especially if precise bounding box locations are critical for your
+> application.
 
 <!-- Roadmap -->
 

@@ -1,14 +1,31 @@
 import * as turf from '@turf/turf';
+import { type ShapeNormalizeOption } from '@/constants';
+import { type Point, roundPoints, transformPoints } from '@/lib/geometry';
 import {
   type FullOCRLabelStudio,
   type MinOCRLabelStudio,
   type PPOCRLabel,
 } from '@/lib/schema';
 
+export interface ConversionOptions {
+  baseImageDir?: string;
+  normalizeShape?: ShapeNormalizeOption;
+  widthIncrement?: number;
+  heightIncrement?: number;
+  precision?: number;
+}
+
 export const labelStudioToPPOCR = async (
   data: FullOCRLabelStudio,
-  baseImageDir?: string,
+  options?: ConversionOptions,
 ): Promise<Map<string, PPOCRLabel>> => {
+  const {
+    baseImageDir,
+    normalizeShape,
+    widthIncrement = 0,
+    heightIncrement = 0,
+    precision = 0,
+  } = options || {};
   const resultMap = new Map<string, PPOCRLabel>();
 
   for (const task of data) {
@@ -95,6 +112,16 @@ export const labelStudioToPPOCR = async (
 
         // If we have points, create a PPOCRLabel entry
         if (points && points.length > 0) {
+          // Apply geometry transformations
+          points = transformPoints(points as Point[], {
+            normalizeShape,
+            widthIncrement,
+            heightIncrement,
+          });
+
+          // Round points to specified precision
+          points = roundPoints(points as Point[], precision);
+
           // Calculate dt_score based on polygon area
           let dt_score = 1.0;
           try {
@@ -127,8 +154,15 @@ export const labelStudioToPPOCR = async (
 
 export const minLabelStudioToPPOCR = async (
   data: MinOCRLabelStudio,
-  baseImageDir?: string,
+  options?: ConversionOptions,
 ): Promise<Map<string, PPOCRLabel>> => {
+  const {
+    baseImageDir,
+    normalizeShape,
+    widthIncrement = 0,
+    heightIncrement = 0,
+    precision = 0,
+  } = options || {};
   const resultMap = new Map<string, PPOCRLabel>();
 
   for (const item of data) {
@@ -146,56 +180,84 @@ export const minLabelStudioToPPOCR = async (
       imagePath = `${baseImageDir}/${imagePath.split('/').pop() || imagePath}`;
     }
 
-    // Use poly if available, otherwise convert from bbox
-    let points: number[][];
+    // Process each bbox/poly with its corresponding transcription
+    const numAnnotations = Math.max(
+      item.poly?.length || 0,
+      item.bbox?.length || 0,
+      item.transcription?.length || 0,
+    );
 
-    if (item.poly.length > 0 && item.poly[0]) {
-      const { points: polyPoints } = item.poly[0];
-      points = polyPoints;
-    } else if (item.bbox.length > 0 && item.bbox[0]) {
-      const bbox = item.bbox[0];
-      const { x, y, width, height } = bbox;
+    for (let i = 0; i < numAnnotations; i++) {
+      let points: number[][] | undefined;
 
-      // Convert bbox to 4 corner points
-      points = [
-        [x, y],
-        [x + width, y],
-        [x + width, y + height],
-        [x, y + height],
-      ];
-    } else {
-      // Skip if no geometry data
-      continue;
-    }
+      // Use poly if available, otherwise convert from bbox
+      if (item.poly && item.poly.length > i && item.poly[i]) {
+        const poly = item.poly[i];
+        if (poly) {
+          const { points: polyPoints } = poly;
+          points = polyPoints;
+        }
+      } else if (item.bbox && item.bbox.length > i && item.bbox[i]) {
+        const bbox = item.bbox[i];
+        if (bbox) {
+          const { x, y, width, height } = bbox;
 
-    // Get transcription text (not the URL)
-    const transcription =
-      item.transcription.length > 0 ? item.transcription[0] : '';
-
-    // Calculate dt_score based on polygon area
-    let dt_score = 1.0;
-    try {
-      const firstPoint = points[0];
-      if (firstPoint) {
-        const polygon = turf.polygon([points.concat([firstPoint])]);
-        const area = turf.area(polygon);
-        dt_score = Math.min(1.0, Math.max(0.5, area / 10000));
+          // Convert bbox to 4 corner points
+          points = [
+            [x, y],
+            [x + width, y],
+            [x + width, y + height],
+            [x, y + height],
+          ];
+        }
       }
-    } catch {
-      dt_score = 0.8;
-    }
 
-    const annotation = {
-      transcription: transcription ?? '',
-      points,
-      dt_score,
-    };
+      // Skip if no geometry data for this annotation
+      if (!points) {
+        continue;
+      }
 
-    // Group by image path
-    if (!resultMap.has(imagePath)) {
-      resultMap.set(imagePath, []);
+      // Apply geometry transformations
+      points = transformPoints(points as Point[], {
+        normalizeShape,
+        widthIncrement,
+        heightIncrement,
+      });
+
+      // Round points to specified precision
+      points = roundPoints(points as Point[], precision);
+
+      // Get transcription text for this annotation
+      const transcription =
+        item.transcription && item.transcription.length > i
+          ? item.transcription[i]
+          : '';
+
+      // Calculate dt_score based on polygon area
+      let dt_score = 1.0;
+      try {
+        const firstPoint = points[0];
+        if (firstPoint) {
+          const polygon = turf.polygon([points.concat([firstPoint])]);
+          const area = turf.area(polygon);
+          dt_score = Math.min(1.0, Math.max(0.5, area / 10000));
+        }
+      } catch {
+        dt_score = 0.8;
+      }
+
+      const annotation = {
+        transcription: transcription ?? '',
+        points,
+        dt_score,
+      };
+
+      // Group by image path
+      if (!resultMap.has(imagePath)) {
+        resultMap.set(imagePath, []);
+      }
+      resultMap.get(imagePath)!.push(annotation);
     }
-    resultMap.get(imagePath)!.push(annotation);
   }
 
   return resultMap;

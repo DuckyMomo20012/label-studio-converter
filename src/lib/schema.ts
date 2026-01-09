@@ -9,6 +9,7 @@ export const FullOCRLabelStudioSchema = z.array(
         completed_by: z.number(),
         result: z.array(
           z.union([
+            // Most specific rectangle variants first (with text or labels)
             z.object({
               original_width: z.number(),
               original_height: z.number(),
@@ -19,6 +20,7 @@ export const FullOCRLabelStudioSchema = z.array(
                 width: z.number(),
                 height: z.number(),
                 rotation: z.number(),
+                text: z.array(z.string()),
               }),
               id: z.string(),
               from_name: z.string(),
@@ -44,6 +46,7 @@ export const FullOCRLabelStudioSchema = z.array(
               type: z.string(),
               origin: z.string(),
             }),
+            // Base rectangle without text or labels
             z.object({
               original_width: z.number(),
               original_height: z.number(),
@@ -54,7 +57,6 @@ export const FullOCRLabelStudioSchema = z.array(
                 width: z.number(),
                 height: z.number(),
                 rotation: z.number(),
-                text: z.array(z.string()),
               }),
               id: z.string(),
               from_name: z.string(),
@@ -62,6 +64,7 @@ export const FullOCRLabelStudioSchema = z.array(
               type: z.string(),
               origin: z.string(),
             }),
+            // Most specific polygon variants first (with text or labels)
             z.object({
               original_width: z.number(),
               original_height: z.number(),
@@ -69,6 +72,7 @@ export const FullOCRLabelStudioSchema = z.array(
               value: z.object({
                 points: z.array(z.array(z.number())),
                 closed: z.boolean(),
+                text: z.array(z.string()),
               }),
               id: z.string(),
               from_name: z.string(),
@@ -91,6 +95,7 @@ export const FullOCRLabelStudioSchema = z.array(
               type: z.string(),
               origin: z.string(),
             }),
+            // Base polygon without text or labels
             z.object({
               original_width: z.number(),
               original_height: z.number(),
@@ -98,7 +103,6 @@ export const FullOCRLabelStudioSchema = z.array(
               value: z.object({
                 points: z.array(z.array(z.number())),
                 closed: z.boolean(),
-                text: z.array(z.string()),
               }),
               id: z.string(),
               from_name: z.string(),
@@ -137,6 +141,7 @@ export const FullOCRLabelStudioSchema = z.array(
         created_ago: z.string(),
         result: z.array(
           z.union([
+            // Most specific rectangle variants first (with text or labels)
             z.object({
               original_width: z.number(),
               original_height: z.number(),
@@ -147,6 +152,7 @@ export const FullOCRLabelStudioSchema = z.array(
                 width: z.number(),
                 height: z.number(),
                 rotation: z.number(),
+                text: z.array(z.string()),
               }),
               id: z.string(),
               from_name: z.string(),
@@ -172,6 +178,7 @@ export const FullOCRLabelStudioSchema = z.array(
               type: z.string(),
               origin: z.string(),
             }),
+            // Base rectangle without text or labels
             z.object({
               original_width: z.number(),
               original_height: z.number(),
@@ -182,7 +189,6 @@ export const FullOCRLabelStudioSchema = z.array(
                 width: z.number(),
                 height: z.number(),
                 rotation: z.number(),
-                text: z.array(z.string()),
               }),
               id: z.string(),
               from_name: z.string(),
@@ -190,6 +196,7 @@ export const FullOCRLabelStudioSchema = z.array(
               type: z.string(),
               origin: z.string(),
             }),
+            // Most specific polygon variants first (with text or labels)
             z.object({
               original_width: z.number(),
               original_height: z.number(),
@@ -197,6 +204,7 @@ export const FullOCRLabelStudioSchema = z.array(
               value: z.object({
                 points: z.array(z.array(z.number())),
                 closed: z.boolean(),
+                text: z.array(z.string()),
               }),
               id: z.string(),
               from_name: z.string(),
@@ -219,6 +227,7 @@ export const FullOCRLabelStudioSchema = z.array(
               type: z.string(),
               origin: z.string(),
             }),
+            // Base polygon without text or labels
             z.object({
               original_width: z.number(),
               original_height: z.number(),
@@ -226,7 +235,6 @@ export const FullOCRLabelStudioSchema = z.array(
               value: z.object({
                 points: z.array(z.array(z.number())),
                 closed: z.boolean(),
-                text: z.array(z.string()),
               }),
               id: z.string(),
               from_name: z.string(),
@@ -268,47 +276,62 @@ export const MinOCRLabelStudioSchema = z.array(
   z.object({
     ocr: z.string(),
     id: z.number(),
-    bbox: z.array(
-      z.object({
-        x: z.number(),
-        y: z.number(),
-        width: z.number(),
-        height: z.number(),
-        rotation: z.number(),
-        original_width: z.number(),
-        original_height: z.number(),
-      }),
-    ),
-    label: z.array(
-      z.union([
+    bbox: z
+      .array(
         z.object({
           x: z.number(),
           y: z.number(),
           width: z.number(),
           height: z.number(),
           rotation: z.number(),
-          labels: z.array(z.string()),
           original_width: z.number(),
           original_height: z.number(),
         }),
+      )
+      .optional()
+      .default([]),
+    label: z
+      .array(
+        z.union([
+          z.object({
+            x: z.number(),
+            y: z.number(),
+            width: z.number(),
+            height: z.number(),
+            rotation: z.number(),
+            labels: z.array(z.string()),
+            original_width: z.number(),
+            original_height: z.number(),
+          }),
+          z.object({
+            points: z.array(z.array(z.number())),
+            closed: z.boolean(),
+            labels: z.array(z.string()),
+            original_width: z.number(),
+            original_height: z.number(),
+          }),
+        ]),
+      )
+      .optional()
+      .default([]),
+    transcription: z
+      .union([z.string(), z.array(z.string())])
+      .optional()
+      .transform((val) => {
+        if (!val) return [];
+        return Array.isArray(val) ? val : [val];
+      }),
+    poly: z
+      .array(
         z.object({
           points: z.array(z.array(z.number())),
           closed: z.boolean(),
-          labels: z.array(z.string()),
           original_width: z.number(),
           original_height: z.number(),
         }),
-      ]),
-    ),
-    transcription: z.array(z.string()),
-    poly: z.array(
-      z.object({
-        points: z.array(z.array(z.number())),
-        closed: z.boolean(),
-        original_width: z.number(),
-        original_height: z.number(),
-      }),
-    ),
+      )
+      .optional()
+      .default([]),
     annotator: z.number(),
     annotation_id: z.number(),
     created_at: z.string(),

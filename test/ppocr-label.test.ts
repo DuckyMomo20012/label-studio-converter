@@ -32,7 +32,7 @@ describe('ppocrToLabelStudio', () => {
 
   it('should convert to full Label Studio format by default', async () => {
     const result = await ppocrToLabelStudio(samplePPOCRData, {
-      imagePath: 'test/fixtures/images/T1_12 Một số thư chung.037.jpg',
+      imagePath: 'test/fixtures/images/example.jpg',
       baseServerUrl: '',
     });
 
@@ -50,7 +50,7 @@ describe('ppocrToLabelStudio', () => {
 
   it('should convert to min Label Studio format when toFullJson is false', async () => {
     const result = await ppocrToLabelStudio(samplePPOCRData, {
-      imagePath: 'test/fixtures/images/T1_12 Một số thư chung.037.jpg',
+      imagePath: 'test/fixtures/images/example.jpg',
       baseServerUrl: '',
       toFullJson: false,
     });
@@ -80,7 +80,7 @@ describe('ppocrToFullLabelStudio', () => {
 
     const result = ppocrToFullLabelStudio(
       input,
-      'test/fixtures/images/T1_12 Một số thư chung.037.jpg',
+      'test/fixtures/images/example.jpg',
       '',
     );
 
@@ -140,7 +140,7 @@ describe('ppocrToFullLabelStudio', () => {
 
     const result = ppocrToFullLabelStudio(
       input,
-      'test/fixtures/images/T1_12 Một số thư chung.037.jpg',
+      'test/fixtures/images/example.jpg',
       '',
     );
     const ids = result[0]!.annotations[0]!.result.map((r: any) => r.id);
@@ -174,7 +174,7 @@ describe('ppocrToFullLabelStudio', () => {
 
     const result = ppocrToFullLabelStudio(
       input,
-      'test/fixtures/images/T1_12 Một số thư chung.037.jpg',
+      'test/fixtures/images/example.jpg',
       '',
     );
     const polyResult = result[0]!.annotations[0]!.result[0]!;
@@ -221,16 +221,16 @@ describe('ppocrToFullLabelStudio', () => {
       },
     ];
 
-    const imagePath = 'test/fixtures/images/T1_12 Một số thư chung.037.jpg';
+    const imagePath = 'test/fixtures/images/example.jpg';
     const result = ppocrToFullLabelStudio(
       input,
       imagePath,
       'http://localhost:8080',
     );
     expect(result[0]!.data.ocr).toBe(
-      'http://localhost:8080/test/fixtures/images/T1_12 Một số thư chung.037.jpg',
+      'http://localhost:8080/test/fixtures/images/example.jpg',
     );
-    expect(result[0]!.file_upload).toBe('T1_12 Một số thư chung.037.jpg');
+    expect(result[0]!.file_upload).toBe('example.jpg');
   });
 });
 
@@ -251,14 +251,14 @@ describe('ppocrToMinLabelStudio', () => {
 
     const result = ppocrToMinLabelStudio(
       input,
-      'test/fixtures/images/T1_12 Một số thư chung.037.jpg',
+      'test/fixtures/images/example.jpg',
       'http://localhost:8080',
     );
 
     expect(result).toHaveLength(1);
     expect(result[0]!.id).toBe(1);
     expect(result[0]!.ocr).toBe(
-      'http://localhost:8080/test/fixtures/images/T1_12%20M%E1%BB%99t%20s%E1%BB%91%20th%C6%B0%20chung.037.jpg',
+      'http://localhost:8080/test/fixtures/images/example.jpg',
     );
     expect(result[0]!.transcription).toEqual(['Test']);
     expect(result[0]!.poly[0]!.points).toEqual(input[0]!.points);
@@ -281,7 +281,7 @@ describe('ppocrToMinLabelStudio', () => {
 
     const result = ppocrToMinLabelStudio(
       input,
-      'test/fixtures/images/T1_12 Một số thư chung.037.jpg',
+      'test/fixtures/images/example.jpg',
       '',
     );
 
@@ -317,7 +317,7 @@ describe('ppocrToMinLabelStudio', () => {
 
     const result = ppocrToMinLabelStudio(
       input,
-      'test/fixtures/images/T1_12 Một số thư chung.038.jpg',
+      'test/fixtures/images/example.jpg',
       '',
     );
 
@@ -344,10 +344,76 @@ describe('ppocrToMinLabelStudio', () => {
 
     const result = ppocrToMinLabelStudio(
       input,
-      'test/fixtures/images/T1_12 Một số thư chung.038.jpg',
+      'test/fixtures/images/example.jpg',
       '',
     );
 
     expect(result[0]!.label[0]!.labels).toEqual(['text']);
+  });
+
+  it('should round coordinates to specified precision', () => {
+    const input: PPOCRLabel = [
+      {
+        transcription: 'Precision Test',
+        points: [
+          [10.12345, 20.98765],
+          [30.55555, 20.44444],
+          [30.77777, 40.33333],
+          [10.99999, 40.11111],
+        ],
+        dt_score: 0.9,
+      },
+    ];
+
+    // Test with precision = 0 (integers)
+    const resultInt = ppocrToMinLabelStudio(
+      input,
+      'test/fixtures/images/example.jpg',
+      '',
+      undefined,
+      'text',
+      undefined,
+      0,
+      0,
+      0,
+    );
+
+    expect(resultInt[0]!.bbox[0]!.x).toBe(10);
+    expect(resultInt[0]!.bbox[0]!.y).toBe(20);
+    expect(resultInt[0]!.poly[0]!.points[0]).toEqual([10, 21]);
+
+    // Test with precision = 2 (two decimal places)
+    const resultDecimal = ppocrToMinLabelStudio(
+      input,
+      'test/fixtures/images/example.jpg',
+      '',
+      undefined,
+      'text',
+      undefined,
+      0,
+      0,
+      2,
+    );
+
+    expect(resultDecimal[0]!.bbox[0]!.x).toBe(10.12);
+    expect(resultDecimal[0]!.bbox[0]!.y).toBe(20.44);
+    expect(resultDecimal[0]!.poly[0]!.points[0]).toEqual([10.12, 20.99]);
+
+    // Test with precision = -1 (no rounding)
+    const resultFull = ppocrToMinLabelStudio(
+      input,
+      'test/fixtures/images/example.jpg',
+      '',
+      undefined,
+      'text',
+      undefined,
+      0,
+      0,
+      -1,
+    );
+
+    expect(resultFull[0]!.bbox[0]!.x).toBe(10.12345);
+    expect(resultFull[0]!.bbox[0]!.y).toBe(20.44444);
+    expect(resultFull[0]!.poly[0]!.points[0]).toEqual([10.12345, 20.98765]);
   });
 });

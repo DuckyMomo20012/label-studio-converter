@@ -2,7 +2,12 @@ import { randomUUID } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import sizeOf from 'image-size';
-import { DEFAULT_LABEL_NAME } from '@/constants';
+import {
+  DEFAULT_LABEL_NAME,
+  DEFAULT_LABEL_STUDIO_PRECISION,
+  type ShapeNormalizeOption,
+} from '@/constants';
+import { type Point, roundToPrecision, transformPoints } from '@/lib/geometry';
 import {
   type FullOCRLabelStudio,
   type MinOCRLabelStudio,
@@ -16,6 +21,10 @@ export type ToLabelStudioOptions = {
   toFullJson?: boolean;
   taskId?: number;
   labelName?: string;
+  normalizeShape?: ShapeNormalizeOption;
+  widthIncrement?: number;
+  heightIncrement?: number;
+  precision?: number;
 };
 
 export const ppocrToLabelStudio = async (
@@ -29,6 +38,10 @@ export const ppocrToLabelStudio = async (
     toFullJson = true,
     taskId = 1,
     labelName = DEFAULT_LABEL_NAME,
+    normalizeShape,
+    widthIncrement = 0,
+    heightIncrement = 0,
+    precision = DEFAULT_LABEL_STUDIO_PRECISION,
   } = options || {};
 
   if (toFullJson) {
@@ -39,6 +52,10 @@ export const ppocrToLabelStudio = async (
       inputDir,
       taskId,
       labelName,
+      normalizeShape,
+      widthIncrement,
+      heightIncrement,
+      precision,
     );
   } else {
     return ppocrToMinLabelStudio(
@@ -47,6 +64,10 @@ export const ppocrToLabelStudio = async (
       baseServerUrl,
       inputDir,
       labelName,
+      normalizeShape,
+      widthIncrement,
+      heightIncrement,
+      precision,
     );
   }
 };
@@ -58,6 +79,10 @@ export const ppocrToFullLabelStudio = (
   inputDir?: string,
   taskId: number = 1,
   labelName: string = DEFAULT_LABEL_NAME,
+  normalizeShape?: ShapeNormalizeOption,
+  widthIncrement: number = 0,
+  heightIncrement: number = 0,
+  precision: number = DEFAULT_LABEL_STUDIO_PRECISION,
 ): FullOCRLabelStudio => {
   const newBaseServerUrl =
     baseServerUrl.replace(/\/+$/, '') + (baseServerUrl === '' ? '' : '/');
@@ -98,13 +123,20 @@ export const ppocrToFullLabelStudio = (
           completed_by: 1,
           result: data
             .map((item) => {
-              const { points } = item;
+              let { points } = item;
+
+              // Apply geometry transformations
+              points = transformPoints(points as Point[], {
+                normalizeShape,
+                widthIncrement,
+                heightIncrement,
+              });
 
               // Generate a single ID for all three related annotations
               const annotationId = randomUUID().slice(0, 10);
               const polygonPoints = points.map(([x, y]) => [
-                ((x ?? 0) / original_width) * 100,
-                ((y ?? 0) / original_height) * 100,
+                roundToPrecision(((x ?? 0) / original_width) * 100, precision),
+                roundToPrecision(((y ?? 0) / original_height) * 100, precision),
               ]);
 
               // Create result items: polygon, labels, and textarea
@@ -209,6 +241,10 @@ export const ppocrToMinLabelStudio = (
   baseServerUrl: string,
   inputDir?: string,
   labelName: string = 'text',
+  normalizeShape?: ShapeNormalizeOption,
+  widthIncrement: number = 0,
+  heightIncrement: number = 0,
+  precision: number = DEFAULT_LABEL_STUDIO_PRECISION,
 ): MinOCRLabelStudio => {
   const newBaseServerUrl =
     baseServerUrl.replace(/\/+$/, '') + (baseServerUrl === '' ? '' : '/');
@@ -237,14 +273,30 @@ export const ppocrToMinLabelStudio = (
   original_height = dimensions.height;
 
   return data.map((item, index) => {
-    const { points } = item;
+    let { points } = item;
 
-    // Calculate bbox from points
+    // Apply geometry transformations
+    points = transformPoints(points as Point[], {
+      normalizeShape,
+      widthIncrement,
+      heightIncrement,
+    });
+
+    // Round coordinates based on precision first
+    const roundedPoints = points.map(
+      ([x, y]) =>
+        [
+          roundToPrecision(x ?? 0, precision),
+          roundToPrecision(y ?? 0, precision),
+        ] as [number, number],
+    );
+
+    // Calculate bbox from rounded points
     let minX = Infinity;
     let minY = Infinity;
     let maxX = -Infinity;
     let maxY = -Infinity;
-    for (const point of points) {
+    for (const point of roundedPoints) {
       const [x, y] = point;
       if (x !== undefined && y !== undefined) {
         minX = Math.min(minX, x);
@@ -264,8 +316,8 @@ export const ppocrToMinLabelStudio = (
         {
           x: minX,
           y: minY,
-          width,
-          height,
+          width: width,
+          height: height,
           rotation: 0,
           original_width,
           original_height,
@@ -273,7 +325,7 @@ export const ppocrToMinLabelStudio = (
       ],
       label: [
         {
-          points: points,
+          points: roundedPoints,
           closed: true,
           labels: [labelName],
           original_width,
@@ -283,7 +335,7 @@ export const ppocrToMinLabelStudio = (
       transcription: [item.transcription],
       poly: [
         {
-          points: points,
+          points: roundedPoints,
           closed: true,
           original_width,
           original_height,

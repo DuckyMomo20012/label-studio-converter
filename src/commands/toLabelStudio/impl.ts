@@ -6,12 +6,18 @@ import {
   DEFAULT_CREATE_FILE_LIST_FOR_SERVING,
   DEFAULT_CREATE_FILE_PER_IMAGE,
   DEFAULT_FILE_LIST_NAME,
+  DEFAULT_HEIGHT_INCREMENT,
   DEFAULT_LABEL_NAME,
   DEFAULT_LABEL_STUDIO_FULL_JSON,
+  DEFAULT_LABEL_STUDIO_PRECISION,
+  DEFAULT_SHAPE_NORMALIZE,
   DEFAULT_SORT_HORIZONTAL,
   DEFAULT_SORT_VERTICAL,
+  DEFAULT_WIDTH_INCREMENT,
   type HorizontalSortOrder,
   OUTPUT_BASE_DIR,
+  SHAPE_NORMALIZE_NONE,
+  type ShapeNormalizeOption,
   type VerticalSortOrder,
 } from '@/constants';
 import type { LocalContext } from '@/context';
@@ -29,6 +35,10 @@ interface CommandFlags {
   baseServerUrl?: string;
   sortVertical?: string;
   sortHorizontal?: string;
+  normalizeShape?: string;
+  widthIncrement?: number;
+  heightIncrement?: number;
+  precision?: number;
 }
 
 export async function convertToLabelStudio(
@@ -46,6 +56,10 @@ export async function convertToLabelStudio(
     baseServerUrl = DEFAULT_BASE_SERVER_URL,
     sortVertical = DEFAULT_SORT_VERTICAL,
     sortHorizontal = DEFAULT_SORT_HORIZONTAL,
+    normalizeShape = DEFAULT_SHAPE_NORMALIZE,
+    widthIncrement = DEFAULT_WIDTH_INCREMENT,
+    heightIncrement = DEFAULT_HEIGHT_INCREMENT,
+    precision = DEFAULT_LABEL_STUDIO_PRECISION,
   } = flags;
 
   // NOTE: Ensure baseServerUrl ends with a single slash, but keeps empty string
@@ -118,6 +132,13 @@ export async function convertToLabelStudio(
             inputDir,
             taskId,
             labelName: defaultLabelName,
+            normalizeShape:
+              normalizeShape !== SHAPE_NORMALIZE_NONE
+                ? (normalizeShape as ShapeNormalizeOption)
+                : undefined,
+            widthIncrement,
+            heightIncrement,
+            precision,
           });
 
           if (toFullJson) {
