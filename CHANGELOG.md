@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.0](https://github.com/DuckyMomo20012/label-studio-converter/compare/v1.1.0...v1.2.0) (2026-01-10)
+
+
+### Features
+
+* add label studio & ppocr enhancer ([18900a3](https://github.com/DuckyMomo20012/label-studio-converter/commit/18900a30adad53877908412fe5ac6447e0ac430a))
+
+
+### Bug Fixes
+
+* update command instructions ([74a4b78](https://github.com/DuckyMomo20012/label-studio-converter/commit/74a4b78b618edea6515952f3cb173d3c10febc19))
+
 ## [1.1.0](https://github.com/DuckyMomo20012/label-studio-converter/compare/v1.0.0...v1.1.0) (2026-01-09)
 
 
