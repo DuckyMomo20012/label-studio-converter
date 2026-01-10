@@ -255,13 +255,13 @@ USAGE
 Convert PPOCRLabel files to Label Studio format
 
 FLAGS
-     [--outDir]                                                 Output directory. Default to "./output"
-     [--defaultLabelName]                                       Default label name for text annotations. Default to "Text"
-     [--toFullJson/--noToFullJson]                              Convert to Full OCR Label Studio format. Default to "true"
-     [--createFilePerImage/--noCreateFilePerImage]              Create a separate Label Studio JSON file for each image. Default to "false"
-     [--createFileListForServing/--noCreateFileListForServing]  Create a file list for serving in Label Studio. Default to "true"
-     [--fileListName]                                           Name of the file list for serving. Default to "files.txt"
-     [--baseServerUrl]                                          Base server URL for constructing image URLs in the file list. Default to "http://localhost:8081"
+     [--outDir]                                                 Output directory. Default: "./output"
+     [--defaultLabelName]                                       Default label name for text annotations. Default: "Text"
+     [--toFullJson/--noToFullJson]                              Convert to Full OCR Label Studio format. Default: "true"
+     [--createFilePerImage/--noCreateFilePerImage]              Create a separate Label Studio JSON file for each image. Default: "false"
+     [--createFileListForServing/--noCreateFileListForServing]  Create a file list for serving in Label Studio. Default: "true"
+     [--fileListName]                                           Name of the file list for serving. Default: "files.txt"
+     [--baseServerUrl]                                          Base server URL for constructing image URLs in the file list. Default: "http://localhost:8081"
      [--sortVertical]                                           Sort bounding boxes vertically. Options: "none" (default), "top-bottom", "bottom-top"
      [--sortHorizontal]                                         Sort bounding boxes horizontally. Options: "none" (default), "ltr", "rtl"
      [--normalizeShape]                                         Normalize diamond-like shapes to axis-aligned rectangles. Options: "none" (default), "rectangle"
@@ -284,8 +284,8 @@ USAGE
 Convert Label Studio files to PPOCRLabel format
 
 FLAGS
-     [--outDir]           Output directory. Default to "./output"
-     [--fileName]         Output PPOCR file name. Default to "Label.txt"
+     [--outDir]           Output directory. Default: "./output"
+     [--fileName]         Output PPOCR file name. Default: "Label.txt"
      [--baseImageDir]     Base directory path to prepend to image filenames in output (e.g., "ch" or "images/ch")
      [--sortVertical]     Sort bounding boxes vertically. Options: "none" (default), "top-bottom", "bottom-top"
      [--sortHorizontal]   Sort bounding boxes horizontally. Options: "none" (default), "ltr", "rtl"
@@ -310,7 +310,7 @@ USAGE
 Enhance Label Studio files with sorting, normalization, and resizing
 
 FLAGS
-     [--outDir]           Output directory. Default to "./output"
+     [--outDir]           Output directory. Default: "./output"
      [--sortVertical]     Sort bounding boxes vertically. Options: "none" (default), "top-bottom", "bottom-top"
      [--sortHorizontal]   Sort bounding boxes horizontally. Options: "none" (default), "ltr", "rtl"
      [--normalizeShape]   Normalize diamond-like shapes to axis-aligned rectangles. Options: "none" (default), "rectangle"
@@ -333,7 +333,7 @@ USAGE
 Enhance PPOCRLabel files with sorting, normalization, and resizing
 
 FLAGS
-     [--outDir]           Output directory. Default to "./output"
+     [--outDir]           Output directory. Default: "./output"
      [--sortVertical]     Sort bounding boxes vertically. Options: "none" (default), "top-bottom", "bottom-top"
      [--sortHorizontal]   Sort bounding boxes horizontally. Options: "none" (default), "ltr", "rtl"
      [--normalizeShape]   Normalize diamond-like shapes to axis-aligned rectangles. Options: "none" (default), "rectangle"

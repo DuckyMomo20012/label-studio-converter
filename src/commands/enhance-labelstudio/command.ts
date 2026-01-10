@@ -2,6 +2,9 @@ import { buildCommand } from '@stricli/core';
 import {
   DEFAULT_HEIGHT_INCREMENT,
   DEFAULT_LABEL_STUDIO_PRECISION,
+  DEFAULT_SHAPE_NORMALIZE,
+  DEFAULT_SORT_HORIZONTAL,
+  DEFAULT_SORT_VERTICAL,
   DEFAULT_WIDTH_INCREMENT,
   OUTPUT_BASE_DIR,
   SHAPE_NORMALIZE_NONE,
@@ -31,25 +34,25 @@ export const enhanceLabelStudioCommand = buildCommand({
     flags: {
       outDir: {
         kind: 'parsed',
-        brief: `Output directory. Default to "${OUTPUT_BASE_DIR}"`,
+        brief: `Output directory. Default: "${OUTPUT_BASE_DIR}"`,
         parse: String,
         optional: true,
       },
       sortVertical: {
         kind: 'parsed',
-        brief: `Sort bounding boxes vertically. Options: "${SORT_VERTICAL_NONE}" (default), "${SORT_VERTICAL_TOP_BOTTOM}", "${SORT_VERTICAL_BOTTOM_TOP}"`,
+        brief: `Sort bounding boxes vertically. Options: "${SORT_VERTICAL_NONE}", "${SORT_VERTICAL_TOP_BOTTOM}", "${SORT_VERTICAL_BOTTOM_TOP}". Default: "${DEFAULT_SORT_VERTICAL}"`,
         parse: String,
         optional: true,
       },
       sortHorizontal: {
         kind: 'parsed',
-        brief: `Sort bounding boxes horizontally. Options: "${SORT_HORIZONTAL_NONE}" (default), "${SORT_HORIZONTAL_LTR}", "${SORT_HORIZONTAL_RTL}"`,
+        brief: `Sort bounding boxes horizontally. Options: "${SORT_HORIZONTAL_NONE}", "${SORT_HORIZONTAL_LTR}", "${SORT_HORIZONTAL_RTL}". Default: "${DEFAULT_SORT_HORIZONTAL}"`,
         parse: String,
         optional: true,
       },
       normalizeShape: {
         kind: 'parsed',
-        brief: `Normalize diamond-like shapes to axis-aligned rectangles. Options: "${SHAPE_NORMALIZE_NONE}" (default), "${SHAPE_NORMALIZE_RECTANGLE}"`,
+        brief: `Normalize diamond-like shapes to axis-aligned rectangles. Options: "${SHAPE_NORMALIZE_NONE}", "${SHAPE_NORMALIZE_RECTANGLE}". Default: "${DEFAULT_SHAPE_NORMALIZE}"`,
         parse: String,
         optional: true,
       },
