@@ -10,9 +10,9 @@ import {
 } from '../src/lib/schema';
 
 describe('Full Label Studio Format - Fixtures', () => {
-  it('should convert full_label_studio_one_rect.json with transcription', async () => {
+  it('should convert label_studio_full_one_rect.json with transcription', async () => {
     const fileContent = await readFile(
-      './test/fixtures/full_label_studio_one_rect.json',
+      './test/fixtures/label_studio_full_one_rect.json',
       'utf-8',
     );
     const input = FullOCRLabelStudioSchema.parse(JSON.parse(fileContent));
@@ -26,9 +26,9 @@ describe('Full Label Studio Format - Fixtures', () => {
     expect(annotations![0]!.points).toHaveLength(4); // Rectangle has 4 points
   });
 
-  it('should convert full_label_studio_one_poly.json with transcription', async () => {
+  it('should convert label_studio_full_one_poly.json with transcription', async () => {
     const fileContent = await readFile(
-      './test/fixtures/full_label_studio_one_poly.json',
+      './test/fixtures/label_studio_full_one_poly.json',
       'utf-8',
     );
     const input = FullOCRLabelStudioSchema.parse(JSON.parse(fileContent));
@@ -42,9 +42,9 @@ describe('Full Label Studio Format - Fixtures', () => {
     expect(annotations![0]!.points).toHaveLength(4); // Polygon has 4 points
   });
 
-  it('should convert full_label_studio_3point_rect.json without transcription', async () => {
+  it('should convert label_studio_full_3point_rect.json without transcription', async () => {
     const fileContent = await readFile(
-      './test/fixtures/full_label_studio_3point_rect.json',
+      './test/fixtures/label_studio_full_3point_rect.json',
       'utf-8',
     );
     const input = FullOCRLabelStudioSchema.parse(JSON.parse(fileContent));
@@ -58,9 +58,9 @@ describe('Full Label Studio Format - Fixtures', () => {
     expect(annotations![0]!.points).toHaveLength(4); // Rectangle
   });
 
-  it('should convert full_label_studio_poly_multi.json (processes annotations, not drafts)', async () => {
+  it('should convert label_studio_full_poly_multi.json (processes annotations, not drafts)', async () => {
     const fileContent = await readFile(
-      './test/fixtures/full_label_studio_poly_multi.json',
+      './test/fixtures/label_studio_full_poly_multi.json',
       'utf-8',
     );
     const input = FullOCRLabelStudioSchema.parse(JSON.parse(fileContent));
@@ -75,9 +75,9 @@ describe('Full Label Studio Format - Fixtures', () => {
     expect(annotations![0]!.points).toHaveLength(4); // Rectangle
   });
 
-  it('should convert full_label_studio_all.json with multiple annotations', async () => {
+  it('should convert label_studio_full_all.json with multiple annotations', async () => {
     const fileContent = await readFile(
-      './test/fixtures/full_label_studio_all.json',
+      './test/fixtures/label_studio_full_all.json',
       'utf-8',
     );
     const input = FullOCRLabelStudioSchema.parse(JSON.parse(fileContent));
@@ -91,9 +91,9 @@ describe('Full Label Studio Format - Fixtures', () => {
     expect(annotations![1]!.transcription).toBe('UNSTABLE ANGINA');
   });
 
-  it('should handle full_label_studio_no_anno.json with empty annotations', async () => {
+  it('should handle label_studio_full_no_anno.json with empty annotations', async () => {
     const fileContent = await readFile(
-      './test/fixtures/full_label_studio_no_anno.json',
+      './test/fixtures/label_studio_full_no_anno.json',
       'utf-8',
     );
     const input = FullOCRLabelStudioSchema.parse(JSON.parse(fileContent));
@@ -104,9 +104,9 @@ describe('Full Label Studio Format - Fixtures', () => {
     expect(result.size).toBe(0);
   });
 
-  it('should convert full_label_studio_diamond.json with diamond shape', async () => {
+  it('should convert label_studio_full_diamond.json with diamond shape', async () => {
     const fileContent = await readFile(
-      './test/fixtures/full_label_studio_diamond.json',
+      './test/fixtures/label_studio_full_diamond.json',
       'utf-8',
     );
     const input = FullOCRLabelStudioSchema.parse(JSON.parse(fileContent));
@@ -120,9 +120,9 @@ describe('Full Label Studio Format - Fixtures', () => {
     expect(annotations![0]!.points).toHaveLength(4); // Diamond has 4 points
   });
 
-  it('should convert full_label_studio_diamond_vert.json with vertical diamond shape', async () => {
+  it('should convert label_studio_full_diamond_vert.json with vertical diamond shape', async () => {
     const fileContent = await readFile(
-      './test/fixtures/full_label_studio_diamond_vert.json',
+      './test/fixtures/label_studio_full_diamond_vert.json',
       'utf-8',
     );
     const input = FullOCRLabelStudioSchema.parse(JSON.parse(fileContent));
@@ -138,9 +138,9 @@ describe('Full Label Studio Format - Fixtures', () => {
 });
 
 describe('Min Label Studio Format - Fixtures', () => {
-  it('should convert min_label_studio_one_rect.json with transcription', async () => {
+  it('should convert label_studio_min_one_rect.json with transcription', async () => {
     const fileContent = await readFile(
-      './test/fixtures/min_label_studio_one_rect.json',
+      './test/fixtures/label_studio_min_one_rect.json',
       'utf-8',
     );
     const input = MinOCRLabelStudioSchema.parse(JSON.parse(fileContent));
@@ -154,9 +154,9 @@ describe('Min Label Studio Format - Fixtures', () => {
     expect(annotations![0]!.points).toHaveLength(4);
   });
 
-  it('should convert min_label_studio_one_poly.json with transcription', async () => {
+  it('should convert label_studio_min_one_poly.json with transcription', async () => {
     const fileContent = await readFile(
-      './test/fixtures/min_label_studio_one_poly.json',
+      './test/fixtures/label_studio_min_one_poly.json',
       'utf-8',
     );
     const input = MinOCRLabelStudioSchema.parse(JSON.parse(fileContent));
@@ -170,9 +170,9 @@ describe('Min Label Studio Format - Fixtures', () => {
     expect(annotations![0]!.points).toHaveLength(4);
   });
 
-  it('should convert min_label_studio_3point_rect.json without transcription', async () => {
+  it('should convert label_studio_min_3point_rect.json without transcription', async () => {
     const fileContent = await readFile(
-      './test/fixtures/min_label_studio_3point_rect.json',
+      './test/fixtures/label_studio_min_3point_rect.json',
       'utf-8',
     );
     const input = MinOCRLabelStudioSchema.parse(JSON.parse(fileContent));
@@ -185,9 +185,9 @@ describe('Min Label Studio Format - Fixtures', () => {
     expect(annotations![0]!.transcription).toBe(''); // No transcription
   });
 
-  it('should convert min_label_studio_poly_multi.json without transcription', async () => {
+  it('should convert label_studio_min_poly_multi.json without transcription', async () => {
     const fileContent = await readFile(
-      './test/fixtures/min_label_studio_poly_multi.json',
+      './test/fixtures/label_studio_min_poly_multi.json',
       'utf-8',
     );
     const input = MinOCRLabelStudioSchema.parse(JSON.parse(fileContent));
@@ -200,9 +200,9 @@ describe('Min Label Studio Format - Fixtures', () => {
     expect(annotations![0]!.transcription).toBe('');
   });
 
-  it('should convert min_label_studio_all.json with multiple annotations', async () => {
+  it('should convert label_studio_min_all.json with multiple annotations', async () => {
     const fileContent = await readFile(
-      './test/fixtures/min_label_studio_all.json',
+      './test/fixtures/label_studio_min_all.json',
       'utf-8',
     );
     const input = MinOCRLabelStudioSchema.parse(JSON.parse(fileContent));
@@ -216,9 +216,9 @@ describe('Min Label Studio Format - Fixtures', () => {
     expect(annotations![1]!.transcription).toBe('UNSTABLE ANGINA');
   });
 
-  it('should handle min_label_studio_no_anno.json with no bbox/poly', async () => {
+  it('should handle label_studio_min_no_anno.json with no bbox/poly', async () => {
     const fileContent = await readFile(
-      './test/fixtures/min_label_studio_no_anno.json',
+      './test/fixtures/label_studio_min_no_anno.json',
       'utf-8',
     );
     const input = MinOCRLabelStudioSchema.parse(JSON.parse(fileContent));
@@ -229,9 +229,9 @@ describe('Min Label Studio Format - Fixtures', () => {
     expect(result.size).toBe(0);
   });
 
-  it('should convert min_label_studio_diamond.json with diamond shape', async () => {
+  it('should convert label_studio_min_diamond.json with diamond shape', async () => {
     const fileContent = await readFile(
-      './test/fixtures/min_label_studio_diamond.json',
+      './test/fixtures/label_studio_min_diamond.json',
       'utf-8',
     );
     const input = MinOCRLabelStudioSchema.parse(JSON.parse(fileContent));
@@ -245,9 +245,9 @@ describe('Min Label Studio Format - Fixtures', () => {
     expect(annotations![0]!.points).toHaveLength(4); // Diamond has 4 points
   });
 
-  it('should convert min_label_studio_diamond_vert.json with vertical diamond shape', async () => {
+  it('should convert label_studio_min_diamond_vert.json with vertical diamond shape', async () => {
     const fileContent = await readFile(
-      './test/fixtures/min_label_studio_diamond_vert.json',
+      './test/fixtures/label_studio_min_diamond_vert.json',
       'utf-8',
     );
     const input = MinOCRLabelStudioSchema.parse(JSON.parse(fileContent));
@@ -265,14 +265,14 @@ describe('Min Label Studio Format - Fixtures', () => {
 describe('Schema Validation', () => {
   it('should parse all full format fixtures without errors', async () => {
     const fixtures = [
-      'full_label_studio_one_rect.json',
-      'full_label_studio_one_poly.json',
-      'full_label_studio_3point_rect.json',
-      'full_label_studio_poly_multi.json',
-      'full_label_studio_all.json',
-      'full_label_studio_no_anno.json',
-      'full_label_studio_diamond.json',
-      'full_label_studio_diamond_vert.json',
+      'label_studio_full_one_rect.json',
+      'label_studio_full_one_poly.json',
+      'label_studio_full_3point_rect.json',
+      'label_studio_full_poly_multi.json',
+      'label_studio_full_all.json',
+      'label_studio_full_no_anno.json',
+      'label_studio_full_diamond.json',
+      'label_studio_full_diamond_vert.json',
     ];
 
     for (const fixture of fixtures) {
@@ -286,14 +286,14 @@ describe('Schema Validation', () => {
 
   it('should parse all min format fixtures without errors', async () => {
     const fixtures = [
-      'min_label_studio_one_rect.json',
-      'min_label_studio_one_poly.json',
-      'min_label_studio_3point_rect.json',
-      'min_label_studio_poly_multi.json',
-      'min_label_studio_all.json',
-      'min_label_studio_no_anno.json',
-      'min_label_studio_diamond.json',
-      'min_label_studio_diamond_vert.json',
+      'label_studio_min_one_rect.json',
+      'label_studio_min_one_poly.json',
+      'label_studio_min_3point_rect.json',
+      'label_studio_min_poly_multi.json',
+      'label_studio_min_all.json',
+      'label_studio_min_no_anno.json',
+      'label_studio_min_diamond.json',
+      'label_studio_min_diamond_vert.json',
     ];
 
     for (const fixture of fixtures) {
