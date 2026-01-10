@@ -4,6 +4,8 @@ import {
 } from '@stricli/auto-complete';
 import { buildApplication, buildRouteMap } from '@stricli/core';
 import { description, version } from '@/../package.json';
+import { enhanceLabelStudioCommand } from '@/commands/enhance-labelstudio/command';
+import { enhancePPOCRCommand } from '@/commands/enhance-ppocr/command';
 import { toLabelStudioCommand } from '@/commands/toLabelStudio/command';
 import { toPPOCRCommand } from '@/commands/toPPOCR/commands';
 
@@ -11,6 +13,8 @@ const routes = buildRouteMap({
   routes: {
     toLabelStudio: toLabelStudioCommand,
     toPPOCR: toPPOCRCommand,
+    'enhance-labelstudio': enhanceLabelStudioCommand,
+    'enhance-ppocr': enhancePPOCRCommand,
     install: buildInstallCommand('label-studio-converter', {
       bash: '__label-studio-converter_bash_complete',
     }),

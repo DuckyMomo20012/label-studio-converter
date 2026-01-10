@@ -1,5 +1,6 @@
 import * as turf from '@turf/turf';
 import { type ShapeNormalizeOption } from '@/constants';
+import { type EnhancementOptions, enhancePPOCRLabel } from '@/lib/enhance';
 import { type Point, roundPoints, transformPoints } from '@/lib/geometry';
 import {
   type FullOCRLabelStudio,
@@ -261,4 +262,237 @@ export const minLabelStudioToPPOCR = async (
   }
 
   return resultMap;
+};
+
+/**
+ * Enhance Label Studio data (both Full and Min formats) with sorting, normalization, and resizing
+ */
+export const enhanceLabelStudioData = async (
+  data: FullOCRLabelStudio | MinOCRLabelStudio,
+  isFull: boolean,
+  options: EnhancementOptions,
+): Promise<FullOCRLabelStudio | MinOCRLabelStudio> => {
+  const {
+    sortVertical,
+    sortHorizontal,
+    normalizeShape,
+    widthIncrement = 0,
+    heightIncrement = 0,
+    precision = 0,
+  } = options;
+
+  if (isFull) {
+    const fullData = data as FullOCRLabelStudio;
+    return fullData.map((task) => ({
+      ...task,
+      annotations: task.annotations.map((annotation) => {
+        // Group result items by their ID
+        const groupedById = new Map<string, typeof annotation.result>();
+
+        for (const resultItem of annotation.result) {
+          const { id } = resultItem;
+          if (!groupedById.has(id)) {
+            groupedById.set(id, []);
+          }
+          groupedById.get(id)!.push(resultItem);
+        }
+
+        // Process each group and enhance
+        const enhancedResult: typeof annotation.result = [];
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        for (const [_, resultItems] of groupedById) {
+          // Collect all items in group to extract points
+          let ppocrAnnotations: PPOCRLabel = [];
+
+          for (const resultItem of resultItems) {
+            let points: number[][] | undefined;
+
+            // Extract points
+            if ('points' in resultItem.value && resultItem.value.points) {
+              const { points: valuePoints } = resultItem.value;
+              const { original_width, original_height } = resultItem;
+
+              points = valuePoints.map(([x, y]) => [
+                ((x ?? 0) * original_width) / 100,
+                ((y ?? 0) * original_height) / 100,
+              ]);
+            } else if (
+              'x' in resultItem.value &&
+              'y' in resultItem.value &&
+              'width' in resultItem.value &&
+              'height' in resultItem.value
+            ) {
+              const { x, y, width, height } = resultItem.value;
+              const { original_width, original_height } = resultItem;
+
+              const absX = (x * original_width) / 100;
+              const absY = (y * original_height) / 100;
+              const absWidth = (width * original_width) / 100;
+              const absHeight = (height * original_height) / 100;
+
+              points = [
+                [absX, absY],
+                [absX + absWidth, absY],
+                [absX + absWidth, absY + absHeight],
+                [absX, absY + absHeight],
+              ];
+            }
+
+            if (points) {
+              ppocrAnnotations.push({
+                transcription: '',
+                points: points as Point[],
+                dt_score: 1.0,
+              });
+            }
+          }
+
+          // Apply enhancements
+          if (ppocrAnnotations.length > 0) {
+            ppocrAnnotations = enhancePPOCRLabel(ppocrAnnotations, {
+              sortVertical,
+              sortHorizontal,
+              normalizeShape,
+              widthIncrement,
+              heightIncrement,
+              precision,
+            });
+
+            // Convert back to Label Studio format
+            for (let i = 0; i < resultItems.length; i++) {
+              const resultItem = resultItems[i]!;
+              const enhanced = ppocrAnnotations[i];
+
+              if (!enhanced) {
+                enhancedResult.push(resultItem);
+                continue;
+              }
+
+              // Update the points in the result item
+              if ('points' in resultItem.value && resultItem.value.points) {
+                const { original_width, original_height } = resultItem;
+
+                enhancedResult.push({
+                  ...resultItem,
+                  value: {
+                    ...resultItem.value,
+                    points: enhanced.points.map(
+                      ([x, y]) =>
+                        [
+                          ((x ?? 0) / original_width) * 100,
+                          ((y ?? 0) / original_height) * 100,
+                        ] as [number, number],
+                    ),
+                  },
+                });
+              } else if (
+                'x' in resultItem.value &&
+                'y' in resultItem.value &&
+                'width' in resultItem.value &&
+                'height' in resultItem.value
+              ) {
+                // Convert back to bbox format
+                const { original_width, original_height } = resultItem;
+                const xs = enhanced.points.map(([x]) => x ?? 0);
+                const ys = enhanced.points.map(([, y]) => y ?? 0);
+                const minX = Math.min(...xs);
+                const maxX = Math.max(...xs);
+                const minY = Math.min(...ys);
+                const maxY = Math.max(...ys);
+
+                enhancedResult.push({
+                  ...resultItem,
+                  value: {
+                    ...resultItem.value,
+                    x: (minX / original_width) * 100,
+                    y: (minY / original_height) * 100,
+                    width: ((maxX - minX) / original_width) * 100,
+                    height: ((maxY - minY) / original_height) * 100,
+                  },
+                });
+              } else {
+                enhancedResult.push(resultItem);
+              }
+            }
+          } else {
+            enhancedResult.push(...resultItems);
+          }
+        }
+
+        return {
+          ...annotation,
+          result: enhancedResult,
+        };
+      }),
+    }));
+  } else {
+    // Handle MinOCRLabelStudio format
+    const minData = data as MinOCRLabelStudio;
+    return minData.map((item) => {
+      // Collect all points from poly/bbox
+      let ppocrAnnotations: PPOCRLabel = [];
+
+      const numAnnotations = Math.max(
+        item.poly?.length || 0,
+        item.bbox?.length || 0,
+        item.transcription?.length || 0,
+      );
+
+      for (let i = 0; i < numAnnotations; i++) {
+        let points: number[][] | undefined;
+
+        if (item.poly && item.poly.length > i && item.poly[i]) {
+          const { points: polyPoints } = item.poly[i]!;
+          points = polyPoints;
+        } else if (item.bbox && item.bbox.length > i && item.bbox[i]) {
+          const { x, y, width, height } = item.bbox[i]!;
+          points = [
+            [x, y],
+            [x + width, y],
+            [x + width, y + height],
+            [x, y + height],
+          ];
+        }
+
+        if (points) {
+          ppocrAnnotations.push({
+            transcription:
+              item.transcription && item.transcription.length > i
+                ? (item.transcription[i] ?? '')
+                : '',
+            points: points as Point[],
+            dt_score: 1.0,
+          });
+        }
+      }
+
+      // Apply enhancements
+      if (ppocrAnnotations.length > 0) {
+        ppocrAnnotations = enhancePPOCRLabel(ppocrAnnotations, {
+          sortVertical,
+          sortHorizontal,
+          normalizeShape,
+          widthIncrement,
+          heightIncrement,
+          precision,
+        });
+
+        // Convert back to min format
+        const newPoly = ppocrAnnotations.map((ann) => ({
+          points: ann.points,
+        }));
+
+        // Return updated item with poly (omit bbox)
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const { bbox: _, ...itemWithoutBbox } = item;
+        return {
+          ...itemWithoutBbox,
+          poly: newPoly,
+        };
+      }
+
+      return item;
+    }) as MinOCRLabelStudio;
+  }
 };

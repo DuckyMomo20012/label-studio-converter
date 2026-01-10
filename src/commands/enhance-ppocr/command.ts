@@ -1,7 +1,6 @@
 import { buildCommand } from '@stricli/core';
 import {
   DEFAULT_HEIGHT_INCREMENT,
-  DEFAULT_PPOCR_FILE_NAME,
   DEFAULT_PPOCR_PRECISION,
   DEFAULT_SHAPE_NORMALIZE,
   DEFAULT_SORT_HORIZONTAL,
@@ -18,16 +17,16 @@ import {
   SORT_VERTICAL_TOP_BOTTOM,
 } from '@/constants';
 
-export const toPPOCRCommand = buildCommand({
+export const enhancePPOCRCommand = buildCommand({
   loader: async () => {
-    const { convertToPPOCR } = await import('./impl');
-    return convertToPPOCR;
+    const { enhancePPOCR } = await import('./impl');
+    return enhancePPOCR;
   },
   parameters: {
     positional: {
       kind: 'array',
       parameter: {
-        brief: 'Input directories containing Label Studio files',
+        brief: 'Input directories containing PPOCRLabel files',
         parse: String,
       },
       minimum: 1,
@@ -36,19 +35,6 @@ export const toPPOCRCommand = buildCommand({
       outDir: {
         kind: 'parsed',
         brief: `Output directory. Default: "${OUTPUT_BASE_DIR}"`,
-        parse: String,
-        optional: true,
-      },
-      fileName: {
-        kind: 'parsed',
-        brief: `Output PPOCR file name. Default: "${DEFAULT_PPOCR_FILE_NAME}"`,
-        parse: String,
-        optional: true,
-      },
-      baseImageDir: {
-        kind: 'parsed',
-        brief:
-          'Base directory path to prepend to image filenames in output (e.g., "ch" or "images/ch")',
         parse: String,
         optional: true,
       },
@@ -91,6 +77,6 @@ export const toPPOCRCommand = buildCommand({
     },
   },
   docs: {
-    brief: 'Convert Label Studio files to PPOCRLabel format',
+    brief: 'Enhance PPOCRLabel files with sorting, normalization, and resizing',
   },
 });

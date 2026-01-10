@@ -344,7 +344,8 @@ export const PPOCRLabelSchema = z.array(
   z.object({
     transcription: z.string(),
     points: z.array(z.array(z.number())),
-    dt_score: z.number(),
+    dt_score: z.number().optional(), // Detection score (from PaddleOCR)
+    difficult: z.boolean().optional(), // Difficult flag (from PPOCRLabel tool)
   }),
 );
 

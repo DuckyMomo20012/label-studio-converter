@@ -1,8 +1,7 @@
 import { buildCommand } from '@stricli/core';
 import {
   DEFAULT_HEIGHT_INCREMENT,
-  DEFAULT_PPOCR_FILE_NAME,
-  DEFAULT_PPOCR_PRECISION,
+  DEFAULT_LABEL_STUDIO_PRECISION,
   DEFAULT_SHAPE_NORMALIZE,
   DEFAULT_SORT_HORIZONTAL,
   DEFAULT_SORT_VERTICAL,
@@ -18,16 +17,16 @@ import {
   SORT_VERTICAL_TOP_BOTTOM,
 } from '@/constants';
 
-export const toPPOCRCommand = buildCommand({
+export const enhanceLabelStudioCommand = buildCommand({
   loader: async () => {
-    const { convertToPPOCR } = await import('./impl');
-    return convertToPPOCR;
+    const { enhanceLabelStudio } = await import('./impl');
+    return enhanceLabelStudio;
   },
   parameters: {
     positional: {
       kind: 'array',
       parameter: {
-        brief: 'Input directories containing Label Studio files',
+        brief: 'Input directories containing Label Studio JSON files',
         parse: String,
       },
       minimum: 1,
@@ -36,19 +35,6 @@ export const toPPOCRCommand = buildCommand({
       outDir: {
         kind: 'parsed',
         brief: `Output directory. Default: "${OUTPUT_BASE_DIR}"`,
-        parse: String,
-        optional: true,
-      },
-      fileName: {
-        kind: 'parsed',
-        brief: `Output PPOCR file name. Default: "${DEFAULT_PPOCR_FILE_NAME}"`,
-        parse: String,
-        optional: true,
-      },
-      baseImageDir: {
-        kind: 'parsed',
-        brief:
-          'Base directory path to prepend to image filenames in output (e.g., "ch" or "images/ch")',
         parse: String,
         optional: true,
       },
@@ -84,13 +70,14 @@ export const toPPOCRCommand = buildCommand({
       },
       precision: {
         kind: 'parsed',
-        brief: `Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: ${DEFAULT_PPOCR_PRECISION} (integers)`,
+        brief: `Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: ${DEFAULT_LABEL_STUDIO_PRECISION}`,
         parse: Number,
         optional: true,
       },
     },
   },
   docs: {
-    brief: 'Convert Label Studio files to PPOCRLabel format',
+    brief:
+      'Enhance Label Studio files with sorting, normalization, and resizing',
   },
 });

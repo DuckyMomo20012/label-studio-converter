@@ -34,14 +34,17 @@
   },
   "scripts": {
     "prepare": "husky",
-    "lint": "tsc",
+    "type-check": "tsc --noEmit",
+    "lint": "eslint src/",
+    "lint:fix": "eslint src/ --fix",
     "build": "tsc && tsup",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm",
-    "prepublish": "pnpm run build && pnpm run check-exports && pnpm run lint",
+    "check-all": "pnpm run type-check && pnpm run lint && pnpm run test:run",
+    "prepublish": "pnpm run build && pnpm run check-exports && pnpm run check-all",
     "postinstall": "npx @stricli/auto-complete@latest install label-studio-converter --bash __label-studio-converter_bash_complete"
   },
   "dependencies": {
