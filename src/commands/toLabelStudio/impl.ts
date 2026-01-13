@@ -88,6 +88,15 @@ export async function convertToLabelStudio(
 
   console.log(chalk.blue(`Found ${filePaths.length} files to process\n`));
 
+  // Prepare file list for serving if needed
+  const fileListPath = createFileListForServing
+    ? join(outDir, fileListName)
+    : null;
+  if (fileListPath) {
+    // Clear/create the file list file
+    await writeFile(fileListPath, '', 'utf-8');
+  }
+
   for (const filePath of filePaths) {
     const file = basename(filePath);
     // Image paths in Label.txt are relative to the parent directory of Label.txt
@@ -145,7 +154,6 @@ export async function convertToLabelStudio(
 
       // Convert each image's annotations to Label Studio format
       const allLabelStudioData = [];
-      const fileList: string[] = [];
       let taskId = 1;
 
       for (const [imagePath, ppocrData] of imageDataMap.entries()) {
@@ -209,9 +217,12 @@ export async function convertToLabelStudio(
           );
         }
 
-        // Add to file list for serving
-        if (createFileListForServing) {
-          fileList.push(finalImagePath);
+        // Add to file list for serving (write incrementally)
+        if (fileListPath) {
+          await writeFile(fileListPath, `${finalImagePath}\n`, {
+            encoding: 'utf-8',
+            flag: 'a',
+          });
         }
 
         taskId++;
@@ -234,17 +245,6 @@ export async function convertToLabelStudio(
       );
 
       console.log(chalk.green(`✓ Converted ${file} -> ${outputPath}`));
-
-      // Create file list for serving if requested
-      if (createFileListForServing && fileList.length > 0) {
-        const fileListPath = join(outDir, fileListName);
-        await writeFile(fileListPath, fileList.join('\n'), 'utf-8');
-        console.log(
-          chalk.green(
-            `✓ Created file list: ${fileListPath} (${fileList.length} files)`,
-          ),
-        );
-      }
     } catch (error) {
       console.error(
         chalk.red(`✗ Failed to process ${file}:`),
