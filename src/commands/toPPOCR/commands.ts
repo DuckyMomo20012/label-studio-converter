@@ -1,5 +1,6 @@
 import { buildCommand } from '@stricli/core';
 import {
+  DEFAULT_BACKUP,
   DEFAULT_HEIGHT_INCREMENT,
   DEFAULT_LABEL_STUDIO_FILE_PATTERN,
   DEFAULT_PPOCR_FILE_NAME,
@@ -45,6 +46,11 @@ export const toPPOCRCommand = buildCommand({
         kind: 'parsed',
         brief: `Output PPOCR file name. Default: "${DEFAULT_PPOCR_FILE_NAME}"`,
         parse: String,
+        optional: true,
+      },
+      backup: {
+        kind: 'boolean',
+        brief: `Create backup of existing files before overwriting. Default: ${DEFAULT_BACKUP}`,
         optional: true,
       },
       baseImageDir: {

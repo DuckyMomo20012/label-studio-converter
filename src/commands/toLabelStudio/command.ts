@@ -1,5 +1,6 @@
 import { buildCommand } from '@stricli/core';
 import {
+  DEFAULT_BACKUP,
   DEFAULT_BASE_SERVER_URL,
   DEFAULT_CREATE_FILE_LIST_FOR_SERVING,
   DEFAULT_CREATE_FILE_PER_IMAGE,
@@ -44,6 +45,18 @@ export const toLabelStudioCommand = buildCommand({
         brief:
           'Output directory. If not specified, files are saved in the same directory as the source files',
         parse: String,
+        optional: true,
+      },
+      fileName: {
+        kind: 'parsed',
+        brief:
+          'Custom output filename (without extension). If not specified, uses source filename with format suffix',
+        parse: String,
+        optional: true,
+      },
+      backup: {
+        kind: 'boolean',
+        brief: `Create backup of existing files before overwriting. Default: ${DEFAULT_BACKUP}`,
         optional: true,
       },
       defaultLabelName: {

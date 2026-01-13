@@ -16,6 +16,7 @@ import {
   type VerticalSortOrder,
 } from '@/constants';
 import type { LocalContext } from '@/context';
+import { backupFileIfExists } from '@/lib/backup-utils';
 import { findFiles, getRelativePathFromInputs } from '@/lib/file-utils';
 import { enhanceLabelStudioData } from '@/lib/label-studio';
 import {
@@ -27,6 +28,8 @@ import {
 
 interface CommandFlags {
   outDir?: string;
+  fileName?: string;
+  backup?: boolean;
   sortVertical?: string;
   sortHorizontal?: string;
   normalizeShape?: string;
@@ -73,6 +76,8 @@ export async function enhanceLabelStudio(
 ): Promise<void> {
   const {
     outDir,
+    fileName,
+    backup = false,
     sortVertical = DEFAULT_SORT_VERTICAL,
     sortHorizontal = DEFAULT_SORT_HORIZONTAL,
     normalizeShape = DEFAULT_SHAPE_NORMALIZE,
@@ -128,7 +133,17 @@ export async function enhanceLabelStudio(
         : dirname(filePath);
       await mkdir(outputSubDir, { recursive: true });
 
-      const outputFilePath = join(outputSubDir, file);
+      const outputFileName = fileName || file;
+      const outputFilePath = join(outputSubDir, outputFileName);
+
+      // Backup existing file if requested
+      if (backup) {
+        const backupPath = await backupFileIfExists(outputFilePath);
+        if (backupPath) {
+          console.log(chalk.gray(`  Backed up to: ${backupPath}`));
+        }
+      }
+
       await writeFile(
         outputFilePath,
         JSON.stringify(enhanced, null, 2),

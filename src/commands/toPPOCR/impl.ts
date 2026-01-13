@@ -17,6 +17,7 @@ import {
   type VerticalSortOrder,
 } from '@/constants';
 import type { LocalContext } from '@/context';
+import { backupFileIfExists } from '@/lib/backup-utils';
 import { findFiles, getRelativePathFromInputs } from '@/lib/file-utils';
 import { labelStudioToPPOCR, minLabelStudioToPPOCR } from '@/lib/label-studio';
 import {
@@ -31,6 +32,7 @@ import { sortBoundingBoxes } from '@/lib/sort';
 interface CommandFlags {
   outDir?: string;
   fileName?: string;
+  backup?: boolean;
   baseImageDir?: string;
   sortVertical?: string;
   sortHorizontal?: string;
@@ -79,6 +81,7 @@ export async function convertToPPOCR(
   const {
     outDir,
     fileName = DEFAULT_PPOCR_FILE_NAME,
+    backup = false,
     baseImageDir,
     sortVertical = DEFAULT_SORT_VERTICAL,
     sortHorizontal = DEFAULT_SORT_HORIZONTAL,
@@ -166,6 +169,15 @@ export async function convertToPPOCR(
       await mkdir(outputSubDir, { recursive: true });
 
       const outputPath = join(outputSubDir, `${baseName}_${fileName}`);
+
+      // Backup existing file if requested
+      if (backup) {
+        const backupPath = await backupFileIfExists(outputPath);
+        if (backupPath) {
+          console.log(chalk.gray(`  Backed up to: ${backupPath}`));
+        }
+      }
+
       await writeFile(outputPath, outputLines.join('\n'), 'utf-8');
 
       console.log(chalk.green(`✓ Converted ${file} -> ${outputPath}`));

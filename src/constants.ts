@@ -53,3 +53,8 @@ export const DEFAULT_RECURSIVE = false;
 // Default patterns for matching files - users can customize these
 export const DEFAULT_PPOCR_FILE_PATTERN = '.*\\.txt$'; // Recommended: match .txt files
 export const DEFAULT_LABEL_STUDIO_FILE_PATTERN = '.*\\.json$'; // Recommended: match .json files
+
+// Backup options
+export const DEFAULT_BACKUP = false;
+export const BACKUP_SUFFIX_PREFIX = 'backup-';
+export const BACKUP_TIMESTAMP_FORMAT = 'YYYY-MM-DDTHH-MM-SS'; // ISO format with colons replaced by hyphens

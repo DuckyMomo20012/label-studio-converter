@@ -22,6 +22,7 @@ import {
   type VerticalSortOrder,
 } from '@/constants';
 import type { LocalContext } from '@/context';
+import { backupFileIfExists } from '@/lib/backup-utils';
 import { findFiles, getRelativePathFromInputs } from '@/lib/file-utils';
 import { ppocrToLabelStudio } from '@/lib/ppocr-label';
 import { type PPOCRLabel, PPOCRLabelSchema } from '@/lib/schema';
@@ -29,6 +30,8 @@ import { sortBoundingBoxes } from '@/lib/sort';
 
 interface CommandFlags {
   outDir?: string;
+  fileName?: string;
+  backup?: boolean;
   defaultLabelName?: string;
   toFullJson?: boolean;
   createFilePerImage?: boolean;
@@ -52,6 +55,8 @@ export async function convertToLabelStudio(
 ): Promise<void> {
   const {
     outDir,
+    fileName,
+    backup = false,
     defaultLabelName = DEFAULT_LABEL_NAME,
     toFullJson = DEFAULT_LABEL_STUDIO_FULL_JSON,
     createFilePerImage = DEFAULT_CREATE_FILE_PER_IMAGE,
@@ -231,7 +236,7 @@ export async function convertToLabelStudio(
       }
 
       // Write combined output file
-      const baseName = file.replace('.txt', '');
+      const baseName = fileName || file.replace('.txt', '');
 
       // Use outDir if specified, otherwise use source file directory
       const outputSubDir = outDir
@@ -241,8 +246,18 @@ export async function convertToLabelStudio(
 
       const outputPath = join(
         outputSubDir,
-        `${baseName}_${toFullJson ? 'full' : 'min'}.json`,
+        fileName
+          ? `${fileName}.json`
+          : `${baseName}_${toFullJson ? 'full' : 'min'}.json`,
       );
+
+      // Backup existing file if requested
+      if (backup) {
+        const backupPath = await backupFileIfExists(outputPath);
+        if (backupPath) {
+          console.log(chalk.gray(`  ✓ Created backup: ${backupPath}`));
+        }
+      }
       await writeFile(
         outputPath,
         JSON.stringify(allLabelStudioData, null, 2),
