@@ -99,8 +99,8 @@ export async function convertToLabelStudio(
 
   for (const filePath of filePaths) {
     const file = basename(filePath);
-    // Image paths in Label.txt are relative to the parent directory of Label.txt
-    const baseImageDir = dirname(dirname(filePath));
+    // Image paths in Label.txt are relative to the directory containing Label.txt
+    const baseImageDir = dirname(filePath);
     // Get relative path to preserve directory structure
     const relativePath = getRelativePathFromInputs(filePath, inputDirs);
     const relativeDir = dirname(relativePath);
@@ -165,8 +165,9 @@ export async function convertToLabelStudio(
         );
 
         // Update imagePath to use baseServerUrl if createFileListForServing is enabled
+        // Include the relative directory structure from input dir to maintain hierarchy
         const finalImagePath = createFileListForServing
-          ? encodeURI(`${newBaseServerUrl}${imagePath}`)
+          ? encodeURI(`${newBaseServerUrl}${relativeDir}/${imagePath}`)
           : imagePath;
 
         const labelStudioData = await ppocrToLabelStudio(sortedPpocrData, {
@@ -174,6 +175,7 @@ export async function convertToLabelStudio(
           imagePath,
           baseServerUrl: newBaseServerUrl,
           inputDir: baseImageDir,
+          relativeDir,
           taskId,
           labelName: defaultLabelName,
           normalizeShape:

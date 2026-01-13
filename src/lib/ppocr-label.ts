@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import sizeOf from 'image-size';
 import {
   DEFAULT_LABEL_NAME,
@@ -18,6 +18,7 @@ export type ToLabelStudioOptions = {
   imagePath: string;
   baseServerUrl: string;
   inputDir?: string;
+  relativeDir?: string;
   toFullJson?: boolean;
   taskId?: number;
   labelName?: string;
@@ -35,6 +36,7 @@ export const ppocrToLabelStudio = async (
     imagePath,
     baseServerUrl,
     inputDir,
+    relativeDir,
     toFullJson = true,
     taskId = 1,
     labelName = DEFAULT_LABEL_NAME,
@@ -56,6 +58,7 @@ export const ppocrToLabelStudio = async (
       widthIncrement,
       heightIncrement,
       precision,
+      relativeDir,
     );
   } else {
     return ppocrToMinLabelStudio(
@@ -68,6 +71,7 @@ export const ppocrToLabelStudio = async (
       widthIncrement,
       heightIncrement,
       precision,
+      relativeDir,
     );
   }
 };
@@ -83,6 +87,7 @@ export const ppocrToFullLabelStudio = (
   widthIncrement: number = 0,
   heightIncrement: number = 0,
   precision: number = DEFAULT_LABEL_STUDIO_PRECISION,
+  relativeDir?: string,
 ): FullOCRLabelStudio => {
   const newBaseServerUrl =
     baseServerUrl.replace(/\/+$/, '') + (baseServerUrl === '' ? '' : '/');
@@ -94,8 +99,23 @@ export const ppocrToFullLabelStudio = (
   let original_height = 1080;
 
   // Resolve path to image file
-  // Paths in PPOCRLabel are relative to the current working directory
-  const resolvedImagePath = inputDir ? join(inputDir, imagePath) : imagePath;
+  // Paths in PPOCRLabel are relative to the directory containing Label.txt
+  // Handle case where imagePath incorrectly starts with the parent dir name
+  let resolvedImagePath: string;
+  if (inputDir) {
+    // Check if imagePath starts with the last component of inputDir
+    // e.g., inputDir=".../images/ch" and imagePath="ch/file.jpg" -> use "file.jpg"
+    const lastDirComponent = basename(inputDir);
+    const imagePathParts = imagePath.split('/');
+    if (imagePathParts[0] === lastDirComponent && imagePathParts.length > 1) {
+      // Remove the duplicate directory component
+      resolvedImagePath = join(inputDir, imagePathParts.slice(1).join('/'));
+    } else {
+      resolvedImagePath = join(inputDir, imagePath);
+    }
+  } else {
+    resolvedImagePath = imagePath;
+  }
 
   if (existsSync(resolvedImagePath)) {
     try {
@@ -123,6 +143,17 @@ export const ppocrToFullLabelStudio = (
 
   // Extract filename from imagePath for file_upload (just the filename)
   const fileName = imagePath.split('/').pop() || imagePath;
+
+  // Normalize imagePath for URL construction - remove duplicate dir component if present
+  let normalizedImagePath = imagePath;
+  if (inputDir && relativeDir) {
+    const lastDirComponent = basename(inputDir);
+    const imagePathParts = imagePath.split('/');
+    if (imagePathParts[0] === lastDirComponent && imagePathParts.length > 1) {
+      // Remove the duplicate directory component for URL
+      normalizedImagePath = imagePathParts.slice(1).join('/');
+    }
+  }
 
   // Group all PPOCRLabel items into a single task with one annotation
   const result: FullOCRLabelStudio = [
@@ -225,7 +256,11 @@ export const ppocrToFullLabelStudio = (
       file_upload: fileName,
       drafts: [],
       predictions: [],
-      data: { ocr: `${newBaseServerUrl}${imagePath}` },
+      data: {
+        ocr: relativeDir
+          ? `${newBaseServerUrl}${relativeDir}/${normalizedImagePath}`
+          : `${newBaseServerUrl}${normalizedImagePath}`,
+      },
       meta: {},
       created_at: now,
       updated_at: now,
@@ -256,6 +291,7 @@ export const ppocrToMinLabelStudio = (
   widthIncrement: number = 0,
   heightIncrement: number = 0,
   precision: number = DEFAULT_LABEL_STUDIO_PRECISION,
+  relativeDir?: string,
 ): MinOCRLabelStudio => {
   const newBaseServerUrl =
     baseServerUrl.replace(/\/+$/, '') + (baseServerUrl === '' ? '' : '/');
@@ -268,8 +304,23 @@ export const ppocrToMinLabelStudio = (
   let original_height = 1080;
 
   // Resolve path to image file
-  // Paths in PPOCRLabel are relative to the current working directory
-  const resolvedImagePath = inputDir ? join(inputDir, imagePath) : imagePath;
+  // Paths in PPOCRLabel are relative to the directory containing Label.txt
+  // Handle case where imagePath incorrectly starts with the parent dir name
+  let resolvedImagePath: string;
+  if (inputDir) {
+    // Check if imagePath starts with the last component of inputDir
+    // e.g., inputDir=".../images/ch" and imagePath="ch/file.jpg" -> use "file.jpg"
+    const lastDirComponent = basename(inputDir);
+    const imagePathParts = imagePath.split('/');
+    if (imagePathParts[0] === lastDirComponent && imagePathParts.length > 1) {
+      // Remove the duplicate directory component
+      resolvedImagePath = join(inputDir, imagePathParts.slice(1).join('/'));
+    } else {
+      resolvedImagePath = join(inputDir, imagePath);
+    }
+  } else {
+    resolvedImagePath = imagePath;
+  }
 
   if (existsSync(resolvedImagePath)) {
     try {
@@ -293,6 +344,17 @@ export const ppocrToMinLabelStudio = (
     console.warn(
       `Warning: Image file not found: ${resolvedImagePath}, using default dimensions`,
     );
+  }
+
+  // Normalize imagePath for URL construction - remove duplicate dir component if present
+  let normalizedImagePath = imagePath;
+  if (inputDir && relativeDir) {
+    const lastDirComponent = basename(inputDir);
+    const imagePathParts = imagePath.split('/');
+    if (imagePathParts[0] === lastDirComponent && imagePathParts.length > 1) {
+      // Remove the duplicate directory component for URL
+      normalizedImagePath = imagePathParts.slice(1).join('/');
+    }
   }
 
   return data.map((item, index) => {
@@ -333,7 +395,9 @@ export const ppocrToMinLabelStudio = (
     const height = maxY - minY;
 
     return {
-      ocr: encodeURI(`${newBaseServerUrl}${imagePath}`),
+      ocr: relativeDir
+        ? encodeURI(`${newBaseServerUrl}${relativeDir}/${normalizedImagePath}`)
+        : encodeURI(`${newBaseServerUrl}${normalizedImagePath}`),
       id: index + 1,
       bbox: [
         {
