@@ -8,7 +8,6 @@ import {
   DEFAULT_SORT_HORIZONTAL,
   DEFAULT_SORT_VERTICAL,
   DEFAULT_WIDTH_INCREMENT,
-  OUTPUT_BASE_DIR,
   SHAPE_NORMALIZE_NONE,
   SHAPE_NORMALIZE_RECTANGLE,
   SORT_HORIZONTAL_LTR,
@@ -36,7 +35,8 @@ export const enhancePPOCRCommand = buildCommand({
     flags: {
       outDir: {
         kind: 'parsed',
-        brief: `Output directory. Default: "${OUTPUT_BASE_DIR}"`,
+        brief:
+          'Output directory. If not specified, files are saved in the same directory as the source files',
         parse: String,
         optional: true,
       },

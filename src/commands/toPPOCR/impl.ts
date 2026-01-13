@@ -12,7 +12,6 @@ import {
   DEFAULT_SORT_VERTICAL,
   DEFAULT_WIDTH_INCREMENT,
   type HorizontalSortOrder,
-  OUTPUT_BASE_DIR,
   SHAPE_NORMALIZE_NONE,
   type ShapeNormalizeOption,
   type VerticalSortOrder,
@@ -78,7 +77,7 @@ export async function convertToPPOCR(
   ...inputDirs: string[]
 ): Promise<void> {
   const {
-    outDir = `${OUTPUT_BASE_DIR}`,
+    outDir,
     fileName = DEFAULT_PPOCR_FILE_NAME,
     baseImageDir,
     sortVertical = DEFAULT_SORT_VERTICAL,
@@ -90,9 +89,6 @@ export async function convertToPPOCR(
     recursive = DEFAULT_RECURSIVE,
     filePattern = DEFAULT_LABEL_STUDIO_FILE_PATTERN,
   } = flags;
-
-  // Create output directory if it doesn't exist
-  await mkdir(outDir, { recursive: true });
 
   // Find all files matching the pattern
   console.log(chalk.blue('Finding files...'));
@@ -162,8 +158,11 @@ export async function convertToPPOCR(
 
       // Write to output file
       const baseName = file.replace('.json', '');
-      // Create output subdirectory to preserve structure
-      const outputSubDir = join(outDir, relativeDir);
+
+      // Use outDir if specified, otherwise use source file directory
+      const outputSubDir = outDir
+        ? join(outDir, relativeDir)
+        : dirname(filePath);
       await mkdir(outputSubDir, { recursive: true });
 
       const outputPath = join(outputSubDir, `${baseName}_${fileName}`);

@@ -17,7 +17,6 @@ import {
   DEFAULT_SORT_VERTICAL,
   DEFAULT_WIDTH_INCREMENT,
   type HorizontalSortOrder,
-  OUTPUT_BASE_DIR,
   SHAPE_NORMALIZE_NONE,
   type ShapeNormalizeOption,
   type VerticalSortOrder,
@@ -52,7 +51,7 @@ export async function convertToLabelStudio(
   ...inputDirs: string[]
 ): Promise<void> {
   const {
-    outDir = OUTPUT_BASE_DIR,
+    outDir,
     defaultLabelName = DEFAULT_LABEL_NAME,
     toFullJson = DEFAULT_LABEL_STUDIO_FULL_JSON,
     createFilePerImage = DEFAULT_CREATE_FILE_PER_IMAGE,
@@ -72,10 +71,7 @@ export async function convertToLabelStudio(
   // NOTE: Ensure baseServerUrl ends with a single slash, but keeps empty string
   // as is
   const newBaseServerUrl =
-    baseServerUrl.replace(/\/+$/, '') + (baseServerUrl === '' ? '' : '/');
-
-  // Create output directory if it doesn't exist
-  await mkdir(outDir, { recursive: true });
+    baseServerUrl.replace(/\/+$/, '') + (baseServerUrl === '' ? '' : '');
 
   // Find all files matching the pattern
   console.log(chalk.blue('Finding files...'));
@@ -89,11 +85,11 @@ export async function convertToLabelStudio(
   console.log(chalk.blue(`Found ${filePaths.length} files to process\n`));
 
   // Prepare file list for serving if needed
-  const fileListPath = createFileListForServing
-    ? join(outDir, fileListName)
-    : null;
-  if (fileListPath) {
-    // Clear/create the file list file
+  let fileListPath: string | null = null;
+  if (createFileListForServing && outDir) {
+    fileListPath = join(outDir, fileListName);
+    // Create output directory and file list file
+    await mkdir(outDir, { recursive: true });
     await writeFile(fileListPath, '', 'utf-8');
   }
 
@@ -198,7 +194,11 @@ export async function convertToLabelStudio(
           const imageBaseName = imagePath
             .replace(/\//g, '_')
             .replace(/\.[^.]+$/, '');
-          const outputSubDir = join(outDir, relativeDir);
+
+          // Use outDir if specified, otherwise use source file directory
+          const outputSubDir = outDir
+            ? join(outDir, relativeDir)
+            : dirname(filePath);
           await mkdir(outputSubDir, { recursive: true });
 
           const individualOutputPath = join(
@@ -232,8 +232,11 @@ export async function convertToLabelStudio(
 
       // Write combined output file
       const baseName = file.replace('.txt', '');
-      // Create output subdirectory to preserve structure
-      const outputSubDir = join(outDir, relativeDir);
+
+      // Use outDir if specified, otherwise use source file directory
+      const outputSubDir = outDir
+        ? join(outDir, relativeDir)
+        : dirname(filePath);
       await mkdir(outputSubDir, { recursive: true });
 
       const outputPath = join(

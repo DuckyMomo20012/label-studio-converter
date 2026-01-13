@@ -11,7 +11,6 @@ import {
   DEFAULT_SORT_VERTICAL,
   DEFAULT_WIDTH_INCREMENT,
   type HorizontalSortOrder,
-  OUTPUT_BASE_DIR,
   SHAPE_NORMALIZE_NONE,
   type ShapeNormalizeOption,
   type VerticalSortOrder,
@@ -73,7 +72,7 @@ export async function enhanceLabelStudio(
   ...inputDirs: string[]
 ): Promise<void> {
   const {
-    outDir = OUTPUT_BASE_DIR,
+    outDir,
     sortVertical = DEFAULT_SORT_VERTICAL,
     sortHorizontal = DEFAULT_SORT_HORIZONTAL,
     normalizeShape = DEFAULT_SHAPE_NORMALIZE,
@@ -83,9 +82,6 @@ export async function enhanceLabelStudio(
     recursive = DEFAULT_RECURSIVE,
     filePattern = DEFAULT_LABEL_STUDIO_FILE_PATTERN,
   } = flags;
-
-  // Create output directory if it doesn't exist
-  await mkdir(outDir, { recursive: true });
 
   // Find all files matching the pattern
   console.log(chalk.blue('Finding files...'));
@@ -122,10 +118,14 @@ export async function enhanceLabelStudio(
       });
 
       // Write enhanced data
-      // Create output subdirectory to preserve structure
-      const relativePath = getRelativePathFromInputs(filePath, inputDirs);
-      const relativeDir = dirname(relativePath);
-      const outputSubDir = join(outDir, relativeDir);
+      // Use outDir if specified, otherwise use source file directory
+      const outputSubDir = outDir
+        ? (() => {
+            const relativePath = getRelativePathFromInputs(filePath, inputDirs);
+            const relativeDir = dirname(relativePath);
+            return join(outDir, relativeDir);
+          })()
+        : dirname(filePath);
       await mkdir(outputSubDir, { recursive: true });
 
       const outputFilePath = join(outputSubDir, file);
