@@ -97,19 +97,29 @@ export const ppocrToFullLabelStudio = (
   // Paths in PPOCRLabel are relative to the current working directory
   const resolvedImagePath = inputDir ? join(inputDir, imagePath) : imagePath;
 
-  if (!existsSync(resolvedImagePath)) {
-    throw new Error(`Image file not found: ${resolvedImagePath}`);
-  }
-
-  const buffer = readFileSync(resolvedImagePath);
-  const dimensions = sizeOf(buffer);
-  if (!dimensions.width || !dimensions.height) {
-    throw new Error(
-      `Failed to read image dimensions from: ${resolvedImagePath}`,
+  if (existsSync(resolvedImagePath)) {
+    try {
+      const buffer = readFileSync(resolvedImagePath);
+      const dimensions = sizeOf(buffer);
+      if (dimensions.width && dimensions.height) {
+        original_width = dimensions.width;
+        original_height = dimensions.height;
+      } else {
+        console.warn(
+          `Warning: Failed to read dimensions from ${resolvedImagePath}, using defaults`,
+        );
+      }
+    } catch (error) {
+      console.warn(
+        `Warning: Error reading image ${resolvedImagePath}, using defaults:`,
+        error instanceof Error ? error.message : error,
+      );
+    }
+  } else {
+    console.warn(
+      `Warning: Image file not found: ${resolvedImagePath}, using default dimensions`,
     );
   }
-  original_width = dimensions.width;
-  original_height = dimensions.height;
 
   // Extract filename from imagePath for file_upload (just the filename)
   const fileName = imagePath.split('/').pop() || imagePath;
@@ -253,6 +263,7 @@ export const ppocrToMinLabelStudio = (
   const now = new Date().toISOString();
 
   // Get actual image dimensions from the image file
+  // Default to 1920×1080 if image is missing or unreadable
   let original_width = 1920;
   let original_height = 1080;
 
@@ -260,19 +271,29 @@ export const ppocrToMinLabelStudio = (
   // Paths in PPOCRLabel are relative to the current working directory
   const resolvedImagePath = inputDir ? join(inputDir, imagePath) : imagePath;
 
-  if (!existsSync(resolvedImagePath)) {
-    throw new Error(`Image file not found: ${resolvedImagePath}`);
-  }
-
-  const buffer = readFileSync(resolvedImagePath);
-  const dimensions = sizeOf(buffer);
-  if (!dimensions.width || !dimensions.height) {
-    throw new Error(
-      `Failed to read image dimensions from: ${resolvedImagePath}`,
+  if (existsSync(resolvedImagePath)) {
+    try {
+      const buffer = readFileSync(resolvedImagePath);
+      const dimensions = sizeOf(buffer);
+      if (dimensions.width && dimensions.height) {
+        original_width = dimensions.width;
+        original_height = dimensions.height;
+      } else {
+        console.warn(
+          `Warning: Failed to read dimensions from ${resolvedImagePath}, using defaults`,
+        );
+      }
+    } catch (error) {
+      console.warn(
+        `Warning: Error reading image ${resolvedImagePath}, using defaults:`,
+        error instanceof Error ? error.message : error,
+      );
+    }
+  } else {
+    console.warn(
+      `Warning: Image file not found: ${resolvedImagePath}, using default dimensions`,
     );
   }
-  original_width = dimensions.width;
-  original_height = dimensions.height;
 
   return data.map((item, index) => {
     let { points } = item;
