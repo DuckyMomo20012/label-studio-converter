@@ -21,12 +21,14 @@
 - [Usage](#eyes-usage)
   - [Library Usage](#library-usage)
   - [CLI Usage](#cli-usage)
+    - [Examples](#examples)
   - [Enhancement Features](#enhancement-features)
   - [Using generated files with Label Studio](#using-generated-files-with-label-studio)
     - [Interface setup](#interface-setup)
     - [Serving annotation files locally](#serving-annotation-files-locally)
   - [Using generated files with PPOCRLabelv2](#using-generated-files-with-ppocrlabelv2)
   - [Conversion Margin of Error](#conversion-margin-of-error)
+  - [Delete Generated Files](#delete-generated-files)
 - [Roadmap](#compass-roadmap)
 - [Contributing](#wave-contributing)
   - [Code of Conduct](#scroll-code-of-conduct)
@@ -223,10 +225,10 @@ label-studio-converter --help
 
 ```bash
 USAGE
-  label-studio-converter toLabelStudio [--outDir value] [--defaultLabelName value] [--toFullJson] [--createFilePerImage] [--createFileListForServing] [--fileListName value] [--baseServerUrl value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] <args>...
-  label-studio-converter toPPOCR [--outDir value] [--fileName value] [--baseImageDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] <args>...
-  label-studio-converter enhance-labelstudio [--outDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] <args>...
-  label-studio-converter enhance-ppocr [--outDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] <args>...
+  label-studio-converter toLabelStudio [--outDir value] [--fileName value] [--backup] [--defaultLabelName value] [--toFullJson] [--createFilePerImage] [--createFileListForServing] [--fileListName value] [--baseServerUrl value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] [--recursive] [--filePattern value] [--outputMode value] <args>...
+  label-studio-converter toPPOCR [--outDir value] [--fileName value] [--backup] [--baseImageDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] [--recursive] [--filePattern value] <args>...
+  label-studio-converter enhance-labelstudio [--outDir value] [--fileName value] [--backup] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] [--recursive] [--filePattern value] [--outputMode value] <args>...
+  label-studio-converter enhance-ppocr [--outDir value] [--fileName value] [--backup] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] [--recursive] [--filePattern value] <args>...
   label-studio-converter --help
   label-studio-converter --version
 
@@ -249,25 +251,30 @@ COMMANDS
 
 ```bash
 USAGE
-  label-studio-converter toLabelStudio [--outDir value] [--defaultLabelName value] [--toFullJson] [--createFilePerImage] [--createFileListForServing] [--fileListName value] [--baseServerUrl value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] <args>...
+  label-studio-converter toLabelStudio [--outDir value] [--fileName value] [--backup] [--defaultLabelName value] [--toFullJson] [--createFilePerImage] [--createFileListForServing] [--fileListName value] [--baseServerUrl value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] [--recursive] [--filePattern value] [--outputMode value] <args>...
   label-studio-converter toLabelStudio --help
 
 Convert PPOCRLabel files to Label Studio format
 
 FLAGS
-     [--outDir]                                                 Output directory. Default: "./output"
+     [--outDir]                                                 Output directory. If not specified, files are saved in the same directory as the source files
+     [--fileName]                                               Custom output filename (without extension). If not specified, uses source filename with format suffix
+     [--backup/--noBackup]                                      Create backup of existing files before overwriting. Default: false
      [--defaultLabelName]                                       Default label name for text annotations. Default: "Text"
      [--toFullJson/--noToFullJson]                              Convert to Full OCR Label Studio format. Default: "true"
      [--createFilePerImage/--noCreateFilePerImage]              Create a separate Label Studio JSON file for each image. Default: "false"
      [--createFileListForServing/--noCreateFileListForServing]  Create a file list for serving in Label Studio. Default: "true"
      [--fileListName]                                           Name of the file list for serving. Default: "files.txt"
      [--baseServerUrl]                                          Base server URL for constructing image URLs in the file list. Default: "http://localhost:8081"
-     [--sortVertical]                                           Sort bounding boxes vertically. Options: "none" (default), "top-bottom", "bottom-top"
-     [--sortHorizontal]                                         Sort bounding boxes horizontally. Options: "none" (default), "ltr", "rtl"
-     [--normalizeShape]                                         Normalize diamond-like shapes to axis-aligned rectangles. Options: "none" (default), "rectangle"
+     [--sortVertical]                                           Sort bounding boxes vertically. Options: "none", "top-bottom", "bottom-top". Default: "none"
+     [--sortHorizontal]                                         Sort bounding boxes horizontally. Options: "none", "ltr", "rtl". Default: "none"
+     [--normalizeShape]                                         Normalize diamond-like shapes to axis-aligned rectangles. Options: "none", "rectangle". Default: "none"
      [--widthIncrement]                                         Increase bounding box width by this amount (in pixels). Can be negative to decrease. Default: 0
      [--heightIncrement]                                        Increase bounding box height by this amount (in pixels). Can be negative to decrease. Default: 0
      [--precision]                                              Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: -1
+     [--recursive/--noRecursive]                                Recursively search directories for files. Default: false
+     [--filePattern]                                            Regex pattern to match PPOCRLabel files (should match .txt files). Default: ".*\.txt$"
+     [--outputMode]                                             Output mode: "annotations" for editable annotations (ground truth) or "predictions" for read-only predictions (pre-annotations). Default: "annotations"
   -h  --help                                                    Print help information and exit
 
 ARGUMENTS
@@ -278,22 +285,25 @@ ARGUMENTS
 
 ```bash
 USAGE
-  label-studio-converter toPPOCR [--outDir value] [--fileName value] [--baseImageDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] <args>...
+  label-studio-converter toPPOCR [--outDir value] [--fileName value] [--backup] [--baseImageDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] [--recursive] [--filePattern value] <args>...
   label-studio-converter toPPOCR --help
 
 Convert Label Studio files to PPOCRLabel format
 
 FLAGS
-     [--outDir]           Output directory. Default: "./output"
-     [--fileName]         Output PPOCR file name. Default: "Label.txt"
-     [--baseImageDir]     Base directory path to prepend to image filenames in output (e.g., "ch" or "images/ch")
-     [--sortVertical]     Sort bounding boxes vertically. Options: "none" (default), "top-bottom", "bottom-top"
-     [--sortHorizontal]   Sort bounding boxes horizontally. Options: "none" (default), "ltr", "rtl"
-     [--normalizeShape]   Normalize diamond-like shapes to axis-aligned rectangles. Options: "none" (default), "rectangle"
-     [--widthIncrement]   Increase bounding box width by this amount (in pixels). Can be negative to decrease. Default: 0
-     [--heightIncrement]  Increase bounding box height by this amount (in pixels). Can be negative to decrease. Default: 0
-     [--precision]        Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: 0 (integers)
-  -h  --help              Print help information and exit
+     [--outDir]                   Output directory. If not specified, files are saved in the same directory as the source files
+     [--fileName]                 Output PPOCR file name. Default: "Label.txt"
+     [--backup/--noBackup]        Create backup of existing files before overwriting. Default: false
+     [--baseImageDir]             Base directory path to prepend to image filenames in output (e.g., "ch" or "images/ch")
+     [--sortVertical]             Sort bounding boxes vertically. Options: "none", "top-bottom", "bottom-top". Default: "none"
+     [--sortHorizontal]           Sort bounding boxes horizontally. Options: "none", "ltr", "rtl". Default: "none"
+     [--normalizeShape]           Normalize diamond-like shapes to axis-aligned rectangles. Options: "none", "rectangle". Default: "none"
+     [--widthIncrement]           Increase bounding box width by this amount (in pixels). Can be negative to decrease. Default: 0
+     [--heightIncrement]          Increase bounding box height by this amount (in pixels). Can be negative to decrease. Default: 0
+     [--precision]                Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: 0 (integers)
+     [--recursive/--noRecursive]  Recursively search directories for files. Default: false
+     [--filePattern]              Regex pattern to match Label Studio files (should match .json files). Default: ".*\.json$"
+  -h  --help                      Print help information and exit
 
 ARGUMENTS
   args...  Input directories containing Label Studio files
@@ -304,20 +314,25 @@ ARGUMENTS
 
 ```bash
 USAGE
-  label-studio-converter enhance-labelstudio [--outDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] <args>...
+  label-studio-converter enhance-labelstudio [--outDir value] [--fileName value] [--backup] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] [--recursive] [--filePattern value] [--outputMode value] <args>...
   label-studio-converter enhance-labelstudio --help
 
 Enhance Label Studio files with sorting, normalization, and resizing
 
 FLAGS
-     [--outDir]           Output directory. Default: "./output"
-     [--sortVertical]     Sort bounding boxes vertically. Options: "none" (default), "top-bottom", "bottom-top"
-     [--sortHorizontal]   Sort bounding boxes horizontally. Options: "none" (default), "ltr", "rtl"
-     [--normalizeShape]   Normalize diamond-like shapes to axis-aligned rectangles. Options: "none" (default), "rectangle"
-     [--widthIncrement]   Increase bounding box width by this amount (in pixels). Can be negative to decrease. Default: 0
-     [--heightIncrement]  Increase bounding box height by this amount (in pixels). Can be negative to decrease. Default: 0
-     [--precision]        Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: -1
-  -h  --help              Print help information and exit
+     [--outDir]                   Output directory. If not specified, files are saved in the same directory as the source files
+     [--fileName]                 Custom output filename. If not specified, uses the same name as the source file
+     [--backup/--noBackup]        Create backup of existing files before overwriting. Default: false
+     [--sortVertical]             Sort bounding boxes vertically. Options: "none", "top-bottom", "bottom-top". Default: "none"
+     [--sortHorizontal]           Sort bounding boxes horizontally. Options: "none", "ltr", "rtl". Default: "none"
+     [--normalizeShape]           Normalize diamond-like shapes to axis-aligned rectangles. Options: "none", "rectangle". Default: "none"
+     [--widthIncrement]           Increase bounding box width by this amount (in pixels). Can be negative to decrease. Default: 0
+     [--heightIncrement]          Increase bounding box height by this amount (in pixels). Can be negative to decrease. Default: 0
+     [--precision]                Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: -1
+     [--recursive/--noRecursive]  Recursively search directories for files. Default: false
+     [--filePattern]              Regex pattern to match Label Studio files (should match .json files). Default: ".*\.json$"
+     [--outputMode]               Output mode: "annotations" for editable annotations (ground truth) or "predictions" for read-only predictions (pre-annotations). Default: "annotations"
+  -h  --help                      Print help information and exit
 
 ARGUMENTS
   args...  Input directories containing Label Studio JSON files
@@ -327,24 +342,38 @@ ARGUMENTS
 
 ```bash
 USAGE
-  label-studio-converter enhance-ppocr [--outDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] <args>...
+  label-studio-converter enhance-ppocr [--outDir value] [--fileName value] [--backup] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] [--recursive] [--filePattern value] <args>...
   label-studio-converter enhance-ppocr --help
 
 Enhance PPOCRLabel files with sorting, normalization, and resizing
 
 FLAGS
-     [--outDir]           Output directory. Default: "./output"
-     [--sortVertical]     Sort bounding boxes vertically. Options: "none" (default), "top-bottom", "bottom-top"
-     [--sortHorizontal]   Sort bounding boxes horizontally. Options: "none" (default), "ltr", "rtl"
-     [--normalizeShape]   Normalize diamond-like shapes to axis-aligned rectangles. Options: "none" (default), "rectangle"
-     [--widthIncrement]   Increase bounding box width by this amount (in pixels). Can be negative to decrease. Default: 0
-     [--heightIncrement]  Increase bounding box height by this amount (in pixels). Can be negative to decrease. Default: 0
-     [--precision]        Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: 0 (integers)
-  -h  --help              Print help information and exit
+     [--outDir]                   Output directory. If not specified, files are saved in the same directory as the source files
+     [--fileName]                 Custom output filename. If not specified, uses the same name as the source file
+     [--backup/--noBackup]        Create backup of existing files before overwriting. Default: false
+     [--sortVertical]             Sort bounding boxes vertically. Options: "none", "top-bottom", "bottom-top". Default: "none"
+     [--sortHorizontal]           Sort bounding boxes horizontally. Options: "none", "ltr", "rtl". Default: "none"
+     [--normalizeShape]           Normalize diamond-like shapes to axis-aligned rectangles. Options: "none", "rectangle". Default: "none"
+     [--widthIncrement]           Increase bounding box width by this amount (in pixels). Can be negative to decrease. Default: 0
+     [--heightIncrement]          Increase bounding box height by this amount (in pixels). Can be negative to decrease. Default: 0
+     [--precision]                Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: 0 (integers)
+     [--recursive/--noRecursive]  Recursively search directories for files. Default: false
+     [--filePattern]              Regex pattern to match PPOCRLabel files (should match .txt files). Default: ".*\.txt$"
+  -h  --help                      Print help information and exit
 
 ARGUMENTS
   args...  Input directories containing PPOCRLabel files
 ```
+
+**Error Handling:**
+
+The `toLabelStudio` command handles missing or unreadable image files gracefully:
+
+- If an image file referenced in PPOCRLabel cannot be found or read, a warning is logged
+- Default dimensions of **1920×1080** are used as fallback
+- Conversion continues for remaining images without interruption
+
+This allows the conversion process to complete even when some image files are missing from the dataset.
 
 #### Examples
 
@@ -395,7 +424,35 @@ label-studio-converter toLabelStudio ./input-ppocr \
   --outDir ./output \
   --fileListName my-images.txt \
   --baseServerUrl http://192.168.1.100:8080
+
+# Convert to predictions format (pre-annotations) instead of annotations
+# Predictions are read-only and useful for pre-annotated data
+label-studio-converter toLabelStudio ./input-ppocr \
+  --outDir ./output \
+  --outputMode predictions
+
+# Convert to annotations format (default, editable ground truth)
+label-studio-converter toLabelStudio ./input-ppocr \
+  --outDir ./output \
+  --outputMode annotations
 ```
+
+> [!IMPORTANT]
+> **Output Mode Restrictions:**
+>
+> - The `--outputMode` flag is only available for:
+>   - `toLabelStudio` command (when using `--toFullJson`)
+>   - `enhance-labelstudio` command (for Full JSON format files only)
+> - **Not available** for:
+>   - `toPPOCR` command (PPOCR format doesn't distinguish annotations/predictions)
+>   - `enhance-ppocr` command (PPOCR format doesn't distinguish annotations/predictions)
+>   - Min JSON Label Studio format (doesn't support annotations/predictions)
+>
+> **Prediction Scores:**
+>
+> - When converting from PPOCRLabel to Label Studio with `--outputMode predictions`, the `dt_score` field from PPOCRLabel is automatically mapped to the prediction `score` field in Label Studio
+> - This allows pre-annotation confidence scores to be preserved and displayed in Label Studio
+> - Score values should be between 0.0 and 1.0 (confidence percentage)
 
 **toPPOCR Options:**
 
@@ -414,6 +471,34 @@ label-studio-converter toPPOCR ./input-label-studio \
   --outDir ./output \
   --baseImageDir dataset/images
 ```
+
+**Recursive Search and Pattern Matching:**
+
+```bash
+# Recursively search all subdirectories for .txt files
+label-studio-converter toLabelStudio ./data --recursive
+
+# Search with custom pattern (only files starting with "Label")
+label-studio-converter toLabelStudio ./data \
+  --recursive \
+  --filePattern "Label.*\.txt$"
+
+# Convert only specific JSON files (e.g., final annotations)
+label-studio-converter toPPOCR ./annotations \
+  --recursive \
+  --filePattern ".*_final\.json$"
+
+# Enhance only specific files matching pattern
+label-studio-converter enhance-ppocr ./dataset \
+  --recursive \
+  --filePattern "train_.*\.txt$"
+```
+
+> [!NOTE]
+>
+> - `--recursive`: Searches all subdirectories for matching files
+> - `--filePattern`: Regex pattern to filter files (default: `.*\.txt$` for PPOCR, `.*\.json$` for Label Studio)
+> - Patterns are flexible - use any regex, but ensure they match appropriate file types (.txt for PPOCR, .json for Label Studio)
 
 ### Enhancement Features
 
@@ -1320,6 +1405,83 @@ Output:
 > differences due to the conversion process. This may affect the accuracy of the
 > annotations, especially if precise bounding box locations are critical for your
 > application.
+
+### Delete generated files
+
+To delete the generated files after conversion, you can use the following
+commands:
+
+**Linux/macOS**:
+
+- When you specified a custom output directory using `--outDir` option:
+
+  ```bash
+  rm -rf ./output-label-studio
+  ```
+
+- When you did not specify an output directory (default: files are saved in the same directory as the source files):
+
+  **For default output file names:**
+
+  ```bash
+  # Delete Label Studio files generated by toLabelStudio command
+  find ./input-dir -type f \( -name "*_full.json" -o -name "*_min.json" \) -delete
+
+  # Delete PPOCRLabel files generated by toPPOCR command
+  find ./input-dir -type f -name "*_Label.txt" -delete
+
+  # Delete file list for serving
+  find ./input-dir -type f -name "files.txt" -delete
+  ```
+
+  **For custom output file names or patterns:**
+
+  ```bash
+  # Delete files with custom pattern (e.g., files ending with _converted.json)
+  find ./input-dir -type f -name "*_converted.json" -delete
+
+  # Delete files with custom PPOCRLabel filename (e.g., CustomLabel.txt)
+  find ./input-dir -type f -name "*_CustomLabel.txt" -delete
+  ```
+
+**Windows (PowerShell)**:
+
+- When you specified a custom output directory using `--outDir` option:
+
+  ```powershell
+  Remove-Item -Path ".\output-label-studio" -Recurse -Force
+  ```
+
+- When you did not specify an output directory (default: files are saved in the same directory as the source files):
+
+  **For default output file names:**
+
+  ```powershell
+  # Delete Label Studio files generated by toLabelStudio command
+  Get-ChildItem -Path ".\input-dir" -Recurse -Include "*_full.json","*_min.json" | Remove-Item -Force
+
+  # Delete PPOCRLabel files generated by toPPOCR command
+  Get-ChildItem -Path ".\input-dir" -Recurse -Filter "*_Label.txt" | Remove-Item -Force
+
+  # Delete file list for serving
+  Get-ChildItem -Path ".\input-dir" -Recurse -Filter "files.txt" | Remove-Item -Force
+  ```
+
+  **For custom output file names or patterns:**
+
+  ```powershell
+  # Delete files with custom pattern (e.g., files ending with _converted.json)
+  Get-ChildItem -Path ".\input-dir" -Recurse -Filter "*_converted.json" | Remove-Item -Force
+
+  # Delete files with custom PPOCRLabel filename (e.g., CustomLabel.txt)
+  Get-ChildItem -Path ".\input-dir" -Recurse -Filter "*_CustomLabel.txt" | Remove-Item -Force
+  ```
+
+> [!WARNING]
+> These commands will permanently delete files. Make sure to review the file
+> patterns and paths before executing. You can preview files that would be
+> deleted by removing the `-delete` flag (Linux/macOS) or `| Remove-Item-Force`
+> (Windows) from the commands.
 
 <!-- Roadmap -->
 
