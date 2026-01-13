@@ -96,13 +96,26 @@ export async function convertToLabelStudio(
 
     try {
       const fileData = await readFile(filePath, 'utf-8');
-      const lines = fileData.trim().split('\n');
+      const trimmedData = fileData.trim();
+
+      // Handle empty files
+      if (trimmedData === '') {
+        console.log(chalk.yellow(`  Skipping empty file: ${filePath}`));
+        continue;
+      }
+
+      const lines = trimmedData.split('\n');
 
       // Parse PPOCRLabelV2 format: <filename>\t<json_array_of_annotations>
       // Group by filename since each line represents one image file with its annotations
       const imageDataMap = new Map<string, PPOCRLabel>();
 
       for (const line of lines) {
+        // Skip empty lines
+        if (line.trim() === '') {
+          continue;
+        }
+
         const parts = line.split('\t');
 
         if (parts.length !== 2) {
@@ -116,6 +129,14 @@ export async function convertToLabelStudio(
         PPOCRLabelSchema.parse(annotations);
 
         imageDataMap.set(imagePath!, annotations);
+      }
+
+      // If no valid lines were found, skip this file
+      if (imageDataMap.size === 0) {
+        console.log(
+          chalk.yellow(`  Skipping file with no valid data: ${filePath}`),
+        );
+        continue;
       }
 
       // Convert each image's annotations to Label Studio format

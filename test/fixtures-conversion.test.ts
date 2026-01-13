@@ -305,3 +305,93 @@ describe('Schema Validation', () => {
     }
   });
 });
+
+describe('PPOCRLabel Format - Fixtures', () => {
+  it('should parse ppocr_label_full.txt with multiple annotations', async () => {
+    const fileContent = await readFile(
+      './test/fixtures/ppocr_label_full.txt',
+      'utf-8',
+    );
+
+    // Join lines and split by tab to handle multi-line JSON
+    const content = fileContent.trim().replace(/\n/g, ' ');
+    const [imagePath, annotationsStr] = content.split('\t');
+    expect(imagePath).toBe('output/example.jpg');
+
+    const annotations = JSON.parse(annotationsStr!);
+    expect(annotations).toHaveLength(2);
+    expect(annotations[0].transcription).toBe('ACUTE CORONARY SYNDROME');
+    expect(annotations[0].points).toHaveLength(4);
+    expect(annotations[0].difficult).toBe(false);
+    expect(annotations[1].transcription).toBe('UNSTABLE ANGINA');
+    expect(annotations[1].dt_score).toBe(1);
+  });
+
+  it('should parse ppocr_label_diamond.txt with diamond shape', async () => {
+    const fileContent = await readFile(
+      './test/fixtures/ppocr_label_diamond.txt',
+      'utf-8',
+    );
+
+    const content = fileContent.trim().replace(/\n/g, ' ');
+    const [imagePath, annotationsStr] = content.split('\t');
+    expect(imagePath).toBe('output/example.jpg');
+
+    const annotations = JSON.parse(annotationsStr!);
+    expect(annotations).toHaveLength(1);
+    expect(annotations[0].transcription).toBe('ACUTE CORONARY SYNDROME');
+    expect(annotations[0].points).toHaveLength(4); // Diamond has 4 points
+  });
+
+  it('should parse ppocr_label_diamond_vert.txt with vertical diamond shape', async () => {
+    const fileContent = await readFile(
+      './test/fixtures/ppocr_label_diamond_vert.txt',
+      'utf-8',
+    );
+
+    const content = fileContent.trim().replace(/\n/g, ' ');
+    const [imagePath, annotationsStr] = content.split('\t');
+    expect(imagePath).toBe('output/example.jpg');
+
+    const annotations = JSON.parse(annotationsStr!);
+    expect(annotations).toHaveLength(1);
+    expect(annotations[0].transcription).toBe('PLAN');
+    expect(annotations[0].points).toHaveLength(4);
+  });
+
+  it('should parse ppocr_label_poly_multi.txt with polygon shape', async () => {
+    const fileContent = await readFile(
+      './test/fixtures/ppocr_label_poly_multi.txt',
+      'utf-8',
+    );
+
+    const content = fileContent.trim().replace(/\n/g, ' ');
+    const [imagePath, annotationsStr] = content.split('\t');
+    expect(imagePath).toBe('output/example.jpg');
+
+    const annotations = JSON.parse(annotationsStr!);
+    expect(annotations).toHaveLength(1);
+    expect(annotations[0].transcription).toBe('ACUTE CORONARY SYNDROME');
+    expect(annotations[0].points.length).toBeGreaterThan(4); // Polygon has more than 4 points
+  });
+
+  it('should parse ppocr_label_no_anno.txt with empty annotations array', async () => {
+    const fileContent = await readFile(
+      './test/fixtures/ppocr_label_no_anno.txt',
+      'utf-8',
+    );
+
+    // File should be empty
+    expect(fileContent.trim()).toBe('');
+  });
+
+  it('should handle ppocr_label_empty.txt (empty file)', async () => {
+    const fileContent = await readFile(
+      './test/fixtures/ppocr_label_empty.txt',
+      'utf-8',
+    );
+
+    // File should be empty
+    expect(fileContent.trim()).toBe('');
+  });
+});

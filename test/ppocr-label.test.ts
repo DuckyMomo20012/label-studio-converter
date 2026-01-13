@@ -61,6 +61,35 @@ describe('ppocrToLabelStudio', () => {
     expect(result[0]!).toHaveProperty('poly');
     expect(result[0]!).toHaveProperty('transcription');
   });
+
+  it('should handle empty PPOCRLabel array (no annotations)', async () => {
+    const emptyData: PPOCRLabel = [];
+
+    const result = await ppocrToLabelStudio(emptyData, {
+      imagePath: 'test/fixtures/images/example.jpg',
+      baseServerUrl: '',
+      toFullJson: true,
+    });
+
+    expect(Array.isArray(result)).toBe(true);
+    expect(result).toHaveLength(1);
+    const firstResult = result[0]! as FullOCRLabelStudio[0];
+    expect(firstResult.annotations).toHaveLength(1);
+    expect(firstResult.annotations[0]!.result).toHaveLength(0); // No annotations
+  });
+
+  it('should handle empty PPOCRLabel array in min format', async () => {
+    const emptyData: PPOCRLabel = [];
+
+    const result = await ppocrToLabelStudio(emptyData, {
+      imagePath: 'test/fixtures/images/example.jpg',
+      baseServerUrl: '',
+      toFullJson: false,
+    });
+
+    expect(Array.isArray(result)).toBe(true);
+    expect(result).toHaveLength(0); // Min format returns empty array for no annotations
+  });
 });
 
 describe('ppocrToFullLabelStudio', () => {
