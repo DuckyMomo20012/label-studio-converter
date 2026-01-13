@@ -49,3 +49,9 @@ export const DEFAULT_HEIGHT_INCREMENT = 0;
 export const DEFAULT_LABEL_STUDIO_PRECISION = -1; // -1 means no rounding
 // For PPOCR: round to integers
 export const DEFAULT_PPOCR_PRECISION = 0;
+
+// File reading options
+export const DEFAULT_RECURSIVE = false;
+// Default patterns for matching files - users can customize these
+export const DEFAULT_PPOCR_FILE_PATTERN = '.*\\.txt$'; // Recommended: match .txt files
+export const DEFAULT_LABEL_STUDIO_FILE_PATTERN = '.*\\.json$'; // Recommended: match .json files

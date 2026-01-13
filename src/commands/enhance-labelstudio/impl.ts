@@ -1,9 +1,11 @@
-import { mkdir, readFile, readdir, writeFile } from 'fs/promises';
-import { join } from 'path';
+import { mkdir, readFile, writeFile } from 'fs/promises';
+import { basename, join } from 'path';
 import chalk from 'chalk';
 import {
   DEFAULT_HEIGHT_INCREMENT,
+  DEFAULT_LABEL_STUDIO_FILE_PATTERN,
   DEFAULT_LABEL_STUDIO_PRECISION,
+  DEFAULT_RECURSIVE,
   DEFAULT_SHAPE_NORMALIZE,
   DEFAULT_SORT_HORIZONTAL,
   DEFAULT_SORT_VERTICAL,
@@ -15,6 +17,7 @@ import {
   type VerticalSortOrder,
 } from '@/constants';
 import type { LocalContext } from '@/context';
+import { findFiles } from '@/lib/file-utils';
 import { enhanceLabelStudioData } from '@/lib/label-studio';
 import {
   type FullOCRLabelStudio,
@@ -31,6 +34,8 @@ interface CommandFlags {
   widthIncrement?: number;
   heightIncrement?: number;
   precision?: number;
+  recursive?: boolean;
+  filePattern?: string;
 }
 
 const isLabelStudioFullJSON = (
@@ -75,57 +80,60 @@ export async function enhanceLabelStudio(
     widthIncrement = DEFAULT_WIDTH_INCREMENT,
     heightIncrement = DEFAULT_HEIGHT_INCREMENT,
     precision = DEFAULT_LABEL_STUDIO_PRECISION,
+    recursive = DEFAULT_RECURSIVE,
+    filePattern = DEFAULT_LABEL_STUDIO_FILE_PATTERN,
   } = flags;
 
   // Create output directory if it doesn't exist
   await mkdir(outDir, { recursive: true });
 
-  for (const inputDir of inputDirs) {
-    console.log(chalk.blue(`Processing input directory: ${inputDir}`));
+  // Find all files matching the pattern
+  console.log(chalk.blue('Finding files...'));
+  const filePaths = await findFiles(inputDirs, filePattern, recursive);
 
-    const files = await readdir(inputDir);
+  if (filePaths.length === 0) {
+    console.log(chalk.yellow('No files found matching the pattern.'));
+    return;
+  }
 
-    for (const file of files) {
-      if (!file.endsWith('.json')) {
-        continue;
-      }
+  console.log(chalk.blue(`Found ${filePaths.length} files to process\n`));
 
-      const filePath = join(inputDir, file);
-      console.log(chalk.gray(`Processing file: ${file}`));
+  for (const filePath of filePaths) {
+    const file = basename(filePath);
+    console.log(chalk.gray(`Processing file: ${filePath}`));
 
-      try {
-        const fileData = await readFile(filePath, 'utf-8');
-        const labelStudioData = JSON.parse(fileData);
+    try {
+      const fileData = await readFile(filePath, 'utf-8');
+      const labelStudioData = JSON.parse(fileData);
 
-        const { data, isFull } = isLabelStudioFullJSON(labelStudioData);
+      const { data, isFull } = isLabelStudioFullJSON(labelStudioData);
 
-        // Apply enhancements
-        const enhanced = await enhanceLabelStudioData(data, isFull, {
-          sortVertical: sortVertical as VerticalSortOrder,
-          sortHorizontal: sortHorizontal as HorizontalSortOrder,
-          normalizeShape:
-            normalizeShape !== SHAPE_NORMALIZE_NONE
-              ? (normalizeShape as ShapeNormalizeOption)
-              : undefined,
-          widthIncrement,
-          heightIncrement,
-          precision,
-        });
+      // Apply enhancements
+      const enhanced = await enhanceLabelStudioData(data, isFull, {
+        sortVertical: sortVertical as VerticalSortOrder,
+        sortHorizontal: sortHorizontal as HorizontalSortOrder,
+        normalizeShape:
+          normalizeShape !== SHAPE_NORMALIZE_NONE
+            ? (normalizeShape as ShapeNormalizeOption)
+            : undefined,
+        widthIncrement,
+        heightIncrement,
+        precision,
+      });
 
-        // Write enhanced data
-        const outputFilePath = join(outDir, file);
-        await writeFile(
-          outputFilePath,
-          JSON.stringify(enhanced, null, 2),
-          'utf-8',
-        );
-        console.log(chalk.green(`✓ Enhanced file saved: ${outputFilePath}`));
-      } catch (error) {
-        console.error(
-          chalk.red(`Error processing file ${file}:`),
-          error instanceof Error ? error.message : String(error),
-        );
-      }
+      // Write enhanced data
+      const outputFilePath = join(outDir, file);
+      await writeFile(
+        outputFilePath,
+        JSON.stringify(enhanced, null, 2),
+        'utf-8',
+      );
+      console.log(chalk.green(`✓ Enhanced file saved: ${outputFilePath}`));
+    } catch (error) {
+      console.error(
+        chalk.red(`Error processing file ${file}:`),
+        error instanceof Error ? error.message : String(error),
+      );
     }
   }
 

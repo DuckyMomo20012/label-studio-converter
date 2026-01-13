@@ -1,7 +1,9 @@
 import { buildCommand } from '@stricli/core';
 import {
   DEFAULT_HEIGHT_INCREMENT,
+  DEFAULT_PPOCR_FILE_PATTERN,
   DEFAULT_PPOCR_PRECISION,
+  DEFAULT_RECURSIVE,
   DEFAULT_SHAPE_NORMALIZE,
   DEFAULT_SORT_HORIZONTAL,
   DEFAULT_SORT_VERTICAL,
@@ -72,6 +74,17 @@ export const enhancePPOCRCommand = buildCommand({
         kind: 'parsed',
         brief: `Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: ${DEFAULT_PPOCR_PRECISION} (integers)`,
         parse: Number,
+        optional: true,
+      },
+      recursive: {
+        kind: 'boolean',
+        brief: `Recursively search directories for files. Default: ${DEFAULT_RECURSIVE}`,
+        optional: true,
+      },
+      filePattern: {
+        kind: 'parsed',
+        brief: `Regex pattern to match PPOCRLabel files (should match .txt files). Default: "${DEFAULT_PPOCR_FILE_PATTERN}"`,
+        parse: String,
         optional: true,
       },
     },

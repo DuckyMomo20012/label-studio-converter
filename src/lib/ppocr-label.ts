@@ -93,7 +93,8 @@ export const ppocrToFullLabelStudio = (
   let original_width = 1920;
   let original_height = 1080;
 
-  // Resolve absolute path to image file
+  // Resolve path to image file
+  // Paths in PPOCRLabel are relative to the current working directory
   const resolvedImagePath = inputDir ? join(inputDir, imagePath) : imagePath;
 
   if (!existsSync(resolvedImagePath)) {
@@ -255,7 +256,8 @@ export const ppocrToMinLabelStudio = (
   let original_width = 1920;
   let original_height = 1080;
 
-  // Resolve absolute path to image file
+  // Resolve path to image file
+  // Paths in PPOCRLabel are relative to the current working directory
   const resolvedImagePath = inputDir ? join(inputDir, imagePath) : imagePath;
 
   if (!existsSync(resolvedImagePath)) {
