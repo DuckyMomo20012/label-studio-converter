@@ -23,7 +23,7 @@ import {
   type VerticalSortOrder,
 } from '@/constants';
 import type { LocalContext } from '@/context';
-import { findFiles } from '@/lib/file-utils';
+import { findFiles, getRelativePathFromInputs } from '@/lib/file-utils';
 import { ppocrToLabelStudio } from '@/lib/ppocr-label';
 import { type PPOCRLabel, PPOCRLabelSchema } from '@/lib/schema';
 import { sortBoundingBoxes } from '@/lib/sort';
@@ -92,6 +92,10 @@ export async function convertToLabelStudio(
     const file = basename(filePath);
     // Image paths in Label.txt are relative to the parent directory of Label.txt
     const baseImageDir = dirname(dirname(filePath));
+    // Get relative path to preserve directory structure
+    const relativePath = getRelativePathFromInputs(filePath, inputDirs);
+    const relativeDir = dirname(relativePath);
+
     console.log(chalk.gray(`Processing file: ${filePath}`));
 
     try {
@@ -184,8 +188,11 @@ export async function convertToLabelStudio(
           const imageBaseName = imagePath
             .replace(/\//g, '_')
             .replace(/\.[^.]+$/, '');
+          const outputSubDir = join(outDir, relativeDir);
+          await mkdir(outputSubDir, { recursive: true });
+
           const individualOutputPath = join(
-            outDir,
+            outputSubDir,
             `${imageBaseName}_${toFullJson ? 'full' : 'min'}.json`,
           );
           await writeFile(
@@ -212,8 +219,12 @@ export async function convertToLabelStudio(
 
       // Write combined output file
       const baseName = file.replace('.txt', '');
+      // Create output subdirectory to preserve structure
+      const outputSubDir = join(outDir, relativeDir);
+      await mkdir(outputSubDir, { recursive: true });
+
       const outputPath = join(
-        outDir,
+        outputSubDir,
         `${baseName}_${toFullJson ? 'full' : 'min'}.json`,
       );
       await writeFile(

@@ -1,5 +1,5 @@
 import { mkdir, readFile, writeFile } from 'fs/promises';
-import { basename, join } from 'path';
+import { basename, dirname, join } from 'path';
 import chalk from 'chalk';
 import {
   DEFAULT_HEIGHT_INCREMENT,
@@ -18,7 +18,7 @@ import {
 } from '@/constants';
 import type { LocalContext } from '@/context';
 import { enhancePPOCRLabel } from '@/lib/enhance';
-import { findFiles } from '@/lib/file-utils';
+import { findFiles, getRelativePathFromInputs } from '@/lib/file-utils';
 import { PPOCRLabelSchema } from '@/lib/schema';
 
 interface CommandFlags {
@@ -110,7 +110,13 @@ export async function enhancePPOCR(
       }
 
       // Write enhanced data
-      const outputFilePath = join(outDir, file);
+      // Create output subdirectory to preserve structure
+      const relativePath = getRelativePathFromInputs(filePath, inputDirs);
+      const relativeDir = dirname(relativePath);
+      const outputSubDir = join(outDir, relativeDir);
+      await mkdir(outputSubDir, { recursive: true });
+
+      const outputFilePath = join(outputSubDir, file);
       await writeFile(outputFilePath, enhancedLines.join('\n'), 'utf-8');
       console.log(chalk.green(`✓ Enhanced file saved: ${outputFilePath}`));
     } catch (error) {

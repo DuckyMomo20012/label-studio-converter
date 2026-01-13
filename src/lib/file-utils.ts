@@ -1,5 +1,5 @@
 import { readdir, stat } from 'fs/promises';
-import { join } from 'path';
+import { join, relative } from 'path';
 
 /**
  * Recursively find all files in directories matching a pattern
@@ -49,4 +49,27 @@ export async function findFiles(
   }
 
   return allFiles;
+}
+
+/**
+ * Get relative path from any of the input directories
+ * Used to preserve directory structure in output
+ * @param filePath - Absolute file path
+ * @param inputDirs - Array of input directory paths
+ * @returns Relative path from the matching input directory
+ */
+export function getRelativePathFromInputs(
+  filePath: string,
+  inputDirs: string[],
+): string {
+  for (const inputDir of inputDirs) {
+    // Check if filePath is under this inputDir
+    const rel = relative(inputDir, filePath);
+    if (!rel.startsWith('..') && !rel.startsWith('/')) {
+      return rel;
+    }
+  }
+
+  // If no match, just return the basename
+  return relative(process.cwd(), filePath);
 }

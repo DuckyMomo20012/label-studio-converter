@@ -1,5 +1,5 @@
 import { mkdir, readFile, writeFile } from 'fs/promises';
-import { basename, join } from 'path';
+import { basename, dirname, join } from 'path';
 import chalk from 'chalk';
 import {
   DEFAULT_HEIGHT_INCREMENT,
@@ -17,7 +17,7 @@ import {
   type VerticalSortOrder,
 } from '@/constants';
 import type { LocalContext } from '@/context';
-import { findFiles } from '@/lib/file-utils';
+import { findFiles, getRelativePathFromInputs } from '@/lib/file-utils';
 import { enhanceLabelStudioData } from '@/lib/label-studio';
 import {
   type FullOCRLabelStudio,
@@ -122,7 +122,13 @@ export async function enhanceLabelStudio(
       });
 
       // Write enhanced data
-      const outputFilePath = join(outDir, file);
+      // Create output subdirectory to preserve structure
+      const relativePath = getRelativePathFromInputs(filePath, inputDirs);
+      const relativeDir = dirname(relativePath);
+      const outputSubDir = join(outDir, relativeDir);
+      await mkdir(outputSubDir, { recursive: true });
+
+      const outputFilePath = join(outputSubDir, file);
       await writeFile(
         outputFilePath,
         JSON.stringify(enhanced, null, 2),

@@ -1,5 +1,5 @@
 import { mkdir, readFile, writeFile } from 'fs/promises';
-import { basename, join } from 'path';
+import { basename, dirname, join } from 'path';
 import chalk from 'chalk';
 import {
   DEFAULT_HEIGHT_INCREMENT,
@@ -18,7 +18,7 @@ import {
   type VerticalSortOrder,
 } from '@/constants';
 import type { LocalContext } from '@/context';
-import { findFiles } from '@/lib/file-utils';
+import { findFiles, getRelativePathFromInputs } from '@/lib/file-utils';
 import { labelStudioToPPOCR, minLabelStudioToPPOCR } from '@/lib/label-studio';
 import {
   type FullOCRLabelStudio,
@@ -107,6 +107,10 @@ export async function convertToPPOCR(
 
   for (const filePath of filePaths) {
     const file = basename(filePath);
+    // Get relative path to preserve directory structure
+    const relativePath = getRelativePathFromInputs(filePath, inputDirs);
+    const relativeDir = dirname(relativePath);
+
     console.log(chalk.gray(`Processing file: ${filePath}`));
 
     try {
@@ -158,7 +162,11 @@ export async function convertToPPOCR(
 
       // Write to output file
       const baseName = file.replace('.json', '');
-      const outputPath = join(outDir, `${baseName}_${fileName}`);
+      // Create output subdirectory to preserve structure
+      const outputSubDir = join(outDir, relativeDir);
+      await mkdir(outputSubDir, { recursive: true });
+
+      const outputPath = join(outputSubDir, `${baseName}_${fileName}`);
       await writeFile(outputPath, outputLines.join('\n'), 'utf-8');
 
       console.log(chalk.green(`✓ Converted ${file} -> ${outputPath}`));
