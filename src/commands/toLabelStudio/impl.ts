@@ -10,6 +10,7 @@ import {
   DEFAULT_LABEL_NAME,
   DEFAULT_LABEL_STUDIO_FULL_JSON,
   DEFAULT_LABEL_STUDIO_PRECISION,
+  DEFAULT_OUTPUT_MODE,
   DEFAULT_PPOCR_FILE_PATTERN,
   DEFAULT_RECURSIVE,
   DEFAULT_SHAPE_NORMALIZE,
@@ -17,6 +18,7 @@ import {
   DEFAULT_SORT_VERTICAL,
   DEFAULT_WIDTH_INCREMENT,
   type HorizontalSortOrder,
+  type OutputMode,
   SHAPE_NORMALIZE_NONE,
   type ShapeNormalizeOption,
   type VerticalSortOrder,
@@ -46,6 +48,7 @@ interface CommandFlags {
   precision?: number;
   recursive?: boolean;
   filePattern?: string;
+  outputMode?: string;
 }
 
 export async function convertToLabelStudio(
@@ -71,7 +74,18 @@ export async function convertToLabelStudio(
     precision = DEFAULT_LABEL_STUDIO_PRECISION,
     recursive = DEFAULT_RECURSIVE,
     filePattern = DEFAULT_PPOCR_FILE_PATTERN,
+    outputMode = DEFAULT_OUTPUT_MODE,
   } = flags;
+
+  // Validate outputMode is only used with Full JSON format
+  if (outputMode !== DEFAULT_OUTPUT_MODE && !toFullJson) {
+    console.log(
+      chalk.red(
+        'Error: --outputMode can only be used with --toFullJson (Full JSON format). Min JSON format does not support annotations/predictions distinction.',
+      ),
+    );
+    return;
+  }
 
   // NOTE: Ensure baseServerUrl ends with a single slash, but keeps empty string
   // as is
@@ -186,6 +200,7 @@ export async function convertToLabelStudio(
           widthIncrement,
           heightIncrement,
           precision,
+          outputMode: outputMode as OutputMode,
         });
 
         if (toFullJson) {

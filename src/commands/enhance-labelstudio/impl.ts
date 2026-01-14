@@ -5,12 +5,14 @@ import {
   DEFAULT_HEIGHT_INCREMENT,
   DEFAULT_LABEL_STUDIO_FILE_PATTERN,
   DEFAULT_LABEL_STUDIO_PRECISION,
+  DEFAULT_OUTPUT_MODE,
   DEFAULT_RECURSIVE,
   DEFAULT_SHAPE_NORMALIZE,
   DEFAULT_SORT_HORIZONTAL,
   DEFAULT_SORT_VERTICAL,
   DEFAULT_WIDTH_INCREMENT,
   type HorizontalSortOrder,
+  type OutputMode,
   SHAPE_NORMALIZE_NONE,
   type ShapeNormalizeOption,
   type VerticalSortOrder,
@@ -38,6 +40,7 @@ interface CommandFlags {
   precision?: number;
   recursive?: boolean;
   filePattern?: string;
+  outputMode?: string;
 }
 
 const isLabelStudioFullJSON = (
@@ -86,6 +89,7 @@ export async function enhanceLabelStudio(
     precision = DEFAULT_LABEL_STUDIO_PRECISION,
     recursive = DEFAULT_RECURSIVE,
     filePattern = DEFAULT_LABEL_STUDIO_FILE_PATTERN,
+    outputMode = DEFAULT_OUTPUT_MODE,
   } = flags;
 
   // Find all files matching the pattern
@@ -109,6 +113,16 @@ export async function enhanceLabelStudio(
 
       const { data, isFull } = isLabelStudioFullJSON(labelStudioData);
 
+      // Validate outputMode is only used with Full JSON format
+      if (outputMode !== DEFAULT_OUTPUT_MODE && !isFull) {
+        console.log(
+          chalk.red(
+            `  Skipping file: ${filePath}\n  Error: --outputMode can only be used with Full JSON format. This file is in Min JSON format which does not support annotations/predictions distinction.`,
+          ),
+        );
+        continue;
+      }
+
       // Apply enhancements
       const enhanced = await enhanceLabelStudioData(data, isFull, {
         sortVertical: sortVertical as VerticalSortOrder,
@@ -120,6 +134,7 @@ export async function enhanceLabelStudio(
         widthIncrement,
         heightIncrement,
         precision,
+        outputMode: outputMode as OutputMode,
       });
 
       // Write enhanced data
