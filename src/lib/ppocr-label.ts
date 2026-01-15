@@ -3,9 +3,11 @@ import { existsSync, readFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import sizeOf from 'image-size';
 import {
+  DEFAULT_HEIGHT_INCREMENT,
   DEFAULT_LABEL_NAME,
   DEFAULT_LABEL_STUDIO_PRECISION,
   DEFAULT_OUTPUT_MODE,
+  DEFAULT_WIDTH_INCREMENT,
   OUTPUT_MODE_PREDICTIONS,
   type OutputMode,
   type ShapeNormalizeOption,
@@ -45,8 +47,8 @@ export const ppocrToLabelStudio = async (
     taskId = 1,
     labelName = DEFAULT_LABEL_NAME,
     normalizeShape,
-    widthIncrement = 0,
-    heightIncrement = 0,
+    widthIncrement = DEFAULT_WIDTH_INCREMENT,
+    heightIncrement = DEFAULT_HEIGHT_INCREMENT,
     precision = DEFAULT_LABEL_STUDIO_PRECISION,
     outputMode = DEFAULT_OUTPUT_MODE,
   } = options || {};

@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from 'fs/promises';
 import { basename, dirname, join } from 'path';
 import chalk from 'chalk';
 import {
+  DEFAULT_BACKUP,
   DEFAULT_HEIGHT_INCREMENT,
   DEFAULT_LABEL_STUDIO_FILE_PATTERN,
   DEFAULT_PPOCR_FILE_NAME,
@@ -81,7 +82,7 @@ export async function convertToPPOCR(
   const {
     outDir,
     fileName = DEFAULT_PPOCR_FILE_NAME,
-    backup = false,
+    backup = DEFAULT_BACKUP,
     baseImageDir,
     sortVertical = DEFAULT_SORT_VERTICAL,
     sortHorizontal = DEFAULT_SORT_HORIZONTAL,

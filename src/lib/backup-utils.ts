@@ -1,8 +1,6 @@
-import { copyFile, existsSync } from 'fs';
-import { promisify } from 'util';
+import { existsSync } from 'fs';
+import { copyFile } from 'fs/promises';
 import { BACKUP_SUFFIX_PREFIX } from '@/constants';
-
-const copyFileAsync = promisify(copyFile);
 
 /**
  * Creates a backup of a file if it exists
@@ -20,6 +18,6 @@ export async function backupFileIfExists(
   const timestamp = new Date().toISOString().replace(/:/g, '-').split('.')[0];
   const backupPath = `${filePath}.${BACKUP_SUFFIX_PREFIX}${timestamp}`;
 
-  await copyFileAsync(filePath, backupPath);
+  await copyFile(filePath, backupPath);
   return backupPath;
 }

@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from 'fs/promises';
 import { basename, dirname, join } from 'path';
 import chalk from 'chalk';
 import {
+  DEFAULT_BACKUP,
   DEFAULT_BASE_SERVER_URL,
   DEFAULT_CREATE_FILE_LIST_FOR_SERVING,
   DEFAULT_CREATE_FILE_PER_IMAGE,
@@ -59,7 +60,7 @@ export async function convertToLabelStudio(
   const {
     outDir,
     fileName,
-    backup = false,
+    backup = DEFAULT_BACKUP,
     defaultLabelName = DEFAULT_LABEL_NAME,
     toFullJson = DEFAULT_LABEL_STUDIO_FULL_JSON,
     createFilePerImage = DEFAULT_CREATE_FILE_PER_IMAGE,
