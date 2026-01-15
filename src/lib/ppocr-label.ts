@@ -12,6 +12,7 @@ import {
   type OutputMode,
   type ShapeNormalizeOption,
 } from '@/constants';
+import { type TransformOptions } from '@/lib/enhance';
 import { type Point, roundToPrecision, transformPoints } from '@/lib/geometry';
 import {
   type FullOCRLabelStudio,
@@ -19,7 +20,7 @@ import {
   type PPOCRLabel,
 } from '@/lib/schema';
 
-export type ToLabelStudioOptions = {
+export type ToLabelStudioOptions = TransformOptions & {
   imagePath: string;
   baseServerUrl: string;
   inputDir?: string;
@@ -27,10 +28,6 @@ export type ToLabelStudioOptions = {
   toFullJson?: boolean;
   taskId?: number;
   labelName?: string;
-  normalizeShape?: ShapeNormalizeOption;
-  widthIncrement?: number;
-  heightIncrement?: number;
-  precision?: number;
   outputMode?: OutputMode;
 };
 
@@ -286,9 +283,8 @@ export const ppocrToFullLabelStudio = (
             {
               model_version: 'ppocr-v1',
               result: resultItems,
-              created_at: now,
+              created_ago: now,
               task: taskId,
-              project: 1,
             },
           ]
         : [],

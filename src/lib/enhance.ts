@@ -13,23 +13,38 @@ import {
 import { type Point, roundPoints, transformPoints } from '@/lib/geometry';
 import {
   type FullOCRLabelStudio,
+  type LabelStudioResultItem,
   type MinOCRLabelStudio,
   type PPOCRLabel,
 } from '@/lib/schema';
 import { sortBoundingBoxes } from '@/lib/sort';
 
 /**
- * Common enhancement options shared across formats
+ * Common transformation options for geometry operations
  */
-export interface EnhancementOptions {
-  sortVertical?: VerticalSortOrder;
-  sortHorizontal?: HorizontalSortOrder;
+export type TransformOptions = {
   normalizeShape?: ShapeNormalizeOption;
   widthIncrement?: number;
   heightIncrement?: number;
   precision?: number;
+};
+
+/**
+ * Enhancement options for PPOCR and Label Studio data
+ */
+export type EnhancementOptions = TransformOptions & {
+  sortVertical?: VerticalSortOrder;
+  sortHorizontal?: HorizontalSortOrder;
   outputMode?: OutputMode;
-}
+};
+
+/**
+ * Label Studio annotation or prediction container with result array
+ */
+type AnnotationOrPrediction = {
+  result: LabelStudioResultItem[];
+  [key: string]: unknown;
+};
 
 /**
  * Apply all enhancement transformations to PPOCRLabel data
@@ -78,11 +93,8 @@ export function enhancePPOCRLabel(
 /**
  * Helper function to process and enhance a single annotation or prediction
  */
-/* eslint-disable @typescript-eslint/no-explicit-any */
-const processAnnotationOrPrediction = <
-  T extends { result: any[] } & Record<string, any>,
->(
-  annotation: T,
+const processAnnotationOrPrediction = (
+  annotation: AnnotationOrPrediction,
   options: {
     sortVertical?: VerticalSortOrder;
     sortHorizontal?: HorizontalSortOrder;
@@ -91,7 +103,7 @@ const processAnnotationOrPrediction = <
     heightIncrement: number;
     precision: number;
   },
-): T => {
+): AnnotationOrPrediction => {
   const {
     sortVertical,
     sortHorizontal,
@@ -105,13 +117,13 @@ const processAnnotationOrPrediction = <
   const groupedById = groupBy(annotation.result, (item) => item.id);
 
   // Process each group and enhance
-  const enhancedResult: typeof annotation.result = [];
+  const enhancedResult: LabelStudioResultItem[] = [];
 
   for (const [, resultItems] of Object.entries(groupedById)) {
     // Collect all items in group to extract points
     let ppocrAnnotations: PPOCRLabel = [];
 
-    for (const resultItem of resultItems) {
+    for (const resultItem of resultItems as LabelStudioResultItem[]) {
       let points: number[][] | undefined;
 
       // Extract points
@@ -119,10 +131,13 @@ const processAnnotationOrPrediction = <
         const { points: valuePoints } = resultItem.value;
         const { original_width, original_height } = resultItem;
 
-        points = valuePoints.map(([x, y]: [number, number]) => [
-          ((x ?? 0) * original_width) / 100,
-          ((y ?? 0) * original_height) / 100,
-        ]);
+        points = valuePoints.map((point) => {
+          const [x, y] = point;
+          return [
+            ((x ?? 0) * original_width) / 100,
+            ((y ?? 0) * original_height) / 100,
+          ];
+        });
       } else if (
         'x' in resultItem.value &&
         'y' in resultItem.value &&
@@ -231,7 +246,6 @@ const processAnnotationOrPrediction = <
     result: enhancedResult,
   };
 };
-/* eslint-enable @typescript-eslint/no-explicit-any */
 
 /**
  * Enhance Label Studio data (both Full and Min formats) with sorting, normalization, and resizing
@@ -280,8 +294,10 @@ export const enhanceLabelStudioData = async (
 
       // Process all items
       const processedItems = allItems.map(({ item }) =>
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        processAnnotationOrPrediction(item as any, processOptions),
+        processAnnotationOrPrediction(
+          item as AnnotationOrPrediction,
+          processOptions,
+        ),
       );
 
       // Convert based on outputMode

@@ -5,7 +5,7 @@ import {
   DEFAULT_PPOCR_PRECISION,
   DEFAULT_WIDTH_INCREMENT,
 } from '@/constants';
-import type { ShapeNormalizeOption } from '@/constants';
+import { type TransformOptions } from '@/lib/enhance';
 import { type Point, roundPoints, transformPoints } from '@/lib/geometry';
 import {
   type FullOCRLabelStudio,
@@ -13,13 +13,9 @@ import {
   type PPOCRLabel,
 } from '@/lib/schema';
 
-export interface ConversionOptions {
+export type ConversionOptions = TransformOptions & {
   baseImageDir?: string;
-  normalizeShape?: ShapeNormalizeOption;
-  widthIncrement?: number;
-  heightIncrement?: number;
-  precision?: number;
-}
+};
 
 export const labelStudioToPPOCR = async (
   data: FullOCRLabelStudio,
