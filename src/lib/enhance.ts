@@ -1,5 +1,6 @@
 import type {
   HorizontalSortOrder,
+  OutputMode,
   ShapeNormalizeOption,
   VerticalSortOrder,
 } from '@/constants';
@@ -17,6 +18,7 @@ export interface EnhancementOptions {
   widthIncrement?: number;
   heightIncrement?: number;
   precision?: number;
+  outputMode?: OutputMode;
 }
 
 /**

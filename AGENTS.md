@@ -1,5 +1,101 @@
 # Agent Workflow Guidelines
 
+## Code Conventions
+
+### Naming Conventions
+
+**Consistency is critical.** Always follow existing naming patterns in the codebase:
+
+#### TypeScript/JavaScript
+
+- **Variables and Parameters**: Use `camelCase`
+  - ✅ `filePattern`, `sortVertical`, `baseImageDir`
+  - ❌ `file_pattern`, `sort-vertical`, `BaseImageDir`
+
+- **Constants**: Use `UPPER_SNAKE_CASE`
+  - ✅ `DEFAULT_PPOCR_FILE_PATTERN`, `SORT_VERTICAL_NONE`
+  - ❌ `defaultPpocrFilePattern`, `sortVerticalNone`
+
+- **Types and Interfaces**: Use `PascalCase`
+  - ✅ `VerticalSortOrder`, `CommandFlags`, `PPOCRLabel`
+  - ❌ `verticalSortOrder`, `commandFlags`, `ppocrLabel`
+
+- **Functions**: Use `camelCase`
+  - ✅ `findFiles`, `convertToLabelStudio`, `enhancePPOCRLabel`
+  - ❌ `find_files`, `ConvertToLabelStudio`
+
+#### CLI Flags
+
+- **Command Line Options**: Use `--camelCase` with kebab-case alternatives
+  - ✅ `--filePattern`, `--sortVertical`, `--outDir`
+  - ❌ `--file_pattern`, `--file-pattern`, `--FilePattern`
+
+- **Boolean Flags**: Support both positive and negative forms
+  - ✅ `--recursive/--noRecursive`, `--toFullJson/--noToFullJson`
+
+#### File and Directory Naming
+
+- **Test Files**: Use descriptive lowercase names with underscores
+  - Format: `{format}_{variant}_{description}.{ext}`
+  - ✅ `ppocr_label_full.txt`, `label_studio_diamond.json`
+  - ❌ `ppocrLabel.txt`, `LabelStudioDiamond.json`
+
+- **Documentation Images**: Use descriptive lowercase names with hyphens
+  - Format: `{tool}_{context}_{description}.png`
+  - ✅ `label-studio-converted-example.png`
+  - ❌ `labelStudio_converted.png`
+
+### Project Structure Conventions
+
+- **Commands**: Each command has its own directory under `src/commands/`
+  - Structure: `src/commands/{command-name}/command.ts` and `impl.ts`
+  - Command file defines CLI interface
+  - Implementation file contains logic
+
+- **Library Functions**: Export from `src/lib/index.ts`
+  - All public API functions must be exported
+  - Keep implementation in appropriate module files
+
+- **Constants**: Centralized in `src/constants.ts`
+  - **ALL default flag values MUST be defined as constants**
+  - Group related constants together (e.g., sorting options, shape normalization, backup options)
+  - Document defaults clearly with comments
+  - Use const assertions (`as const`) where appropriate
+  - Examples:
+    - `DEFAULT_BACKUP = false` - Default for --backup flag
+    - `DEFAULT_RECURSIVE = false` - Default for --recursive flag
+    - `DEFAULT_PPOCR_FILE_NAME = 'Label.txt'` - Default output filename
+
+- **Command Flag Briefs**: Always reference constants in `command.ts` files
+  - Import DEFAULT\_\* constants from `@/constants`
+  - Use template literals to reference constants in brief descriptions
+  - ✅ `brief: \`Create backup of existing files before overwriting. Default: \${DEFAULT_BACKUP}\``
+  - ✅ `brief: \`Recursively search directories for files. Default: \${DEFAULT_RECURSIVE}\``
+  - ❌ `brief: 'Create backup of existing files before overwriting. Default: false'`
+  - This ensures defaults stay in sync between documentation and implementation
+
+### Adding New Features
+
+When adding new features, ensure consistency:
+
+1. **Follow Existing Patterns**:
+   - Look at similar features for naming guidance
+   - Match parameter order and structure
+   - Use the same error handling approach
+
+2. **Update All Relevant Files**:
+   - Command definition (`command.ts`)
+   - Implementation (`impl.ts`)
+   - **Constants - add DEFAULT\_\* constant for any new flag with a default value**
+   - Tests for the new feature
+   - README documentation
+   - Export from `lib/index.ts` if public API
+
+3. **Maintain Semantic Clarity**:
+   - Choose names that clearly describe purpose
+   - Prefer `filePattern` over `include` or `pattern` (more semantic)
+   - Prefer `outDir` over `output` or `outputDirectory` (concise but clear)
+
 ## Development Workflow
 
 When implementing new features or making changes, follow this systematic approach:

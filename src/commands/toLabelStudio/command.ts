@@ -1,5 +1,6 @@
 import { buildCommand } from '@stricli/core';
 import {
+  DEFAULT_BACKUP,
   DEFAULT_BASE_SERVER_URL,
   DEFAULT_CREATE_FILE_LIST_FOR_SERVING,
   DEFAULT_CREATE_FILE_PER_IMAGE,
@@ -8,11 +9,15 @@ import {
   DEFAULT_LABEL_NAME,
   DEFAULT_LABEL_STUDIO_FULL_JSON,
   DEFAULT_LABEL_STUDIO_PRECISION,
+  DEFAULT_OUTPUT_MODE,
+  DEFAULT_PPOCR_FILE_PATTERN,
+  DEFAULT_RECURSIVE,
   DEFAULT_SHAPE_NORMALIZE,
   DEFAULT_SORT_HORIZONTAL,
   DEFAULT_SORT_VERTICAL,
   DEFAULT_WIDTH_INCREMENT,
-  OUTPUT_BASE_DIR,
+  OUTPUT_MODE_ANNOTATIONS,
+  OUTPUT_MODE_PREDICTIONS,
   SHAPE_NORMALIZE_NONE,
   SHAPE_NORMALIZE_RECTANGLE,
   SORT_HORIZONTAL_LTR,
@@ -40,8 +45,21 @@ export const toLabelStudioCommand = buildCommand({
     flags: {
       outDir: {
         kind: 'parsed',
-        brief: `Output directory. Default: "${OUTPUT_BASE_DIR}"`,
+        brief:
+          'Output directory. If not specified, files are saved in the same directory as the source files',
         parse: String,
+        optional: true,
+      },
+      fileName: {
+        kind: 'parsed',
+        brief:
+          'Custom output filename (without extension). If not specified, uses source filename with format suffix',
+        parse: String,
+        optional: true,
+      },
+      backup: {
+        kind: 'boolean',
+        brief: `Create backup of existing files before overwriting. Default: ${DEFAULT_BACKUP}`,
         optional: true,
       },
       defaultLabelName: {
@@ -111,6 +129,23 @@ export const toLabelStudioCommand = buildCommand({
         kind: 'parsed',
         brief: `Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: ${DEFAULT_LABEL_STUDIO_PRECISION}`,
         parse: Number,
+        optional: true,
+      },
+      recursive: {
+        kind: 'boolean',
+        brief: `Recursively search directories for files. Default: ${DEFAULT_RECURSIVE}`,
+        optional: true,
+      },
+      filePattern: {
+        kind: 'parsed',
+        brief: `Regex pattern to match PPOCRLabel files (should match .txt files). Default: "${DEFAULT_PPOCR_FILE_PATTERN}"`,
+        parse: String,
+        optional: true,
+      },
+      outputMode: {
+        kind: 'parsed',
+        brief: `Output mode: "${OUTPUT_MODE_ANNOTATIONS}" for editable annotations (ground truth) or "${OUTPUT_MODE_PREDICTIONS}" for read-only predictions (pre-annotations). Default: "${DEFAULT_OUTPUT_MODE}"`,
+        parse: String,
         optional: true,
       },
     },

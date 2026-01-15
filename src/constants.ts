@@ -1,5 +1,3 @@
-export const OUTPUT_BASE_DIR = './output';
-
 export const DEFAULT_LABEL_NAME = 'Text';
 export const DEFAULT_LABEL_STUDIO_FULL_JSON = true;
 export const DEFAULT_CREATE_FILE_PER_IMAGE = false;
@@ -49,3 +47,23 @@ export const DEFAULT_HEIGHT_INCREMENT = 0;
 export const DEFAULT_LABEL_STUDIO_PRECISION = -1; // -1 means no rounding
 // For PPOCR: round to integers
 export const DEFAULT_PPOCR_PRECISION = 0;
+
+// File reading options
+export const DEFAULT_RECURSIVE = false;
+// Default patterns for matching files - users can customize these
+export const DEFAULT_PPOCR_FILE_PATTERN = '.*\\.txt$'; // Recommended: match .txt files
+export const DEFAULT_LABEL_STUDIO_FILE_PATTERN = '.*\\.json$'; // Recommended: match .json files
+
+// Output mode options (annotations vs predictions)
+export const OUTPUT_MODE_ANNOTATIONS = 'annotations';
+export const OUTPUT_MODE_PREDICTIONS = 'predictions';
+export const DEFAULT_OUTPUT_MODE = OUTPUT_MODE_ANNOTATIONS;
+
+export type OutputMode =
+  | typeof OUTPUT_MODE_ANNOTATIONS
+  | typeof OUTPUT_MODE_PREDICTIONS;
+
+// Backup options
+export const DEFAULT_BACKUP = false;
+export const BACKUP_SUFFIX_PREFIX = 'backup-';
+export const BACKUP_TIMESTAMP_FORMAT = 'YYYY-MM-DDTHH-MM-SS'; // ISO format with colons replaced by hyphens

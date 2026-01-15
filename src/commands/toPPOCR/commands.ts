@@ -1,13 +1,15 @@
 import { buildCommand } from '@stricli/core';
 import {
+  DEFAULT_BACKUP,
   DEFAULT_HEIGHT_INCREMENT,
+  DEFAULT_LABEL_STUDIO_FILE_PATTERN,
   DEFAULT_PPOCR_FILE_NAME,
   DEFAULT_PPOCR_PRECISION,
+  DEFAULT_RECURSIVE,
   DEFAULT_SHAPE_NORMALIZE,
   DEFAULT_SORT_HORIZONTAL,
   DEFAULT_SORT_VERTICAL,
   DEFAULT_WIDTH_INCREMENT,
-  OUTPUT_BASE_DIR,
   SHAPE_NORMALIZE_NONE,
   SHAPE_NORMALIZE_RECTANGLE,
   SORT_HORIZONTAL_LTR,
@@ -35,7 +37,8 @@ export const toPPOCRCommand = buildCommand({
     flags: {
       outDir: {
         kind: 'parsed',
-        brief: `Output directory. Default: "${OUTPUT_BASE_DIR}"`,
+        brief:
+          'Output directory. If not specified, files are saved in the same directory as the source files',
         parse: String,
         optional: true,
       },
@@ -43,6 +46,11 @@ export const toPPOCRCommand = buildCommand({
         kind: 'parsed',
         brief: `Output PPOCR file name. Default: "${DEFAULT_PPOCR_FILE_NAME}"`,
         parse: String,
+        optional: true,
+      },
+      backup: {
+        kind: 'boolean',
+        brief: `Create backup of existing files before overwriting. Default: ${DEFAULT_BACKUP}`,
         optional: true,
       },
       baseImageDir: {
@@ -86,6 +94,17 @@ export const toPPOCRCommand = buildCommand({
         kind: 'parsed',
         brief: `Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: ${DEFAULT_PPOCR_PRECISION} (integers)`,
         parse: Number,
+        optional: true,
+      },
+      recursive: {
+        kind: 'boolean',
+        brief: `Recursively search directories for files. Default: ${DEFAULT_RECURSIVE}`,
+        optional: true,
+      },
+      filePattern: {
+        kind: 'parsed',
+        brief: `Regex pattern to match Label Studio files (should match .json files). Default: "${DEFAULT_LABEL_STUDIO_FILE_PATTERN}"`,
+        parse: String,
         optional: true,
       },
     },
