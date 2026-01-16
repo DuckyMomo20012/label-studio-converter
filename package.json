@@ -48,35 +48,35 @@
     "postinstall": "npx @stricli/auto-complete@latest install label-studio-converter --bash __label-studio-converter_bash_complete"
   },
   "dependencies": {
-    "@stricli/auto-complete": "1.2.4",
+    "@stricli/auto-complete": "1.2.5",
     "@stricli/core": "1.2.4",
-    "@turf/turf": "7.3.1",
+    "@turf/turf": "7.3.2",
     "chalk": "5.6.2",
-    "es-toolkit": "1.43.0",
+    "es-toolkit": "1.44.0",
     "image-size": "2.0.2",
-    "zod": "4.2.1"
+    "zod": "4.3.5"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "0.18.2",
-    "@babel/core": "7.28.5",
-    "@commitlint/cli": "20.2.0",
-    "@commitlint/config-conventional": "20.2.0",
-    "@types/node": "24.10.4",
-    "@typescript-eslint/eslint-plugin": "8.51.0",
-    "@typescript-eslint/parser": "8.51.0",
-    "@vitest/eslint-plugin": "1.6.4",
-    "@vitest/ui": "4.0.16",
+    "@babel/core": "7.28.6",
+    "@commitlint/cli": "20.3.1",
+    "@commitlint/config-conventional": "20.3.1",
+    "@types/node": "25.0.9",
+    "@typescript-eslint/eslint-plugin": "8.53.0",
+    "@typescript-eslint/parser": "8.53.0",
+    "@vitest/eslint-plugin": "1.6.6",
+    "@vitest/ui": "4.0.17",
     "eslint": "9.39.2",
     "eslint-config-prettier": "10.1.8",
     "eslint-import-resolver-typescript": "4.4.4",
     "eslint-plugin-import": "2.32.0",
-    "eslint-plugin-prettier": "5.5.4",
-    "globals": "16.5.0",
+    "eslint-plugin-prettier": "5.5.5",
+    "globals": "17.0.0",
     "husky": "9.1.7",
     "lint-staged": "16.2.7",
-    "prettier": "3.7.4",
+    "prettier": "3.8.0",
     "tsup": "8.5.1",
     "typescript": "5.9.3",
-    "vitest": "4.0.16"
+    "vitest": "4.0.17"
   }
 }
