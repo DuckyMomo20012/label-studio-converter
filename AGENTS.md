@@ -149,6 +149,54 @@ type EnhanceOptions = {
   - You're extending a class
   - You're defining a contract for a plugin system
 
+### Preferred Dependencies and Utilities
+
+**Always use these libraries when applicable:**
+
+- **Zod** - Use for all runtime validation and schema definitions
+  - Define schemas in `src/lib/schema.ts`
+  - Extract types with `z.infer<typeof Schema>`
+  - Prefer Zod validation over manual type checking
+  - Use Zod for parsing CLI inputs, file data, and API responses
+  - Example: `const result = MySchema.safeParse(data)` instead of manual validation
+
+- **es-toolkit** - Use for all utility functions instead of lodash or custom implementations
+  - Array operations: `chunk`, `uniq`, `groupBy`, `partition`, `shuffle`
+  - Object operations: `pick`, `omit`, `mapKeys`, `mapValues`, `cloneDeep`
+  - String operations: `camelCase`, `snakeCase`, `kebabCase`, `capitalize`
+  - Function operations: `debounce`, `throttle`, `once`, `memoize`
+  - Type guards: `isPlainObject`, `isNil`, `isEmpty`, `isEqual`
+  - ✅ `import { chunk, uniq } from 'es-toolkit'`
+  - ❌ Writing custom utility functions that es-toolkit provides
+  - ❌ Using lodash when es-toolkit has equivalent functionality
+
+**Examples:**
+
+```typescript
+// ✅ Good - Using Zod for validation
+const ConfigSchema = z.object({
+  outDir: z.string(),
+  recursive: z.boolean().default(false),
+});
+const config = ConfigSchema.parse(userInput);
+
+// ✅ Good - Using es-toolkit utilities
+import { chunk, uniq, groupBy } from 'es-toolkit';
+const uniqueItems = uniq(items);
+const batches = chunk(items, 10);
+const grouped = groupBy(items, (item) => item.category);
+
+// ❌ Bad - Manual validation when Zod should be used
+if (typeof config.outDir !== 'string') throw new Error('Invalid outDir');
+
+// ❌ Bad - Custom utility when es-toolkit provides it
+const uniqueItems = [...new Set(items)]; // Use uniq() instead
+const chunks = []; // Use chunk() instead
+for (let i = 0; i < items.length; i += 10) {
+  chunks.push(items.slice(i, i + 10));
+}
+```
+
 ### Adding New Features
 
 When adding new features, ensure consistency:
@@ -157,6 +205,7 @@ When adding new features, ensure consistency:
    - Look at similar features for naming guidance
    - Match parameter order and structure
    - Use the same error handling approach
+   - **Check if es-toolkit provides utilities you need** before writing custom code
 
 2. **Update All Relevant Files**:
    - Command definition (`command.ts`)
