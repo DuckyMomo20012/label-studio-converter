@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.1](https://github.com/DuckyMomo20012/label-studio-converter/compare/v1.3.0...v1.3.1) (2026-01-20)
+
+
+### Bug Fixes
+
+* remove redundant functions and cleanup code ([bcf97f6](https://github.com/DuckyMomo20012/label-studio-converter/commit/bcf97f6f094e26d32cbc7f52ff9788c966af15a2))
+* update schema & types ([9929418](https://github.com/DuckyMomo20012/label-studio-converter/commit/99294182b10bc628ec9b0472f9976ba22eac25af))
+
 ## [1.3.0](https://github.com/DuckyMomo20012/label-studio-converter/compare/v1.2.0...v1.3.0) (2026-01-15)
 
 
