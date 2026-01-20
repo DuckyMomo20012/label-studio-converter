@@ -3,13 +3,16 @@ import { existsSync, readFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
 import sizeOf from 'image-size';
 import {
+  DEFAULT_HEIGHT_INCREMENT,
   DEFAULT_LABEL_NAME,
   DEFAULT_LABEL_STUDIO_PRECISION,
   DEFAULT_OUTPUT_MODE,
+  DEFAULT_WIDTH_INCREMENT,
   OUTPUT_MODE_PREDICTIONS,
   type OutputMode,
   type ShapeNormalizeOption,
 } from '@/constants';
+import { type TransformOptions } from '@/lib/enhance';
 import { type Point, roundToPrecision, transformPoints } from '@/lib/geometry';
 import {
   type FullOCRLabelStudio,
@@ -17,7 +20,7 @@ import {
   type PPOCRLabel,
 } from '@/lib/schema';
 
-export type ToLabelStudioOptions = {
+export type ToLabelStudioOptions = TransformOptions & {
   imagePath: string;
   baseServerUrl: string;
   inputDir?: string;
@@ -25,10 +28,6 @@ export type ToLabelStudioOptions = {
   toFullJson?: boolean;
   taskId?: number;
   labelName?: string;
-  normalizeShape?: ShapeNormalizeOption;
-  widthIncrement?: number;
-  heightIncrement?: number;
-  precision?: number;
   outputMode?: OutputMode;
 };
 
@@ -45,8 +44,8 @@ export const ppocrToLabelStudio = async (
     taskId = 1,
     labelName = DEFAULT_LABEL_NAME,
     normalizeShape,
-    widthIncrement = 0,
-    heightIncrement = 0,
+    widthIncrement = DEFAULT_WIDTH_INCREMENT,
+    heightIncrement = DEFAULT_HEIGHT_INCREMENT,
     precision = DEFAULT_LABEL_STUDIO_PRECISION,
     outputMode = DEFAULT_OUTPUT_MODE,
   } = options || {};
@@ -284,9 +283,8 @@ export const ppocrToFullLabelStudio = (
             {
               model_version: 'ppocr-v1',
               result: resultItems,
-              created_at: now,
+              created_ago: now,
               task: taskId,
-              project: 1,
             },
           ]
         : [],

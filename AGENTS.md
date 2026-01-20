@@ -19,6 +19,25 @@
 - **Types and Interfaces**: Use `PascalCase`
   - ✅ `VerticalSortOrder`, `CommandFlags`, `PPOCRLabel`
   - ❌ `verticalSortOrder`, `commandFlags`, `ppocrLabel`
+  - **Prefer `type` over `interface`** for better composability and type inference
+  - Use `interface` only when declaration merging or extending classes is needed
+  - **Avoid type bloating** - reuse existing types instead of creating duplicates
+  - **Use intersection types (`&`)** for composition: `type Extended = Base & Additional`
+  - **Extract types from Zod schemas** using `z.infer<typeof Schema>` rather than duplicating definitions
+  - Example of good type composition:
+
+    ```typescript
+    // ✅ Good - reuse and compose
+    type TransformOptions = { normalizeShape?: boolean; precision?: number };
+    type EnhancementOptions = TransformOptions & { sortVertical?: string };
+
+    // ❌ Bad - duplicate fields
+    type EnhancementOptions = {
+      normalizeShape?: boolean;
+      precision?: number;
+      sortVertical?: string;
+    };
+    ```
 
 - **Functions**: Use `camelCase`
   - ✅ `findFiles`, `convertToLabelStudio`, `enhancePPOCRLabel`
@@ -74,6 +93,110 @@
   - ❌ `brief: 'Create backup of existing files before overwriting. Default: false'`
   - This ensures defaults stay in sync between documentation and implementation
 
+### Schema and Type Management
+
+**Use Zod as the single source of truth for runtime validation and type definitions:**
+
+- **Define schemas in `src/lib/schema.ts`** using Zod
+- **Extract TypeScript types** from schemas using `z.infer<typeof Schema>`
+- **Never duplicate type definitions** - if a schema exists, use `z.infer`
+- **Reuse schema fragments** - extract common schemas and compose with `z.union`, `z.intersection`, etc.
+
+**Type Composition Best Practices:**
+
+- **Use intersection types (`&`)** to combine types rather than duplicating fields
+- **Create base types** for shared fields and extend with specific fields
+- **Colocate related types** in the same file or module
+- **Document type purposes** with comments when the purpose isn't obvious
+
+**Examples:**
+
+```typescript
+// ✅ Good - Schema-first approach
+const UserSchema = z.object({ name: z.string(), age: z.number() });
+type User = z.infer<typeof UserSchema>; // Extract type from schema
+
+// ✅ Good - Reuse and compose with intersection
+type BaseOptions = { format?: string; verbose?: boolean };
+type ConvertOptions = BaseOptions & { outputDir: string };
+type EnhanceOptions = BaseOptions & { sortOrder?: string };
+
+// ✅ Good - Extract and reuse schema fragments
+const PointSchema = z.array(z.number());
+const PolygonValueSchema = z.object({
+  points: z.array(PointSchema),
+  closed: z.boolean(),
+});
+
+// ❌ Bad - Duplicate type definition when schema exists
+const UserSchema = z.object({ name: z.string(), age: z.number() });
+type User = { name: string; age: number }; // Duplicates schema definition
+
+// ❌ Bad - Duplicate fields instead of composing
+type ConvertOptions = { format?: string; verbose?: boolean; outputDir: string };
+type EnhanceOptions = {
+  format?: string;
+  verbose?: boolean;
+  sortOrder?: string;
+};
+```
+
+**When to use `interface` vs `type`:**
+
+- **Default: use `type`** for all type aliases, unions, intersections
+- **Use `interface`** only when:
+  - You need declaration merging (rare in application code)
+  - You're extending a class
+  - You're defining a contract for a plugin system
+
+### Preferred Dependencies and Utilities
+
+**Always use these libraries when applicable:**
+
+- **Zod** - Use for all runtime validation and schema definitions
+  - Define schemas in `src/lib/schema.ts`
+  - Extract types with `z.infer<typeof Schema>`
+  - Prefer Zod validation over manual type checking
+  - Use Zod for parsing CLI inputs, file data, and API responses
+  - Example: `const result = MySchema.safeParse(data)` instead of manual validation
+
+- **es-toolkit** - Use for all utility functions instead of lodash or custom implementations
+  - Array operations: `chunk`, `uniq`, `groupBy`, `partition`, `shuffle`
+  - Object operations: `pick`, `omit`, `mapKeys`, `mapValues`, `cloneDeep`
+  - String operations: `camelCase`, `snakeCase`, `kebabCase`, `capitalize`
+  - Function operations: `debounce`, `throttle`, `once`, `memoize`
+  - Type guards: `isPlainObject`, `isNil`, `isEmpty`, `isEqual`
+  - ✅ `import { chunk, uniq } from 'es-toolkit'`
+  - ❌ Writing custom utility functions that es-toolkit provides
+  - ❌ Using lodash when es-toolkit has equivalent functionality
+
+**Examples:**
+
+```typescript
+// ✅ Good - Using Zod for validation
+const ConfigSchema = z.object({
+  outDir: z.string(),
+  recursive: z.boolean().default(false),
+});
+const config = ConfigSchema.parse(userInput);
+
+// ✅ Good - Using es-toolkit utilities
+import { chunk, uniq, groupBy } from 'es-toolkit';
+const uniqueItems = uniq(items);
+const batches = chunk(items, 10);
+const grouped = groupBy(items, (item) => item.category);
+
+// ❌ Bad - Manual validation when Zod should be used
+if (typeof config.outDir !== 'string') throw new Error('Invalid outDir');
+
+// ❌ Bad - Custom utility when es-toolkit provides it
+const uniqueItems = [...new Set(items)]; // Use uniq() instead
+const chunks = []; // Use chunk() instead
+for (let i = 0; i < items.length; i += 10) {
+  chunks.push(items.slice(i, i + 10));
+}
+```
+
 ### Adding New Features
 
 When adding new features, ensure consistency:
@@ -82,6 +205,7 @@ When adding new features, ensure consistency:
    - Look at similar features for naming guidance
    - Match parameter order and structure
    - Use the same error handling approach
+   - **Check if es-toolkit provides utilities you need** before writing custom code
 
 2. **Update All Relevant Files**:
    - Command definition (`command.ts`)

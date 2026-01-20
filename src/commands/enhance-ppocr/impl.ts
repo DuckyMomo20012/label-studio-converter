@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from 'fs/promises';
 import { basename, dirname, join } from 'path';
 import chalk from 'chalk';
 import {
+  DEFAULT_BACKUP,
   DEFAULT_HEIGHT_INCREMENT,
   DEFAULT_PPOCR_FILE_PATTERN,
   DEFAULT_PPOCR_PRECISION,
@@ -43,7 +44,7 @@ export async function enhancePPOCR(
   const {
     outDir,
     fileName,
-    backup = false,
+    backup = DEFAULT_BACKUP,
     sortVertical = DEFAULT_SORT_VERTICAL,
     sortHorizontal = DEFAULT_SORT_HORIZONTAL,
     normalizeShape = DEFAULT_SHAPE_NORMALIZE,

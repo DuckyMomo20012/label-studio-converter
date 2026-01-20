@@ -2,6 +2,7 @@
  * Geometry utility functions for shape normalization and bounding box operations
  */
 
+import { round } from 'es-toolkit';
 import type { ShapeNormalizeOption } from '@/constants';
 
 export type Point = [number, number];
@@ -16,8 +17,7 @@ export function roundToPrecision(value: number, precision: number): number {
   if (precision < 0) {
     return value; // No rounding
   }
-  const multiplier = Math.pow(10, precision);
-  return Math.round(value * multiplier) / multiplier;
+  return round(value, precision);
 }
 
 /**
@@ -31,8 +31,7 @@ export function roundPoints(points: Point[], precision: number): Point[] {
     return points; // No rounding
   }
   return points.map(
-    ([x, y]) =>
-      [roundToPrecision(x, precision), roundToPrecision(y, precision)] as Point,
+    ([x, y]) => [round(x, precision), round(y, precision)] as Point,
   );
 }
 

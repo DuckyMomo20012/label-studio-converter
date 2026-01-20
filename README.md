@@ -21,8 +21,29 @@
 - [Usage](#eyes-usage)
   - [Library Usage](#library-usage)
   - [CLI Usage](#cli-usage)
+    - [Available Commands](#available-commands)
+    - [Command Options Reference](#command-options-reference)
+      - [Common Options (All Commands)](#common-options-all-commands)
+      - [Enhancement Options (All Commands)](#enhancement-options-all-commands)
+      - [toLabelStudio Specific Options](#tolabelstudio-specific-options)
+      - [toPPOCR Specific Options](#toppocr-specific-options)
+      - [enhance-labelstudio Specific Options](#enhance-labelstudio-specific-options)
+      - [Error Handling](#error-handling)
+    - [Detailed Command Help](#detailed-command-help)
+      - [toLabelStudio Command](#tolabelstudio-command)
+      - [toPPOCR Command](#toppocr-command)
+      - [enhance-labelstudio Command](#enhance-labelstudio-command)
+      - [enhance-ppocr Command](#enhance-ppocr-command)
     - [Examples](#examples)
-  - [Enhancement Features](#enhancement-features)
+      - [Basic Conversion Examples](#basic-conversion-examples)
+      - [toLabelStudio Examples](#tolabelstudio-examples)
+      - [toPPOCR Examples](#toppocr-examples)
+      - [Recursive Search and Pattern Matching Examples](#recursive-search-and-pattern-matching-examples)
+      - [Enhancement Examples](#enhancement-examples)
+      - [Shape Normalization Examples](#shape-normalization-examples)
+      - [Bounding Box Resizing Examples](#bounding-box-resizing-examples)
+      - [Combined Enhancement Examples](#combined-enhancement-examples)
+      - [Special Format Examples](#special-format-examples)
   - [Using generated files with Label Studio](#using-generated-files-with-label-studio)
     - [Interface setup](#interface-setup)
     - [Serving annotation files locally](#serving-annotation-files-locally)
@@ -217,13 +238,15 @@ const sorted = sortBoundingBoxes(annotations, 'top-bottom', 'ltr');
 
 ### CLI Usage
 
-**Available Commands:**
+#### Available Commands
 
 ```bash
 label-studio-converter --help
 ```
 
-```bash
+**Output:**
+
+```
 USAGE
   label-studio-converter toLabelStudio [--outDir value] [--fileName value] [--backup] [--defaultLabelName value] [--toFullJson] [--createFilePerImage] [--createFileListForServing] [--fileListName value] [--baseServerUrl value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] [--recursive] [--filePattern value] [--outputMode value] <args>...
   label-studio-converter toPPOCR [--outDir value] [--fileName value] [--backup] [--baseImageDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] [--recursive] [--filePattern value] <args>...
@@ -245,11 +268,120 @@ COMMANDS
   enhance-ppocr        Enhance PPOCRLabel files with sorting, normalization, and resizing
 ```
 
-**Commands:**
+#### Command Options Reference
 
-- `toLabelStudio` - Convert PPOCRLabel files to Label Studio format
+##### Common Options (All Commands)
+
+These options are available for all commands:
+
+- **`--outDir <path>`**: Output directory. If not specified, files are saved in
+  the same directory as the source files
+- **`--fileName <name>`**: Custom output filename. If not specified, uses source
+  filename with format suffix
+- **`--backup` / `--noBackup`**: Create backup of existing files before
+  overwriting. Default: `false`
+- **`--recursive` / `--noRecursive`**: Recursively search directories for files.
+  Default: `false`
+- **`--filePattern <regex>`**: Regex pattern to match files. Default: `.*\.txt$`
+  (PPOCR) or `.*\.json$` (Label Studio)
+- **`-h` / `--help`**: Print help information and exit
+
+##### Enhancement Options (All Commands)
+
+These options control bounding box transformations:
+
+- **`--sortVertical <order>`**: Sort bounding boxes vertically
+  - Options: `none` (default), `top-bottom`, `bottom-top`
+  - Useful for organizing annotations by reading order
+
+- **`--sortHorizontal <order>`**: Sort bounding boxes horizontally
+  - Options: `none` (default), `ltr` (left-to-right), `rtl` (right-to-left)
+  - `ltr`: For English, most European languages
+  - `rtl`: For Arabic, Hebrew, and SinoNom (classical Vietnamese/Chinese
+    vertical text)
+
+- **`--normalizeShape <shape>`**: Normalize shapes to standard forms
+  - Options: `none` (default), `rectangle`
+  - `rectangle`: Converts diamond-like or rotated quadrilaterals to axis-aligned
+    rectangles
+
+- **`--widthIncrement <pixels>`**: Increase/decrease bounding box width (can be
+  negative)
+  - Default: `0`
+  - Example: `10` adds 10px, `-5` removes 5px
+
+- **`--heightIncrement <pixels>`**: Increase/decrease bounding box height (can
+  be negative)
+  - Default: `0`
+  - Example: `15` adds 15px, `-3` removes 3px
+
+- **`--precision <decimals>`**: Number of decimal places for coordinates
+  - `-1`: Full precision, no rounding (default for Label Studio output)
+  - `0`: Round to integers (default for PPOCR output)
+  - `1+`: Round to specified decimal places
+
+##### toLabelStudio Specific Options
+
+- **`--defaultLabelName <name>`**: Default label name for text annotations.
+  Default: `"Text"`
+- **`--toFullJson` / `--noToFullJson`**: Convert to Full OCR Label Studio
+  format. Default: `true`
+- **`--createFilePerImage` / `--noCreateFilePerImage`**: Create separate JSON
+  file for each image. Default: `false`
+- **`--createFileListForServing` / `--noCreateFileListForServing`**: Create file
+  list for serving in Label Studio. Default: `true`
+- **`--fileListName <name>`**: Name of the file list for serving. Default:
+  `"files.txt"`
+- **`--baseServerUrl <url>`**: Base server URL for image URLs in file list.
+  Default: `"http://localhost:8081"`
+- **`--outputMode <mode>`**: Output format mode
+  - Options: `annotations` (default), `predictions`
+  - `annotations`: Editable annotations (ground truth)
+  - `predictions`: Read-only predictions (pre-annotations)
+  - Only available with `--toFullJson`
+
+##### toPPOCR Specific Options
+
+- **`--baseImageDir <path>`**: Base directory path to prepend to image filenames
+  (e.g., `"ch"` or `"images/ch"`)
+- **`--fileName <name>`**: Output PPOCR file name. Default: `"Label.txt"`
+
+##### enhance-labelstudio Specific Options
+
+- **`--outputMode <mode>`**: Output format mode
+  - Options: `annotations` (default), `predictions`
+  - Only available for Full JSON format files
+
+> [!NOTE]
+> **Output Mode Availability:**
+>
+> - `--outputMode` is only available for:
+>   - `toLabelStudio` (when using `--toFullJson`)
+>   - `enhance-labelstudio` (for Full JSON format only)
+> - Not available for `toPPOCR` or `enhance-ppocr` (PPOCR format doesn't
+>   distinguish annotations/predictions)
+> - When using `--outputMode predictions`, the `dt_score` field from PPOCRLabel
+>   is mapped to Label Studio's prediction `score` field
+
+##### Error Handling
+
+The `toLabelStudio` command handles missing or unreadable image files gracefully:
+
+- If an image file cannot be found or read, a warning is logged
+- Default dimensions of **1920×1080** are used as fallback
+- Conversion continues for remaining images without interruption
+
+#### Detailed Command Help
+
+##### toLabelStudio Command
 
 ```bash
+label-studio-converter toLabelStudio --help
+```
+
+**Output:**
+
+```
 USAGE
   label-studio-converter toLabelStudio [--outDir value] [--fileName value] [--backup] [--defaultLabelName value] [--toFullJson] [--createFilePerImage] [--createFileListForServing] [--fileListName value] [--baseServerUrl value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] [--recursive] [--filePattern value] [--outputMode value] <args>...
   label-studio-converter toLabelStudio --help
@@ -281,9 +413,15 @@ ARGUMENTS
   args...  Input directories containing PPOCRLabel files
 ```
 
-- `toPPOCR` - Convert Label Studio files to PPOCRLabel format
+##### toPPOCR Command
 
 ```bash
+label-studio-converter toPPOCR --help
+```
+
+**Output:**
+
+```
 USAGE
   label-studio-converter toPPOCR [--outDir value] [--fileName value] [--backup] [--baseImageDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] [--recursive] [--filePattern value] <args>...
   label-studio-converter toPPOCR --help
@@ -309,10 +447,15 @@ ARGUMENTS
   args...  Input directories containing Label Studio files
 ```
 
-- `enhance-labelstudio` - Enhance Label Studio files with sorting,
-  normalization, and resizing
+##### enhance-labelstudio Command
 
 ```bash
+label-studio-converter enhance-labelstudio --help
+```
+
+**Output:**
+
+```
 USAGE
   label-studio-converter enhance-labelstudio [--outDir value] [--fileName value] [--backup] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] [--recursive] [--filePattern value] [--outputMode value] <args>...
   label-studio-converter enhance-labelstudio --help
@@ -338,9 +481,15 @@ ARGUMENTS
   args...  Input directories containing Label Studio JSON files
 ```
 
-- `enhance-ppocr` - Enhance PPOCRLabel files with sorting, normalization, and resizing
+##### enhance-ppocr Command
 
 ```bash
+label-studio-converter enhance-ppocr --help
+```
+
+**Output:**
+
+```
 USAGE
   label-studio-converter enhance-ppocr [--outDir value] [--fileName value] [--backup] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] [--recursive] [--filePattern value] <args>...
   label-studio-converter enhance-ppocr --help
@@ -365,19 +514,9 @@ ARGUMENTS
   args...  Input directories containing PPOCRLabel files
 ```
 
-**Error Handling:**
-
-The `toLabelStudio` command handles missing or unreadable image files gracefully:
-
-- If an image file referenced in PPOCRLabel cannot be found or read, a warning is logged
-- Default dimensions of **1920×1080** are used as fallback
-- Conversion continues for remaining images without interruption
-
-This allows the conversion process to complete even when some image files are missing from the dataset.
-
 #### Examples
 
-**Basic Conversions:**
+##### Basic Conversion Examples
 
 ```bash
 # Convert PPOCRLabel files to full Label Studio format
@@ -396,7 +535,7 @@ label-studio-converter toPPOCR ./input-label-studio --baseImageDir images/ch
 > [!NOTE]
 > By default, all PPOCRLabel positions are treated as **polygons** in Label Studio.
 
-**toLabelStudio Options:**
+##### toLabelStudio Examples
 
 ```bash
 # Create separate JSON file for each image
@@ -437,24 +576,7 @@ label-studio-converter toLabelStudio ./input-ppocr \
   --outputMode annotations
 ```
 
-> [!IMPORTANT]
-> **Output Mode Restrictions:**
->
-> - The `--outputMode` flag is only available for:
->   - `toLabelStudio` command (when using `--toFullJson`)
->   - `enhance-labelstudio` command (for Full JSON format files only)
-> - **Not available** for:
->   - `toPPOCR` command (PPOCR format doesn't distinguish annotations/predictions)
->   - `enhance-ppocr` command (PPOCR format doesn't distinguish annotations/predictions)
->   - Min JSON Label Studio format (doesn't support annotations/predictions)
->
-> **Prediction Scores:**
->
-> - When converting from PPOCRLabel to Label Studio with `--outputMode predictions`, the `dt_score` field from PPOCRLabel is automatically mapped to the prediction `score` field in Label Studio
-> - This allows pre-annotation confidence scores to be preserved and displayed in Label Studio
-> - Score values should be between 0.0 and 1.0 (confidence percentage)
-
-**toPPOCR Options:**
+##### toPPOCR Examples
 
 ```bash
 # Basic conversion with output directory
@@ -472,7 +594,7 @@ label-studio-converter toPPOCR ./input-label-studio \
   --baseImageDir dataset/images
 ```
 
-**Recursive Search and Pattern Matching:**
+##### Recursive Search and Pattern Matching Examples
 
 ```bash
 # Recursively search all subdirectories for .txt files
@@ -497,12 +619,15 @@ label-studio-converter enhance-ppocr ./dataset \
 > [!NOTE]
 >
 > - `--recursive`: Searches all subdirectories for matching files
-> - `--filePattern`: Regex pattern to filter files (default: `.*\.txt$` for PPOCR, `.*\.json$` for Label Studio)
-> - Patterns are flexible - use any regex, but ensure they match appropriate file types (.txt for PPOCR, .json for Label Studio)
+> - `--filePattern`: Regex pattern to filter files (default: `.*\.txt$` for
+>   PPOCR, `.*\.json$` for Label Studio)
+> - Patterns are flexible - use any regex, but ensure they match appropriate
+>   file types (.txt for PPOCR, .json for Label Studio)
 
-### Enhancement Features
+##### Enhancement Examples
 
-The tool provides powerful enhancement capabilities that can be used standalone or integrated with conversion:
+The tool provides powerful enhancement capabilities that can be used standalone
+or integrated with conversion.
 
 **Enhance PPOCRLabel files:**
 
@@ -536,91 +661,7 @@ label-studio-converter enhance-labelstudio ./data \
 label-studio-converter enhance-labelstudio ./label-studio-files --outDir ./enhanced
 ```
 
-**Enhancement Options:**
-
-- `--sortVertical`: Sort bounding boxes vertically
-  - `none` (default): No sorting
-  - `top-bottom`: Sort from top to bottom
-  - `bottom-top`: Sort from bottom to top
-  - Example:
-    ```bash
-    # Sort annotations from top to bottom
-    label-studio-converter enhance-ppocr ./data --sortVertical top-bottom
-    ```
-
-- `--sortHorizontal`: Sort bounding boxes horizontally
-  - `none` (default): No sorting
-  - `ltr`: Sort left to right (useful for English, most European languages)
-  - `rtl`: Sort right to left (useful for Arabic, Hebrew)
-  - Example:
-
-    ```bash
-    # Sort annotations left to right
-    label-studio-converter enhance-ppocr ./data --sortHorizontal ltr
-
-    # Sort annotations right to left
-    label-studio-converter enhance-ppocr ./data --sortHorizontal rtl
-    ```
-
-- `--normalizeShape`: Normalize shapes
-  - `none` (default): Keep original shape
-  - `rectangle`: Convert diamond-like or rotated shapes to axis-aligned rectangles
-  - Example:
-    ```bash
-    # Convert irregular shapes to clean rectangles
-    label-studio-converter enhance-ppocr ./data --normalizeShape rectangle
-    ```
-
-- `--widthIncrement`: Increase/decrease width (pixels, can be negative)
-  - Default: `0`
-  - Examples:
-
-    ```bash
-    # Increase width by 10 pixels
-    label-studio-converter enhance-ppocr ./data --widthIncrement 10
-
-    # Decrease width by 5 pixels
-    label-studio-converter enhance-ppocr ./data --widthIncrement -5
-    ```
-
-- `--heightIncrement`: Increase/decrease height (pixels, can be negative)
-  - Default: `0`
-  - Examples:
-
-    ```bash
-    # Increase height by 15 pixels
-    label-studio-converter enhance-ppocr ./data --heightIncrement 15
-
-    # Decrease height by 3 pixels
-    label-studio-converter enhance-ppocr ./data --heightIncrement -3
-    ```
-
-- `--precision`: Control the number of decimal places for coordinate values
-  - `-1`: Full precision - no rounding, keeps all decimal places (default for Label Studio output)
-    - Example output: `27.44656917885264`
-  - `0`: Round to integers (default for PPOCR output)
-    - Example output: `27`
-  - `1`: Round to 1 decimal place
-    - Example output: `27.4`
-  - `2`: Round to 2 decimal places
-    - Example output: `27.45`
-  - Any positive integer for that many decimal places
-  - Examples:
-
-    ```bash
-    # Use full precision
-    label-studio-converter toLabelStudio ./data --precision -1
-
-    # Use integer coordinates
-    label-studio-converter toPPOCR ./data --precision 0
-
-    # Use 2 decimal places
-    label-studio-converter enhance-labelstudio ./data --precision 2
-    ```
-
-**Conversion with Enhancement:**
-
-All enhancement options are available in conversion commands:
+**Conversion with enhancements:**
 
 ```bash
 # Convert with enhancements applied during conversion
@@ -637,24 +678,7 @@ label-studio-converter toPPOCR ./input-label-studio \
   --normalizeShape rectangle
 ```
 
-**Convert PPOCRLabel files to Label Studio format with one file per image:**
-
-```bash
-label-studio-converter toLabelStudio ./input-ppocr --outDir ./output-label-studio --defaultLabelName Text --toFullJson --createFilePerImage --sortVertical none --sortHorizontal none
-```
-
-**Convert PPOCRLabel files to minimal Label Studio format (cannot be used for serving):**
-
-```bash
-label-studio-converter toLabelStudio ./input-ppocr --outDir ./output-label-studio --defaultLabelName Text --noToFullJson --sortVertical none --sortHorizontal none
-```
-
-> [!IMPORTANT]
-> Minimal Label Studio format cannot be used for serving in Label Studio, as it
-> lacks necessary fields such as `id` and `data`. So you can only use minimal
-> format for conversion back to PPOCRLabelv2 format or other purposes.
-
-**Shape Normalization**
+##### Shape Normalization Examples
 
 Convert diamond-like or irregular quadrilateral shapes to axis-aligned
 rectangles. This is useful when your annotations have irregular shapes that you
@@ -716,10 +740,9 @@ Command:
 
 </details>
 
-**Bounding Box Resizing**
+##### Bounding Box Resizing Examples
 
-Increase or decrease bounding box dimensions while keeping them centered. This
-is useful for adjusting annotation margins:
+Increase or decrease bounding box dimensions while keeping them centered:
 
 ```bash
 # Increase width by 10 pixels and height by 20 pixels
@@ -732,44 +755,43 @@ label-studio-converter toLabelStudio ./input-ppocr --outDir ./output --widthIncr
 label-studio-converter toPPOCR ./input-label-studio --outDir ./output --widthIncrement 10 --heightIncrement 10
 ```
 
-**Combining Features**
+##### Combined Enhancement Examples
 
-You can combine shape normalization and resizing:
+Combine multiple enhancements:
 
 ```bash
 # Normalize to rectangle and increase size
 label-studio-converter toLabelStudio ./input-ppocr --outDir ./output --normalizeShape rectangle --widthIncrement 5 --heightIncrement 5
 
-# Also works with sorting
+# Combine sorting with shape normalization
 label-studio-converter toLabelStudio ./input-ppocr --outDir ./output --normalizeShape rectangle --widthIncrement 10 --sortVertical top-bottom --sortHorizontal ltr
 ```
 
-**Number Precision Control**
+##### Special Format Examples
 
-Control the precision of coordinate values in the output. This is useful for
-matching format expectations or reducing file size:
+**Convert with one file per image:**
 
 ```bash
-# Convert to Label Studio with full precision (default: -1)
-label-studio-converter toLabelStudio ./input-ppocr --outDir ./output --precision -1
-
-# Convert to PPOCR with integer coordinates (default: 0)
-label-studio-converter toPPOCR ./input-label-studio --outDir ./output --precision 0
-
-# Use 2 decimal places for more compact but still precise coordinates
-label-studio-converter toLabelStudio ./input-ppocr --outDir ./output --precision 2
+label-studio-converter toLabelStudio ./input-ppocr \
+  --outDir ./output-label-studio \
+  --defaultLabelName Text \
+  --toFullJson \
+  --createFilePerImage
 ```
 
-Precision values:
+**Convert to minimal Label Studio format:**
 
-- `-1`: Full floating-point precision (default for Label Studio output)
-- `0`: Round to integers (default for PPOCR output)
-- `1+`: Round to specified number of decimal places
+```bash
+label-studio-converter toLabelStudio ./input-ppocr \
+  --outDir ./output-label-studio \
+  --defaultLabelName Text \
+  --noToFullJson
+```
 
-> [!NOTE]
-> The default precision matches typical format conventions: Label Studio uses
-> full precision for percentage-based coordinates, while PPOCR format typically
-> uses integer pixel coordinates.
+> [!IMPORTANT]
+> Minimal Label Studio format cannot be used for serving in Label Studio, as it
+> lacks necessary fields such as `id` and `data`. You can only use minimal
+> format for conversion back to PPOCRLabelv2 format or other purposes.
 
 ### Using generated files with Label Studio
 
