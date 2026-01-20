@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.1](https://github.com/DuckyMomo20012/label-studio-converter/compare/v1.3.1...v1.3.1) (2026-01-20)
+
+
+### Bug Fixes
+
+* package mismatch ([fefadc7](https://github.com/DuckyMomo20012/label-studio-converter/commit/fefadc7f97386f13b79d00c803622cfe691fc40e))
+* package mismatch ([f11f8b4](https://github.com/DuckyMomo20012/label-studio-converter/commit/f11f8b4f7f97c83aed4797d652622c1c7d29ec21))
+
 ## [1.3.1](https://github.com/DuckyMomo20012/label-studio-converter/compare/v1.3.0...v1.3.1) (2026-01-20)
 
 
