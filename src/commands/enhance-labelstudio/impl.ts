@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from 'fs/promises';
-import { basename, dirname, join } from 'path';
+import { basename, dirname, join, relative } from 'path';
 import chalk from 'chalk';
+import { isLabelStudioFullJSON } from '@/commands/toPPOCR/impl';
 import {
   DEFAULT_BACKUP,
   DEFAULT_HEIGHT_INCREMENT,
@@ -12,22 +13,16 @@ import {
   DEFAULT_SORT_HORIZONTAL,
   DEFAULT_SORT_VERTICAL,
   DEFAULT_WIDTH_INCREMENT,
-  type HorizontalSortOrder,
-  type OutputMode,
-  SHAPE_NORMALIZE_NONE,
-  type ShapeNormalizeOption,
-  type VerticalSortOrder,
 } from '@/constants';
 import type { LocalContext } from '@/context';
-import { backupFileIfExists } from '@/lib/backup-utils';
-import { enhanceLabelStudioData } from '@/lib/enhance';
-import { findFiles, getRelativePathFromInputs } from '@/lib/file-utils';
 import {
-  type FullOCRLabelStudio,
-  FullOCRLabelStudioSchema,
-  type MinOCRLabelStudio,
-  MinOCRLabelStudioSchema,
-} from '@/lib/schema';
+  type LabelStudioTask,
+  type LabelStudioTaskMin,
+  enhanceFullLabelStudioConverters,
+  enhanceMinLabelStudioConverters,
+} from '@/lib';
+import { backupFileIfExists } from '@/lib/backup-utils';
+import { findFiles } from '@/lib/file-utils';
 
 interface CommandFlags {
   outDir?: string;
@@ -43,35 +38,6 @@ interface CommandFlags {
   filePattern?: string;
   outputMode?: string;
 }
-
-const isLabelStudioFullJSON = (
-  data: unknown,
-): {
-  isFull: boolean;
-  data: FullOCRLabelStudio | MinOCRLabelStudio;
-} => {
-  // Try parsing as full format array
-  const parsedFull = FullOCRLabelStudioSchema.safeParse(data);
-  if (parsedFull.success) {
-    return { isFull: true, data: parsedFull.data };
-  }
-
-  // Try parsing as single full format object (wrap in array)
-  if (!Array.isArray(data) && typeof data === 'object' && data !== null) {
-    const parsedSingleFull = FullOCRLabelStudioSchema.safeParse([data]);
-    if (parsedSingleFull.success) {
-      return { isFull: true, data: parsedSingleFull.data };
-    }
-  }
-
-  // Try parsing as min format
-  const parsedMin = MinOCRLabelStudioSchema.safeParse(data);
-  if (parsedMin.success) {
-    return { isFull: false, data: parsedMin.data };
-  }
-
-  throw new Error('Input data is not valid Label Studio JSON format.');
-};
 
 export async function enhanceLabelStudio(
   this: LocalContext,
@@ -104,7 +70,7 @@ export async function enhanceLabelStudio(
 
   console.log(chalk.blue(`Found ${filePaths.length} files to process\n`));
 
-  for (const filePath of filePaths) {
+  for await (const filePath of filePaths) {
     const file = basename(filePath);
     console.log(chalk.gray(`Processing file: ${filePath}`));
 
@@ -112,7 +78,8 @@ export async function enhanceLabelStudio(
       const fileData = await readFile(filePath, 'utf-8');
       const labelStudioData = JSON.parse(fileData);
 
-      const { data, isFull } = isLabelStudioFullJSON(labelStudioData);
+      const { tasks: inputTasks, isFull } =
+        isLabelStudioFullJSON(labelStudioData);
 
       // Validate outputMode is only used with Full JSON format
       if (outputMode !== DEFAULT_OUTPUT_MODE && !isFull) {
@@ -124,25 +91,36 @@ export async function enhanceLabelStudio(
         continue;
       }
 
-      // Apply enhancements
-      const enhanced = await enhanceLabelStudioData(data, isFull, {
-        sortVertical: sortVertical as VerticalSortOrder,
-        sortHorizontal: sortHorizontal as HorizontalSortOrder,
-        normalizeShape:
-          normalizeShape !== SHAPE_NORMALIZE_NONE
-            ? (normalizeShape as ShapeNormalizeOption)
-            : undefined,
+      let outputTasks: LabelStudioTask[] | LabelStudioTaskMin[];
+
+      const optionParams = {
+        sortVertical,
+        sortHorizontal,
+        normalizeShape,
         widthIncrement,
         heightIncrement,
         precision,
-        outputMode: outputMode as OutputMode,
-      });
+      };
+
+      if (isFull) {
+        outputTasks = await enhanceFullLabelStudioConverters(
+          inputTasks,
+          filePath,
+          optionParams,
+        );
+      } else {
+        outputTasks = await enhanceMinLabelStudioConverters(
+          inputTasks,
+          filePath,
+          optionParams,
+        );
+      }
 
       // Write enhanced data
       // Use outDir if specified, otherwise use source file directory
       const outputSubDir = outDir
         ? (() => {
-            const relativePath = getRelativePathFromInputs(filePath, inputDirs);
+            const relativePath = relative(process.cwd(), filePath);
             const relativeDir = dirname(relativePath);
             return join(outDir, relativeDir);
           })()
@@ -162,7 +140,7 @@ export async function enhanceLabelStudio(
 
       await writeFile(
         outputFilePath,
-        JSON.stringify(enhanced, null, 2),
+        JSON.stringify(outputTasks, null, 2),
         'utf-8',
       );
       console.log(chalk.green(`✓ Enhanced file saved: ${outputFilePath}`));

@@ -1,5 +1,5 @@
 import { mkdir, readFile, writeFile } from 'fs/promises';
-import { basename, dirname, join } from 'path';
+import { basename, dirname, join, relative } from 'path';
 import chalk from 'chalk';
 import {
   DEFAULT_BACKUP,
@@ -13,22 +13,32 @@ import {
   DEFAULT_SORT_VERTICAL,
   DEFAULT_WIDTH_INCREMENT,
   type HorizontalSortOrder,
-  SHAPE_NORMALIZE_NONE,
   type ShapeNormalizeOption,
   type VerticalSortOrder,
 } from '@/constants';
 import type { LocalContext } from '@/context';
 import { backupFileIfExists } from '@/lib/backup-utils';
-import { findFiles, getRelativePathFromInputs } from '@/lib/file-utils';
-import { labelStudioToPPOCR, minLabelStudioToPPOCR } from '@/lib/label-studio';
+import { findFiles } from '@/lib/file-utils';
+import { Processor, withOptions } from '@/lib/processor';
+import { FullOCRLabelStudioInput } from '@/modules/label-studio-full/input';
 import {
-  type FullOCRLabelStudio,
   FullOCRLabelStudioSchema,
-  type MinOCRLabelStudio,
+  type LabelStudioTask,
+} from '@/modules/label-studio-full/schema';
+import { MinOCRLabelStudioInput } from '@/modules/label-studio-min/input';
+import {
+  type LabelStudioTaskMin,
   MinOCRLabelStudioSchema,
+} from '@/modules/label-studio-min/schema';
+import { PPOCROutput } from '@/modules/ppocrlabel/output';
+import {
   PPOCRLabelSchema,
-} from '@/lib/schema';
-import { sortBoundingBoxes } from '@/lib/sort';
+  type PPOCRLabelTask,
+} from '@/modules/ppocrlabel/schema';
+import { normalizeTransformer } from '@/transformers/normalize';
+import { resizeTransformer } from '@/transformers/resize';
+import { roundTransformer } from '@/transformers/round';
+import { sortTransformer } from '@/transformers/sort';
 
 interface CommandFlags {
   outDir?: string;
@@ -45,33 +55,34 @@ interface CommandFlags {
   filePattern?: string;
 }
 
-const isLabelStudioFullJSON = (
+export const isLabelStudioFullJSON = (
   data: unknown,
-): {
-  isFull: boolean;
-  data: FullOCRLabelStudio | MinOCRLabelStudio;
-} => {
-  // Try parsing as full format array
-  const parsedFull = FullOCRLabelStudioSchema.safeParse(data);
-  if (parsedFull.success) {
-    return { isFull: true, data: parsedFull.data };
-  }
-
-  // Try parsing as single full format object (wrap in array)
-  if (!Array.isArray(data) && typeof data === 'object' && data !== null) {
-    const parsedSingleFull = FullOCRLabelStudioSchema.safeParse([data]);
-    if (parsedSingleFull.success) {
-      return { isFull: true, data: parsedSingleFull.data };
+):
+  | {
+      isFull: true;
+      tasks: LabelStudioTask[];
     }
+  | {
+      isFull: false;
+      tasks: LabelStudioTaskMin[];
+    } => {
+  const newData = Array.isArray(data) ? data : [data];
+
+  // Try parsing as full format array
+  const parsedFull = FullOCRLabelStudioSchema.array().safeParse(newData);
+  if (parsedFull.success) {
+    return { isFull: true as const, tasks: parsedFull.data };
   }
 
   // Try parsing as min format
-  const parsedMin = MinOCRLabelStudioSchema.safeParse(data);
+  const parsedMin = MinOCRLabelStudioSchema.array().safeParse(newData);
   if (parsedMin.success) {
-    return { isFull: false, data: parsedMin.data };
+    return { isFull: false, tasks: parsedMin.data };
   }
 
-  throw new Error('Input data is not valid Label Studio JSON format.');
+  throw new Error(
+    `Input data is not valid Label Studio JSON format. ${[parsedFull.error.message, parsedMin.error.message].filter(Boolean)}`,
+  );
 };
 
 export async function convertToPPOCR(
@@ -105,10 +116,50 @@ export async function convertToPPOCR(
 
   console.log(chalk.blue(`Found ${filePaths.length} files to process\n`));
 
+  const transformerParams = [
+    withOptions(normalizeTransformer, {
+      normalizeShape: normalizeShape as ShapeNormalizeOption,
+    }),
+    withOptions(resizeTransformer, {
+      widthIncrement,
+      heightIncrement,
+    }),
+    withOptions(roundTransformer, {
+      precision,
+    }),
+    withOptions(sortTransformer, {
+      horizontalSort: sortHorizontal as HorizontalSortOrder,
+      verticalSort: sortVertical as VerticalSortOrder,
+    }),
+  ];
+
+  const resolveInputImagePath = (
+    taskImagePath: string,
+    taskFilePath: string,
+  ) => {
+    const fileDir = dirname(taskFilePath);
+    const resolvedPath = join(fileDir, taskImagePath);
+    return resolvedPath;
+  };
+
+  const resolveOutputImagePath = (
+    taskImagePath: string,
+    taskFilePath: string,
+  ) => {
+    const fileDir = dirname(taskFilePath);
+    // NOTE: For PPOCR output, we keep only the folder of the task file
+    const resolvedPath = join(
+      baseImageDir || '',
+      fileDir.split('/').pop() || '',
+      taskImagePath,
+    );
+    return resolvedPath;
+  };
+
   for (const filePath of filePaths) {
     const file = basename(filePath);
     // Get relative path to preserve directory structure
-    const relativePath = getRelativePathFromInputs(filePath, inputDirs);
+    const relativePath = relative(process.cwd(), filePath);
     const relativeDir = dirname(relativePath);
 
     console.log(chalk.gray(`Processing file: ${filePath}`));
@@ -117,47 +168,62 @@ export async function convertToPPOCR(
       const fileData = await readFile(filePath, 'utf-8');
       const labelStudioData = JSON.parse(fileData);
 
-      const { data, isFull } = isLabelStudioFullJSON(labelStudioData);
+      const { tasks: inputTasks, isFull } =
+        isLabelStudioFullJSON(labelStudioData);
 
-      // Convert based on format type
-      const ppocrDataMap = isFull
-        ? await labelStudioToPPOCR(data as FullOCRLabelStudio, {
-            baseImageDir,
-            normalizeShape:
-              normalizeShape !== SHAPE_NORMALIZE_NONE
-                ? (normalizeShape as ShapeNormalizeOption)
-                : undefined,
-            widthIncrement,
-            heightIncrement,
-            precision,
-          })
-        : await minLabelStudioToPPOCR(data as MinOCRLabelStudio, {
-            baseImageDir,
-            normalizeShape:
-              normalizeShape !== SHAPE_NORMALIZE_NONE
-                ? (normalizeShape as ShapeNormalizeOption)
-                : undefined,
-            widthIncrement,
-            heightIncrement,
-            precision,
+      let outputTasks: PPOCRLabelTask[] = [];
+
+      if (isFull) {
+        // Full Label Studio format
+        const params = {
+          input: FullOCRLabelStudioInput,
+          output: PPOCROutput,
+          transformers: transformerParams,
+        };
+
+        const processor = new Processor(params);
+
+        for await (const taskInput of inputTasks) {
+          const taskOutput = await processor.process({
+            inputData: taskInput,
+            taskFilePath: filePath,
+            resolveInputImagePath,
+            resolveOutputImagePath,
           });
+
+          outputTasks = [...outputTasks, taskOutput];
+        }
+      } else {
+        // Min Label Studio format
+        const params = {
+          input: MinOCRLabelStudioInput,
+          output: PPOCROutput,
+          transformers: transformerParams,
+        };
+
+        const processor = new Processor(params);
+
+        for await (const taskInput of inputTasks) {
+          const taskOutput = await processor.process({
+            inputData: taskInput,
+            taskFilePath: filePath,
+            resolveInputImagePath,
+            resolveOutputImagePath,
+          });
+
+          outputTasks = [...outputTasks, taskOutput];
+        }
+      }
 
       // Format output as PPOCR label format: image_path<tab>[{JSON array}]
       const outputLines: string[] = [];
-      for (const [imagePath, annotations] of ppocrDataMap.entries()) {
-        // Sort annotations if requested
-        const sortedAnnotations = sortBoundingBoxes(
-          annotations,
-          sortVertical as VerticalSortOrder,
-          sortHorizontal as HorizontalSortOrder,
-        );
 
-        // Validate each annotation group
-        PPOCRLabelSchema.parse(sortedAnnotations);
+      for (const task of outputTasks) {
+        PPOCRLabelSchema.parse(task.data);
 
         // Format as: image_path<tab>[{annotations}]
-        const jsonArray = JSON.stringify(sortedAnnotations);
-        outputLines.push(`${imagePath}\t${jsonArray}`);
+        const jsonArray = JSON.stringify(task.data);
+        outputLines.push(`${task.imagePath}\t${jsonArray}`);
       }
 
       // Write to output file

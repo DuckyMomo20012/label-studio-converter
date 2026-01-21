@@ -1,3 +1,5 @@
+export const DEFAULT_DETECT_IMAGE_SIZE = true;
+
 export const DEFAULT_LABEL_NAME = 'Text';
 export const DEFAULT_LABEL_STUDIO_FULL_JSON = true;
 export const DEFAULT_CREATE_FILE_PER_IMAGE = false;

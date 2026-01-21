@@ -145,14 +145,14 @@ pnpm install
 
 ```ts
 import {
-  labelStudioToPPOCR,
-  minLabelStudioToPPOCR,
+  fullLabelStudioToPPOCRConverters,
+  minLabelStudioToPPOCRConverters,
   ppocrToLabelStudio
 } from 'label-studio-converter';
 
 // Convert Label Studio Full Format to PPOCRLabel
 const fullData = [...]; // FullOCRLabelStudio type
-const ppocrMap = await labelStudioToPPOCR(fullData, {
+const ppocrMap = await fullLabelStudioToPPOCRConverters(fullData, {
   baseImageDir: 'images/ch',
   normalizeShape: 'rectangle',
   widthIncrement: 5,
@@ -162,7 +162,7 @@ const ppocrMap = await labelStudioToPPOCR(fullData, {
 
 // Convert Label Studio Min Format to PPOCRLabel
 const minData = [...]; // MinOCRLabelStudio type
-const ppocrMap2 = await minLabelStudioToPPOCR(minData, {
+const ppocrMap2 = await minLabelStudioToPPOCRConverters(minData, {
   baseImageDir: 'images/ch',
   precision: 0
 });
@@ -1121,10 +1121,10 @@ Converted back to Label Studio annotation:
         "last_created_by": null
       }
     ],
-    "file_upload": "5b1e3483-example.jpg",
+    "file_upload": "example.jpg",
     "drafts": [],
     "predictions": [],
-    "data": { "ocr": "\/data\/upload\/2\/5b1e3483-example.jpg" },
+    "data": { "ocr": "\/example.jpg" },
     "meta": {},
     "created_at": "2026-01-07T03:13:41.175183Z",
     "updated_at": "2026-01-10T03:21:09.923449Z",
@@ -1159,7 +1159,7 @@ Command:
 Output:
 
 ```
-output/example.jpg	[{"transcription":"ACUTE CORONARY SYNDROME","points":[[246,302],[621,302],[621,330],[246,330]],"dt_score":1},{"transcription":"MILD CORONARY ARTERY DISEASE","points":[[245,366],[681,366],[681,391],[245,391]],"dt_score":1},{"transcription":"MEDICAL MANAGEMENT","points":[[246,426],[548,420],[551,446],[251,450]],"dt_score":1}]
+fixtures/example.jpg	[{"transcription":"ACUTE CORONARY SYNDROME","points":[[246,302],[621,302],[621,330],[246,330]],"dt_score":1},{"transcription":"MILD CORONARY ARTERY DISEASE","points":[[245,366],[681,366],[681,391],[245,391]],"dt_score":1},{"transcription":"MEDICAL MANAGEMENT","points":[[246,426],[548,420],[551,446],[251,450]],"dt_score":1}]
 ```
 
 </details>
@@ -1385,11 +1385,11 @@ Output:
           "last_created_by": null
         }
       ],
-      "file_upload": "5b1e3483-example.jpg",
+      "file_upload": "example.jpg",
       "drafts": [],
       "predictions": [],
       "data": {
-        "ocr": "http://localhost:8081/output/5b1e3483-example.jpg"
+        "ocr": "http://localhost:8081/output/example.jpg"
       },
       "meta": {},
       "created_at": "2026-01-10T03:25:05.530Z",

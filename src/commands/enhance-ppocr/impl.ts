@@ -1,5 +1,5 @@
 import { mkdir, readFile, writeFile } from 'fs/promises';
-import { basename, dirname, join } from 'path';
+import { basename, dirname, join, relative } from 'path';
 import chalk from 'chalk';
 import {
   DEFAULT_BACKUP,
@@ -11,16 +11,15 @@ import {
   DEFAULT_SORT_HORIZONTAL,
   DEFAULT_SORT_VERTICAL,
   DEFAULT_WIDTH_INCREMENT,
-  type HorizontalSortOrder,
-  SHAPE_NORMALIZE_NONE,
-  type ShapeNormalizeOption,
-  type VerticalSortOrder,
 } from '@/constants';
 import type { LocalContext } from '@/context';
+import {
+  PPOCRLabelSchema,
+  type PPOCRLabelTask,
+  enhancePPOCRConverters,
+} from '@/lib';
 import { backupFileIfExists } from '@/lib/backup-utils';
-import { enhancePPOCRLabel } from '@/lib/enhance';
-import { findFiles, getRelativePathFromInputs } from '@/lib/file-utils';
-import { PPOCRLabelSchema } from '@/lib/schema';
+import { findFiles } from '@/lib/file-utils';
 
 interface CommandFlags {
   outDir?: string;
@@ -74,48 +73,70 @@ export async function enhancePPOCR(
       const fileData = await readFile(filePath, 'utf-8');
       const lines = fileData.trim().split('\n');
 
-      // Parse PPOCRLabelV2 format and enhance each line
-      const enhancedLines: string[] = [];
+      // Parse PPOCRLabelV2 format: <filename>\t<json_array_of_annotations>
+      const inputTasks: PPOCRLabelTask[] = [];
 
       for (const line of lines) {
         const parts = line.split('\t');
 
         if (parts.length !== 2) {
-          throw new Error(`Invalid PPOCRLabelV2 format in line: ${line}`);
+          console.warn(`Skipping invalid PPOCRLabelV2 format in line: ${line}`);
+          continue;
         }
 
         const [imagePath, annotationsStr] = parts;
-        const annotations = JSON.parse(annotationsStr!);
 
-        // Validate annotations
-        PPOCRLabelSchema.parse(annotations);
+        if (!imagePath || !annotationsStr) {
+          console.warn(
+            `Skipping line with missing imagePath or annotations: ${line}`,
+          );
+          continue;
+        }
 
-        // Apply enhancements
-        const enhanced = enhancePPOCRLabel(annotations, {
-          sortVertical: sortVertical as VerticalSortOrder,
-          sortHorizontal: sortHorizontal as HorizontalSortOrder,
-          normalizeShape:
-            normalizeShape !== SHAPE_NORMALIZE_NONE
-              ? (normalizeShape as ShapeNormalizeOption)
-              : undefined,
-          widthIncrement,
-          heightIncrement,
-          precision,
-        });
+        try {
+          const inputTask = JSON.parse(annotationsStr!);
 
-        // Validate enhanced data
-        PPOCRLabelSchema.parse(enhanced);
+          // Validate annotations
+          PPOCRLabelSchema.parse(inputTask);
 
-        // Format as: image_path<tab>[{annotations}]
-        const jsonArray = JSON.stringify(enhanced);
-        enhancedLines.push(`${imagePath}\t${jsonArray}`);
+          inputTasks.push({ imagePath, data: inputTask });
+        } catch (error) {
+          console.warn(
+            `Skipping line due to parse/validation error: ${line}`,
+            error,
+          );
+          continue;
+        }
       }
+
+      // If no valid lines were found, skip this file
+      if (inputTasks.length === 0) {
+        console.log(
+          chalk.yellow(`  Skipping file with no valid data: ${filePath}`),
+        );
+        continue;
+      }
+
+      const optionParams = {
+        sortVertical,
+        sortHorizontal,
+        normalizeShape,
+        widthIncrement,
+        heightIncrement,
+        precision,
+      };
+
+      const outputTasks = await enhancePPOCRConverters(
+        inputTasks,
+        filePath,
+        optionParams,
+      );
 
       // Write enhanced data
       // Use outDir if specified, otherwise use source file directory
       const outputSubDir = outDir
         ? (() => {
-            const relativePath = getRelativePathFromInputs(filePath, inputDirs);
+            const relativePath = relative(process.cwd(), filePath);
             const relativeDir = dirname(relativePath);
             return join(outDir, relativeDir);
           })()
@@ -133,7 +154,7 @@ export async function enhancePPOCR(
         }
       }
 
-      await writeFile(outputFilePath, enhancedLines.join('\n'), 'utf-8');
+      await writeFile(outputFilePath, outputTasks.join('\n'), 'utf-8');
       console.log(chalk.green(`✓ Enhanced file saved: ${outputFilePath}`));
     } catch (error) {
       console.error(

@@ -231,6 +231,28 @@ When implementing new features or making changes, follow this systematic approac
 - Use TypeScript best practices
 - Ensure proper error handling
 
+### CRITICAL: Always Use Real Fixture Files
+
+**NEVER use artificial test data when real fixtures exist.**
+
+- The `test/fixtures/` directory contains REAL data exported from actual tools:
+  - **PPOCRLabel**: Real Label.txt files exported from PPOCRLabel v2
+  - **Label Studio**: Real JSON exports from Label Studio Docker
+  - **Images**: Actual image files used in the tools
+
+- **When writing tests**:
+  - ✅ Use actual fixture file paths: `./test/fixtures/label_studio_full_one_rect.json`
+  - ✅ Reference fixture task files with their real paths: `'test/fixtures/Label.txt'`
+  - ❌ NEVER use fake paths like `'test.json'` or `'test.txt'`
+  - ❌ NEVER create artificial test data when fixtures exist
+
+- **Respect the effort**: These fixtures represent real exports from running applications. Use them properly.
+
+- **Image Paths in Fixtures**:
+  - Label Studio paths like `/example.jpg` are REAL exports from Docker volume (absolute paths)
+  - PPOCR paths like `fixtures/example.jpg` are REAL exports from PPOCRLabel (relative to opened folder)
+  - Do NOT modify fixture files unless they are incorrect
+
 ### 2. Quality Checks (Run ALL Before Completion)
 
 **Build and Type Check:**
@@ -325,7 +347,7 @@ label-studio-converter enhance-ppocr ./data --sortVertical top-bottom
 
 ```typescript
 import {
-  labelStudioToPPOCR,
+  fullLabelStudioToPPOCRConverters,
   enhancePPOCRLabel,
   enhanceLabelStudioData,
 } from 'label-studio-converter';
