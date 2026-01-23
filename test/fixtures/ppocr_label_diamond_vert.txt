@@ -1,1 +1,1 @@
-output/example.jpg	[{"transcription": "PLAN", "points": [[93, 338], [42, 435], [77, 467], [113, 433]], "difficult": false, "dt_score": 1}]
+fixtures/example.jpg	[{"transcription": "PLAN", "points": [[93, 338], [42, 435], [77, 467], [113, 433]], "difficult": false, "dt_score": 1}]
