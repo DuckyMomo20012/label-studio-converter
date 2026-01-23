@@ -21,6 +21,7 @@ import {
 } from '@/constants';
 import type { LocalContext } from '@/context';
 import {
+  type BaseEnhanceOptions,
   type LabelStudioTask,
   type LabelStudioTaskMin,
   PPOCRLabelSchema,
@@ -31,7 +32,7 @@ import {
 import { backupFileIfExists } from '@/lib/backup-utils';
 import { findFiles } from '@/lib/file-utils';
 
-interface CommandFlags {
+type CommandFlags = {
   outDir?: string;
   fileName?: string;
   backup?: boolean;
@@ -41,16 +42,10 @@ interface CommandFlags {
   createFileListForServing?: boolean;
   fileListName?: string;
   baseServerUrl?: string;
-  sortVertical?: string;
-  sortHorizontal?: string;
-  normalizeShape?: string;
-  widthIncrement?: number;
-  heightIncrement?: number;
-  precision?: number;
   recursive?: boolean;
   filePattern?: string;
   outputMode?: string;
-}
+} & BaseEnhanceOptions;
 
 export async function convertToLabelStudio(
   this: LocalContext,

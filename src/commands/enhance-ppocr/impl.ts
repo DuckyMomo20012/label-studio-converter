@@ -14,6 +14,7 @@ import {
 } from '@/constants';
 import type { LocalContext } from '@/context';
 import {
+  type BaseEnhanceOptions,
   PPOCRLabelSchema,
   type PPOCRLabelTask,
   enhancePPOCRConverters,
@@ -21,19 +22,13 @@ import {
 import { backupFileIfExists } from '@/lib/backup-utils';
 import { findFiles } from '@/lib/file-utils';
 
-interface CommandFlags {
+type CommandFlags = {
   outDir?: string;
   fileName?: string;
   backup?: boolean;
-  sortVertical?: string;
-  sortHorizontal?: string;
-  normalizeShape?: string;
-  widthIncrement?: number;
-  heightIncrement?: number;
-  precision?: number;
   recursive?: boolean;
   filePattern?: string;
-}
+} & BaseEnhanceOptions;
 
 export async function enhancePPOCR(
   this: LocalContext,

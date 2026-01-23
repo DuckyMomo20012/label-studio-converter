@@ -12,48 +12,34 @@ import {
   DEFAULT_SORT_HORIZONTAL,
   DEFAULT_SORT_VERTICAL,
   DEFAULT_WIDTH_INCREMENT,
-  type HorizontalSortOrder,
-  type ShapeNormalizeOption,
-  type VerticalSortOrder,
 } from '@/constants';
 import type { LocalContext } from '@/context';
+import {
+  type BaseEnhanceOptions,
+  PPOCRLabelSchema,
+  type PPOCRLabelTask,
+  fullLabelStudioToPPOCRConverters,
+  minLabelStudioToPPOCRConverters,
+} from '@/lib';
 import { backupFileIfExists } from '@/lib/backup-utils';
 import { findFiles } from '@/lib/file-utils';
-import { Processor, withOptions } from '@/lib/processor';
-import { FullOCRLabelStudioInput } from '@/modules/label-studio-full/input';
 import {
   FullOCRLabelStudioSchema,
   type LabelStudioTask,
 } from '@/modules/label-studio-full/schema';
-import { MinOCRLabelStudioInput } from '@/modules/label-studio-min/input';
 import {
   type LabelStudioTaskMin,
   MinOCRLabelStudioSchema,
 } from '@/modules/label-studio-min/schema';
-import { PPOCROutput } from '@/modules/ppocrlabel/output';
-import {
-  PPOCRLabelSchema,
-  type PPOCRLabelTask,
-} from '@/modules/ppocrlabel/schema';
-import { normalizeTransformer } from '@/transformers/normalize';
-import { resizeTransformer } from '@/transformers/resize';
-import { roundTransformer } from '@/transformers/round';
-import { sortTransformer } from '@/transformers/sort';
 
-interface CommandFlags {
+type CommandFlags = {
   outDir?: string;
   fileName?: string;
   backup?: boolean;
   baseImageDir?: string;
-  sortVertical?: string;
-  sortHorizontal?: string;
-  normalizeShape?: string;
-  widthIncrement?: number;
-  heightIncrement?: number;
-  precision?: number;
   recursive?: boolean;
   filePattern?: string;
-}
+} & BaseEnhanceOptions;
 
 export const isLabelStudioFullJSON = (
   data: unknown,
@@ -116,46 +102,6 @@ export async function convertToPPOCR(
 
   console.log(chalk.blue(`Found ${filePaths.length} files to process\n`));
 
-  const transformerParams = [
-    withOptions(normalizeTransformer, {
-      normalizeShape: normalizeShape as ShapeNormalizeOption,
-    }),
-    withOptions(resizeTransformer, {
-      widthIncrement,
-      heightIncrement,
-    }),
-    withOptions(roundTransformer, {
-      precision,
-    }),
-    withOptions(sortTransformer, {
-      horizontalSort: sortHorizontal as HorizontalSortOrder,
-      verticalSort: sortVertical as VerticalSortOrder,
-    }),
-  ];
-
-  const resolveInputImagePath = (
-    taskImagePath: string,
-    taskFilePath: string,
-  ) => {
-    const fileDir = dirname(taskFilePath);
-    const resolvedPath = join(fileDir, taskImagePath);
-    return resolvedPath;
-  };
-
-  const resolveOutputImagePath = (
-    taskImagePath: string,
-    taskFilePath: string,
-  ) => {
-    const fileDir = dirname(taskFilePath);
-    // NOTE: For PPOCR output, we keep only the folder of the task file
-    const resolvedPath = join(
-      baseImageDir || '',
-      fileDir.split('/').pop() || '',
-      taskImagePath,
-    );
-    return resolvedPath;
-  };
-
   for (const filePath of filePaths) {
     const file = basename(filePath);
     // Get relative path to preserve directory structure
@@ -173,46 +119,28 @@ export async function convertToPPOCR(
 
       let outputTasks: PPOCRLabelTask[] = [];
 
+      const optionParams = {
+        baseImageDir,
+        sortVertical,
+        sortHorizontal,
+        normalizeShape,
+        widthIncrement,
+        heightIncrement,
+        precision,
+      };
+
       if (isFull) {
-        // Full Label Studio format
-        const params = {
-          input: FullOCRLabelStudioInput,
-          output: PPOCROutput,
-          transformers: transformerParams,
-        };
-
-        const processor = new Processor(params);
-
-        for await (const taskInput of inputTasks) {
-          const taskOutput = await processor.process({
-            inputData: taskInput,
-            taskFilePath: filePath,
-            resolveInputImagePath,
-            resolveOutputImagePath,
-          });
-
-          outputTasks = [...outputTasks, taskOutput];
-        }
+        outputTasks = await fullLabelStudioToPPOCRConverters(
+          inputTasks,
+          filePath,
+          optionParams,
+        );
       } else {
-        // Min Label Studio format
-        const params = {
-          input: MinOCRLabelStudioInput,
-          output: PPOCROutput,
-          transformers: transformerParams,
-        };
-
-        const processor = new Processor(params);
-
-        for await (const taskInput of inputTasks) {
-          const taskOutput = await processor.process({
-            inputData: taskInput,
-            taskFilePath: filePath,
-            resolveInputImagePath,
-            resolveOutputImagePath,
-          });
-
-          outputTasks = [...outputTasks, taskOutput];
-        }
+        outputTasks = await minLabelStudioToPPOCRConverters(
+          inputTasks,
+          filePath,
+          optionParams,
+        );
       }
 
       // Format output as PPOCR label format: image_path<tab>[{JSON array}]
