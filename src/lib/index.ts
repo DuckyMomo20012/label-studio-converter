@@ -23,7 +23,7 @@ export * from '../modules/ppocrlabel/input';
 export * from '../modules/ppocrlabel/output';
 
 // Converters
-export * from '../converters/config';
+export * from '../config';
 export * from '../converters/label-studio-to-ppocr';
 export * from '../converters/ppocr-to-label-studio';
 export * from '../converters/enhance-label-studio';

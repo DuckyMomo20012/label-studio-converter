@@ -1,5 +1,5 @@
 import { dirname, join } from 'path';
-import { type BaseEnhanceOptions } from '@/converters/config';
+import { type BaseEnhanceOptions } from '@/config';
 import {
   FullOCRLabelStudioInput,
   type HorizontalSortOrder,

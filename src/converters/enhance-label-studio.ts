@@ -1,5 +1,5 @@
 import { dirname, join } from 'path';
-import { BaseEnhanceOptions } from '@/converters/config';
+import { BaseEnhanceOptions } from '@/config';
 import {
   FullOCRLabelStudioInput,
   FullOCRLabelStudioOutput,

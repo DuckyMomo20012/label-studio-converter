@@ -1,4 +1,4 @@
-import { CommandContext, TypedCommandFlagParameters } from '@stricli/core';
+import type { CommandContext, TypedCommandFlagParameters } from '@stricli/core';
 import {
   DEFAULT_ADAPT_RESIZE_MARGIN,
   DEFAULT_ADAPT_RESIZE_MAX_COMPONENT_SIZE,
