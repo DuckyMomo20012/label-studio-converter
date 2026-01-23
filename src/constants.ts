@@ -44,6 +44,17 @@ export type ShapeNormalizeOption =
 export const DEFAULT_WIDTH_INCREMENT = 0;
 export const DEFAULT_HEIGHT_INCREMENT = 0;
 
+// Adaptive resize options
+export const DEFAULT_ADAPT_RESIZE_THRESHOLD = 128;
+export const DEFAULT_ADAPT_RESIZE_MARGIN = 5;
+export const DEFAULT_ADAPT_RESIZE_MIN_COMPONENT_SIZE = 10;
+export const DEFAULT_ADAPT_RESIZE_MAX_COMPONENT_SIZE = 100000;
+export const DEFAULT_ADAPT_RESIZE_OUTLIER_PERCENTILE = 2;
+export const DEFAULT_ADAPT_RESIZE_MORPHOLOGY_SIZE = 2;
+export const DEFAULT_ADAPT_RESIZE_MAX_HORIZONTAL_EXPANSION = 50;
+export const DEFAULT_ADAPT_RESIZE_TIMEOUT_MS = 30000;
+export const DEFAULT_ADAPT_RESIZE_MAX_BOX_SIZE = 3000;
+
 // Number precision options
 // For Label Studio: keep full precision (no rounding) by default
 export const DEFAULT_LABEL_STUDIO_PRECISION = -1; // -1 means no rounding

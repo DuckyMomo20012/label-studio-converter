@@ -11,6 +11,7 @@ import {
   Processor,
   type ShapeNormalizeOption,
   type VerticalSortOrder,
+  adaptResizeTransformer,
   normalizeTransformer,
   resizeTransformer,
   roundTransformer,
@@ -29,6 +30,14 @@ export const enhanceFullLabelStudioConverters = async (
     normalizeShape,
     widthIncrement,
     heightIncrement,
+    adaptResize = false,
+    adaptResizeThreshold,
+    adaptResizeMargin,
+    adaptResizeMinComponentSize,
+    adaptResizeMaxComponentSize,
+    adaptResizeOutlierPercentile,
+    adaptResizeMorphologySize,
+    adaptResizeMaxHorizontalExpansion,
     precision,
   } = options;
 
@@ -40,6 +49,19 @@ export const enhanceFullLabelStudioConverters = async (
       widthIncrement,
       heightIncrement,
     }),
+    ...(adaptResize
+      ? [
+          withOptions(adaptResizeTransformer, {
+            threshold: adaptResizeThreshold,
+            margin: adaptResizeMargin,
+            minComponentSize: adaptResizeMinComponentSize,
+            maxComponentSize: adaptResizeMaxComponentSize,
+            outlierPercentile: adaptResizeOutlierPercentile,
+            morphologySize: adaptResizeMorphologySize,
+            maxHorizontalExpansion: adaptResizeMaxHorizontalExpansion,
+          }),
+        ]
+      : []),
     withOptions(roundTransformer, {
       precision,
     }),
@@ -99,6 +121,14 @@ export const enhanceMinLabelStudioConverters = async (
     normalizeShape,
     widthIncrement,
     heightIncrement,
+    adaptResize = false,
+    adaptResizeThreshold,
+    adaptResizeMargin,
+    adaptResizeMinComponentSize,
+    adaptResizeMaxComponentSize,
+    adaptResizeOutlierPercentile,
+    adaptResizeMorphologySize,
+    adaptResizeMaxHorizontalExpansion,
     precision,
   } = options;
 
@@ -110,6 +140,19 @@ export const enhanceMinLabelStudioConverters = async (
       widthIncrement,
       heightIncrement,
     }),
+    ...(adaptResize
+      ? [
+          withOptions(adaptResizeTransformer, {
+            threshold: adaptResizeThreshold,
+            margin: adaptResizeMargin,
+            minComponentSize: adaptResizeMinComponentSize,
+            maxComponentSize: adaptResizeMaxComponentSize,
+            outlierPercentile: adaptResizeOutlierPercentile,
+            morphologySize: adaptResizeMorphologySize,
+            maxHorizontalExpansion: adaptResizeMaxHorizontalExpansion,
+          }),
+        ]
+      : []),
     withOptions(roundTransformer, {
       precision,
     }),

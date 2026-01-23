@@ -1,5 +1,12 @@
 import { CommandContext, TypedCommandFlagParameters } from '@stricli/core';
 import {
+  DEFAULT_ADAPT_RESIZE_MARGIN,
+  DEFAULT_ADAPT_RESIZE_MAX_COMPONENT_SIZE,
+  DEFAULT_ADAPT_RESIZE_MAX_HORIZONTAL_EXPANSION,
+  DEFAULT_ADAPT_RESIZE_MIN_COMPONENT_SIZE,
+  DEFAULT_ADAPT_RESIZE_MORPHOLOGY_SIZE,
+  DEFAULT_ADAPT_RESIZE_OUTLIER_PERCENTILE,
+  DEFAULT_ADAPT_RESIZE_THRESHOLD,
   DEFAULT_HEIGHT_INCREMENT,
   DEFAULT_PPOCR_PRECISION,
   DEFAULT_SHAPE_NORMALIZE,
@@ -22,6 +29,14 @@ export type BaseEnhanceOptions = {
   normalizeShape?: string;
   widthIncrement?: number;
   heightIncrement?: number;
+  adaptResize?: boolean;
+  adaptResizeThreshold?: number;
+  adaptResizeMargin?: number;
+  adaptResizeMinComponentSize?: number;
+  adaptResizeMaxComponentSize?: number;
+  adaptResizeOutlierPercentile?: number;
+  adaptResizeMorphologySize?: number;
+  adaptResizeMaxHorizontalExpansion?: number;
   precision?: number;
 };
 
@@ -53,6 +68,53 @@ export const baseEnhanceFlagOptions = {
   heightIncrement: {
     kind: 'parsed',
     brief: `Increase bounding box height by this amount (in pixels). Can be negative to decrease. Default: ${DEFAULT_HEIGHT_INCREMENT}`,
+    parse: Number,
+    optional: true,
+  },
+  adaptResize: {
+    kind: 'boolean',
+    brief: `Apply adaptive resize to automatically adjust bounding boxes based on image content. Default: false`,
+    optional: true,
+  },
+  adaptResizeThreshold: {
+    kind: 'parsed',
+    brief: `Grayscale threshold for adaptive resize (0-255). Default: ${DEFAULT_ADAPT_RESIZE_THRESHOLD}`,
+    parse: Number,
+    optional: true,
+  },
+  adaptResizeMargin: {
+    kind: 'parsed',
+    brief: `Margin pixels around detected content for adaptive resize. Default: ${DEFAULT_ADAPT_RESIZE_MARGIN}`,
+    parse: Number,
+    optional: true,
+  },
+  adaptResizeMinComponentSize: {
+    kind: 'parsed',
+    brief: `Minimum component size in pixels (filters dirt/noise). Default: ${DEFAULT_ADAPT_RESIZE_MIN_COMPONENT_SIZE}`,
+    parse: Number,
+    optional: true,
+  },
+  adaptResizeMaxComponentSize: {
+    kind: 'parsed',
+    brief: `Maximum component size in pixels (filters large artifacts). Default: ${DEFAULT_ADAPT_RESIZE_MAX_COMPONENT_SIZE}`,
+    parse: Number,
+    optional: true,
+  },
+  adaptResizeOutlierPercentile: {
+    kind: 'parsed',
+    brief: `Percentile for outlier removal (0-100). Default: ${DEFAULT_ADAPT_RESIZE_OUTLIER_PERCENTILE}`,
+    parse: Number,
+    optional: true,
+  },
+  adaptResizeMorphologySize: {
+    kind: 'parsed',
+    brief: `Morphological operation kernel size. Default: ${DEFAULT_ADAPT_RESIZE_MORPHOLOGY_SIZE}`,
+    parse: Number,
+    optional: true,
+  },
+  adaptResizeMaxHorizontalExpansion: {
+    kind: 'parsed',
+    brief: `Maximum horizontal expansion in pixels (prevents column overlap). Default: ${DEFAULT_ADAPT_RESIZE_MAX_HORIZONTAL_EXPANSION}`,
     parse: Number,
     optional: true,
   },

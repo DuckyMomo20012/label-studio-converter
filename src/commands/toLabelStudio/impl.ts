@@ -2,6 +2,13 @@ import { mkdir, readFile, writeFile } from 'fs/promises';
 import { basename, dirname, join, relative, resolve } from 'path';
 import chalk from 'chalk';
 import {
+  DEFAULT_ADAPT_RESIZE_MARGIN,
+  DEFAULT_ADAPT_RESIZE_MAX_COMPONENT_SIZE,
+  DEFAULT_ADAPT_RESIZE_MAX_HORIZONTAL_EXPANSION,
+  DEFAULT_ADAPT_RESIZE_MIN_COMPONENT_SIZE,
+  DEFAULT_ADAPT_RESIZE_MORPHOLOGY_SIZE,
+  DEFAULT_ADAPT_RESIZE_OUTLIER_PERCENTILE,
+  DEFAULT_ADAPT_RESIZE_THRESHOLD,
   DEFAULT_BACKUP,
   DEFAULT_BASE_SERVER_URL,
   DEFAULT_CREATE_FILE_LIST_FOR_SERVING,
@@ -67,6 +74,14 @@ export async function convertToLabelStudio(
     normalizeShape = DEFAULT_SHAPE_NORMALIZE,
     widthIncrement = DEFAULT_WIDTH_INCREMENT,
     heightIncrement = DEFAULT_HEIGHT_INCREMENT,
+    adaptResize = false,
+    adaptResizeThreshold = DEFAULT_ADAPT_RESIZE_THRESHOLD,
+    adaptResizeMargin = DEFAULT_ADAPT_RESIZE_MARGIN,
+    adaptResizeMinComponentSize = DEFAULT_ADAPT_RESIZE_MIN_COMPONENT_SIZE,
+    adaptResizeMaxComponentSize = DEFAULT_ADAPT_RESIZE_MAX_COMPONENT_SIZE,
+    adaptResizeOutlierPercentile = DEFAULT_ADAPT_RESIZE_OUTLIER_PERCENTILE,
+    adaptResizeMorphologySize = DEFAULT_ADAPT_RESIZE_MORPHOLOGY_SIZE,
+    adaptResizeMaxHorizontalExpansion = DEFAULT_ADAPT_RESIZE_MAX_HORIZONTAL_EXPANSION,
     precision = DEFAULT_LABEL_STUDIO_PRECISION,
     recursive = DEFAULT_RECURSIVE,
     filePattern = DEFAULT_PPOCR_FILE_PATTERN,
@@ -183,14 +198,25 @@ export async function convertToLabelStudio(
       // Convert each image's annotations to Label Studio format
       let outputTasks: (LabelStudioTask | LabelStudioTaskMin)[] = [];
 
-      const optionParams = {
+      const convertParams = {
         defaultLabelName,
         baseServerUrl,
+      };
+
+      const enhanceParams = {
         sortVertical,
         sortHorizontal,
         normalizeShape,
         widthIncrement,
         heightIncrement,
+        adaptResize,
+        adaptResizeThreshold,
+        adaptResizeMargin,
+        adaptResizeMinComponentSize,
+        adaptResizeMaxComponentSize,
+        adaptResizeOutlierPercentile,
+        adaptResizeMorphologySize,
+        adaptResizeMaxHorizontalExpansion,
         precision,
       };
 
@@ -198,13 +224,19 @@ export async function convertToLabelStudio(
         outputTasks = await ppocrToFullLabelStudioConverters(
           inputTasks,
           filePath,
-          optionParams,
+          {
+            ...convertParams,
+            ...enhanceParams,
+          },
         );
       } else {
         outputTasks = await ppocrToMinLabelStudioConverters(
           inputTasks,
           filePath,
-          optionParams,
+          {
+            ...convertParams,
+            ...enhanceParams,
+          },
         );
       }
 

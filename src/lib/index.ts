@@ -3,6 +3,7 @@ export * from './processor';
 export * from './unified';
 
 // Transformers
+export * from '../transformers/adapt-resize';
 export * from '../transformers/normalize';
 export * from '../transformers/resize';
 export * from '../transformers/round';

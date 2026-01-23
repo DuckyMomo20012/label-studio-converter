@@ -2,6 +2,13 @@ import { mkdir, readFile, writeFile } from 'fs/promises';
 import { basename, dirname, join, relative } from 'path';
 import chalk from 'chalk';
 import {
+  DEFAULT_ADAPT_RESIZE_MARGIN,
+  DEFAULT_ADAPT_RESIZE_MAX_COMPONENT_SIZE,
+  DEFAULT_ADAPT_RESIZE_MAX_HORIZONTAL_EXPANSION,
+  DEFAULT_ADAPT_RESIZE_MIN_COMPONENT_SIZE,
+  DEFAULT_ADAPT_RESIZE_MORPHOLOGY_SIZE,
+  DEFAULT_ADAPT_RESIZE_OUTLIER_PERCENTILE,
+  DEFAULT_ADAPT_RESIZE_THRESHOLD,
   DEFAULT_BACKUP,
   DEFAULT_HEIGHT_INCREMENT,
   DEFAULT_PPOCR_FILE_PATTERN,
@@ -44,6 +51,14 @@ export async function enhancePPOCR(
     normalizeShape = DEFAULT_SHAPE_NORMALIZE,
     widthIncrement = DEFAULT_WIDTH_INCREMENT,
     heightIncrement = DEFAULT_HEIGHT_INCREMENT,
+    adaptResize = false,
+    adaptResizeThreshold = DEFAULT_ADAPT_RESIZE_THRESHOLD,
+    adaptResizeMargin = DEFAULT_ADAPT_RESIZE_MARGIN,
+    adaptResizeMinComponentSize = DEFAULT_ADAPT_RESIZE_MIN_COMPONENT_SIZE,
+    adaptResizeMaxComponentSize = DEFAULT_ADAPT_RESIZE_MAX_COMPONENT_SIZE,
+    adaptResizeOutlierPercentile = DEFAULT_ADAPT_RESIZE_OUTLIER_PERCENTILE,
+    adaptResizeMorphologySize = DEFAULT_ADAPT_RESIZE_MORPHOLOGY_SIZE,
+    adaptResizeMaxHorizontalExpansion = DEFAULT_ADAPT_RESIZE_MAX_HORIZONTAL_EXPANSION,
     precision = DEFAULT_PPOCR_PRECISION,
     recursive = DEFAULT_RECURSIVE,
     filePattern = DEFAULT_PPOCR_FILE_PATTERN,
@@ -112,19 +127,27 @@ export async function enhancePPOCR(
         continue;
       }
 
-      const optionParams = {
+      const enhanceParams = {
         sortVertical,
         sortHorizontal,
         normalizeShape,
         widthIncrement,
         heightIncrement,
+        adaptResize,
+        adaptResizeThreshold,
+        adaptResizeMargin,
+        adaptResizeMinComponentSize,
+        adaptResizeMaxComponentSize,
+        adaptResizeOutlierPercentile,
+        adaptResizeMorphologySize,
+        adaptResizeMaxHorizontalExpansion,
         precision,
       };
 
       const outputTasks = await enhancePPOCRConverters(
         inputTasks,
         filePath,
-        optionParams,
+        enhanceParams,
       );
 
       // Write enhanced data
