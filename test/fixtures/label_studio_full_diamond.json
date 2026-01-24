@@ -1,1 +1,108 @@
-[{"id":1,"annotations":[{"id":201,"completed_by":1,"result":[{"original_width":889,"original_height":520,"image_rotation":0,"value":{"points":[[26.809815950920246,60.20363378952336],[50.1840490797546,56.74244926852289],[68.83435582822086,60.93782444549316],[44.7239263803681,62.40620575743275]],"closed":true},"id":"IPHPhBc4po","from_name":"poly","to_name":"image","type":"polygon","origin":"manual"},{"original_width":889,"original_height":520,"image_rotation":0,"value":{"points":[[26.809815950920246,60.20363378952336],[50.1840490797546,56.74244926852289],[68.83435582822086,60.93782444549316],[44.7239263803681,62.40620575743275]],"closed":true,"labels":["Text"]},"id":"IPHPhBc4po","from_name":"label","to_name":"image","type":"labels","origin":"manual"},{"original_width":889,"original_height":520,"image_rotation":0,"value":{"points":[[26.809815950920246,60.20363378952336],[50.1840490797546,56.74244926852289],[68.83435582822086,60.93782444549316],[44.7239263803681,62.40620575743275]],"closed":true,"text":["ACUTE CORONARY SYNDROME"]},"id":"IPHPhBc4po","from_name":"transcription","to_name":"image","type":"textarea","origin":"manual"}],"was_cancelled":false,"ground_truth":false,"created_at":"2026-01-07T03:14:39.424067Z","updated_at":"2026-01-09T13:49:16.176298Z","draft_created_at":"2026-01-07T03:14:04.596361Z","lead_time":193.48000000000002,"prediction":{},"result_count":1,"unique_id":"7e8c79f1-49ce-471c-8b26-8b8c6f9c3401","import_id":null,"last_action":null,"bulk_created":false,"task":1,"project":2,"updated_by":1,"parent_prediction":null,"parent_annotation":null,"last_created_by":null}],"file_upload":"5b1e3483-example.jpg","drafts":[],"predictions":[],"data":{"ocr":"\/data\/upload\/2\/5b1e3483-example.jpg"},"meta":{},"created_at":"2026-01-07T03:13:41.175183Z","updated_at":"2026-01-09T13:49:16.276569Z","allow_skip":true,"inner_id":1,"total_annotations":1,"cancelled_annotations":0,"total_predictions":0,"comment_count":0,"unresolved_comment_count":0,"last_comment_updated_at":null,"project":2,"updated_by":1,"comment_authors":[]}]
+[
+  {
+    "id": 1,
+    "annotations": [
+      {
+        "id": 201,
+        "completed_by": 1,
+        "result": [
+          {
+            "original_width": 889,
+            "original_height": 520,
+            "image_rotation": 0,
+            "value": {
+              "points": [
+                [26.809815950920246, 60.20363378952336],
+                [50.1840490797546, 56.74244926852289],
+                [68.83435582822086, 60.93782444549316],
+                [44.7239263803681, 62.40620575743275]
+              ],
+              "closed": true
+            },
+            "id": "IPHPhBc4po",
+            "from_name": "poly",
+            "to_name": "image",
+            "type": "polygon",
+            "origin": "manual"
+          },
+          {
+            "original_width": 889,
+            "original_height": 520,
+            "image_rotation": 0,
+            "value": {
+              "points": [
+                [26.809815950920246, 60.20363378952336],
+                [50.1840490797546, 56.74244926852289],
+                [68.83435582822086, 60.93782444549316],
+                [44.7239263803681, 62.40620575743275]
+              ],
+              "closed": true,
+              "labels": ["Text"]
+            },
+            "id": "IPHPhBc4po",
+            "from_name": "label",
+            "to_name": "image",
+            "type": "labels",
+            "origin": "manual"
+          },
+          {
+            "original_width": 889,
+            "original_height": 520,
+            "image_rotation": 0,
+            "value": {
+              "points": [
+                [26.809815950920246, 60.20363378952336],
+                [50.1840490797546, 56.74244926852289],
+                [68.83435582822086, 60.93782444549316],
+                [44.7239263803681, 62.40620575743275]
+              ],
+              "closed": true,
+              "text": ["ACUTE CORONARY SYNDROME"]
+            },
+            "id": "IPHPhBc4po",
+            "from_name": "transcription",
+            "to_name": "image",
+            "type": "textarea",
+            "origin": "manual"
+          }
+        ],
+        "was_cancelled": false,
+        "ground_truth": false,
+        "created_at": "2026-01-07T03:14:39.424067Z",
+        "updated_at": "2026-01-09T13:49:16.176298Z",
+        "draft_created_at": "2026-01-07T03:14:04.596361Z",
+        "lead_time": 193.48000000000002,
+        "prediction": {},
+        "result_count": 1,
+        "unique_id": "7e8c79f1-49ce-471c-8b26-8b8c6f9c3401",
+        "import_id": null,
+        "last_action": null,
+        "bulk_created": false,
+        "task": 1,
+        "project": 2,
+        "updated_by": 1,
+        "parent_prediction": null,
+        "parent_annotation": null,
+        "last_created_by": null
+      }
+    ],
+    "file_upload": "example.jpg",
+    "drafts": [],
+    "predictions": [],
+    "data": { "ocr": "\/example.jpg" },
+    "meta": {},
+    "created_at": "2026-01-07T03:13:41.175183Z",
+    "updated_at": "2026-01-09T13:49:16.276569Z",
+    "allow_skip": true,
+    "inner_id": 1,
+    "total_annotations": 1,
+    "cancelled_annotations": 0,
+    "total_predictions": 0,
+    "comment_count": 0,
+    "unresolved_comment_count": 0,
+    "last_comment_updated_at": null,
+    "project": 2,
+    "updated_by": 1,
+    "comment_authors": []
+  }
+]

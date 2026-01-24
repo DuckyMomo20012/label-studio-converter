@@ -1,71 +1,40 @@
-import type { HorizontalSortOrder, VerticalSortOrder } from '@/constants';
 import {
+  type HorizontalSortOrder,
   SORT_HORIZONTAL_LTR,
   SORT_HORIZONTAL_NONE,
   SORT_HORIZONTAL_RTL,
   SORT_VERTICAL_NONE,
   SORT_VERTICAL_TOP_BOTTOM,
+  type VerticalSortOrder,
 } from '@/constants';
-import type { PPOCRLabel } from '@/lib/schema';
+import { getBoundingBoxCenter } from '@/lib/geometry';
+import { type Transformer } from '@/lib/processor';
+
+export type SortTransformerOptions = {
+  verticalSort: VerticalSortOrder;
+  horizontalSort: HorizontalSortOrder;
+};
 
 // Tolerance for grouping bounding boxes into columns/rows
 // Boxes within this pixel distance are considered in the same column/row
-const GROUPING_TOLERANCE = 50;
+export const GROUPING_TOLERANCE = 50;
 
-/**
- * Calculate the bounding box center point from polygon points
- */
-function getBoundingBoxCenter(points: number[][]): {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-} {
-  let minX = Infinity;
-  let minY = Infinity;
-  let maxX = -Infinity;
-  let maxY = -Infinity;
+export const sortTransformer = (async (
+  boxes,
+  imageFilePath: string,
+  options,
+) => {
+  const { verticalSort, horizontalSort } = options;
 
-  for (const [x, y] of points) {
-    if (x !== undefined && y !== undefined) {
-      minX = Math.min(minX, x);
-      minY = Math.min(minY, y);
-      maxX = Math.max(maxX, x);
-      maxY = Math.max(maxY, y);
-    }
-  }
-
-  return {
-    x: (minX + maxX) / 2,
-    y: (minY + maxY) / 2,
-    width: maxX - minX,
-    height: maxY - minY,
-  };
-}
-
-/**
- * Sort PPOCRLabel array based on bounding box positions
- * Supports both traditional reading order (top-bottom, then left-right)
- * and SinoNom reading order (right-left columns, top-bottom within each column)
- * @param annotations - Array of PPOCR annotations to sort
- * @param verticalSort - Vertical sort order: 'none', 'top-bottom', 'bottom-top'
- * @param horizontalSort - Horizontal sort order: 'none', 'ltr', 'rtl'
- * @returns Sorted array (or original array if both sorts are 'none')
- */
-export function sortBoundingBoxes(
-  annotations: PPOCRLabel,
-  verticalSort: VerticalSortOrder,
-  horizontalSort: HorizontalSortOrder,
-): PPOCRLabel {
   if (
     verticalSort === SORT_VERTICAL_NONE &&
     horizontalSort === SORT_HORIZONTAL_NONE
   ) {
-    return annotations;
+    return boxes;
   }
 
   // Create a copy to avoid mutating the original array
-  const sorted = [...annotations];
+  const sorted = [...boxes];
 
   // Detect if this is vertical text (SinoNom style) or horizontal text (Arabic/Hebrew style)
   // by checking if most boxes are taller than they are wide
@@ -146,9 +115,15 @@ export function sortBoundingBoxes(
           ? centerA.y - centerB.y
           : centerB.y - centerA.y;
 
-      // If there's a significant difference in y-position, return that
-      if (Math.abs(yDiff) > GROUPING_TOLERANCE) {
-        return yDiff;
+      // If horizontal sorting is NONE, always use vertical sort
+      // Otherwise, only sort vertically if there's significant y difference
+      if (
+        horizontalSort === SORT_HORIZONTAL_NONE ||
+        Math.abs(yDiff) >= GROUPING_TOLERANCE
+      ) {
+        if (yDiff !== 0) {
+          return yDiff;
+        }
       }
     }
 
@@ -163,4 +138,4 @@ export function sortBoundingBoxes(
   });
 
   return sorted;
-}
+}) satisfies Transformer<SortTransformerOptions>;

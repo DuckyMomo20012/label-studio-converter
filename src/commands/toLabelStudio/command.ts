@@ -1,32 +1,17 @@
 import { buildCommand } from '@stricli/core';
 import {
-  DEFAULT_BACKUP,
   DEFAULT_BASE_SERVER_URL,
   DEFAULT_CREATE_FILE_LIST_FOR_SERVING,
   DEFAULT_CREATE_FILE_PER_IMAGE,
   DEFAULT_FILE_LIST_NAME,
-  DEFAULT_HEIGHT_INCREMENT,
   DEFAULT_LABEL_NAME,
   DEFAULT_LABEL_STUDIO_FULL_JSON,
-  DEFAULT_LABEL_STUDIO_PRECISION,
   DEFAULT_OUTPUT_MODE,
   DEFAULT_PPOCR_FILE_PATTERN,
-  DEFAULT_RECURSIVE,
-  DEFAULT_SHAPE_NORMALIZE,
-  DEFAULT_SORT_HORIZONTAL,
-  DEFAULT_SORT_VERTICAL,
-  DEFAULT_WIDTH_INCREMENT,
   OUTPUT_MODE_ANNOTATIONS,
   OUTPUT_MODE_PREDICTIONS,
-  SHAPE_NORMALIZE_NONE,
-  SHAPE_NORMALIZE_RECTANGLE,
-  SORT_HORIZONTAL_LTR,
-  SORT_HORIZONTAL_NONE,
-  SORT_HORIZONTAL_RTL,
-  SORT_VERTICAL_BOTTOM_TOP,
-  SORT_VERTICAL_NONE,
-  SORT_VERTICAL_TOP_BOTTOM,
 } from '@/constants';
+import { baseEnhanceFlagOptions, baseFileIOFlagOptions } from '@/lib';
 
 export const toLabelStudioCommand = buildCommand({
   loader: async () => {
@@ -43,23 +28,13 @@ export const toLabelStudioCommand = buildCommand({
       minimum: 1,
     },
     flags: {
-      outDir: {
-        kind: 'parsed',
-        brief:
-          'Output directory. If not specified, files are saved in the same directory as the source files',
-        parse: String,
-        optional: true,
-      },
+      ...baseFileIOFlagOptions,
+      ...baseEnhanceFlagOptions,
       fileName: {
         kind: 'parsed',
         brief:
           'Custom output filename (without extension). If not specified, uses source filename with format suffix',
         parse: String,
-        optional: true,
-      },
-      backup: {
-        kind: 'boolean',
-        brief: `Create backup of existing files before overwriting. Default: ${DEFAULT_BACKUP}`,
         optional: true,
       },
       defaultLabelName: {
@@ -93,47 +68,6 @@ export const toLabelStudioCommand = buildCommand({
         kind: 'parsed',
         brief: `Base server URL for constructing image URLs in the file list. Default: "${DEFAULT_BASE_SERVER_URL}"`,
         parse: String,
-        optional: true,
-      },
-      sortVertical: {
-        kind: 'parsed',
-        brief: `Sort bounding boxes vertically. Options: "${SORT_VERTICAL_NONE}", "${SORT_VERTICAL_TOP_BOTTOM}", "${SORT_VERTICAL_BOTTOM_TOP}". Default: "${DEFAULT_SORT_VERTICAL}"`,
-        parse: String,
-        optional: true,
-      },
-      sortHorizontal: {
-        kind: 'parsed',
-        brief: `Sort bounding boxes horizontally. Options: "${SORT_HORIZONTAL_NONE}", "${SORT_HORIZONTAL_LTR}", "${SORT_HORIZONTAL_RTL}". Default: "${DEFAULT_SORT_HORIZONTAL}"`,
-        parse: String,
-        optional: true,
-      },
-      normalizeShape: {
-        kind: 'parsed',
-        brief: `Normalize diamond-like shapes to axis-aligned rectangles. Options: "${SHAPE_NORMALIZE_NONE}", "${SHAPE_NORMALIZE_RECTANGLE}". Default: "${DEFAULT_SHAPE_NORMALIZE}"`,
-        parse: String,
-        optional: true,
-      },
-      widthIncrement: {
-        kind: 'parsed',
-        brief: `Increase bounding box width by this amount (in pixels). Can be negative to decrease. Default: ${DEFAULT_WIDTH_INCREMENT}`,
-        parse: Number,
-        optional: true,
-      },
-      heightIncrement: {
-        kind: 'parsed',
-        brief: `Increase bounding box height by this amount (in pixels). Can be negative to decrease. Default: ${DEFAULT_HEIGHT_INCREMENT}`,
-        parse: Number,
-        optional: true,
-      },
-      precision: {
-        kind: 'parsed',
-        brief: `Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: ${DEFAULT_LABEL_STUDIO_PRECISION}`,
-        parse: Number,
-        optional: true,
-      },
-      recursive: {
-        kind: 'boolean',
-        brief: `Recursively search directories for files. Default: ${DEFAULT_RECURSIVE}`,
         optional: true,
       },
       filePattern: {

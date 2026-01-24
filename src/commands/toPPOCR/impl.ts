@@ -1,8 +1,16 @@
-import { mkdir, readFile, writeFile } from 'fs/promises';
-import { basename, dirname, join } from 'path';
+import { copyFile, mkdir, readFile, writeFile } from 'fs/promises';
+import { basename, dirname, join, relative } from 'path';
 import chalk from 'chalk';
 import {
+  DEFAULT_ADAPT_RESIZE_MARGIN,
+  DEFAULT_ADAPT_RESIZE_MAX_COMPONENT_SIZE,
+  DEFAULT_ADAPT_RESIZE_MAX_HORIZONTAL_EXPANSION,
+  DEFAULT_ADAPT_RESIZE_MIN_COMPONENT_SIZE,
+  DEFAULT_ADAPT_RESIZE_MORPHOLOGY_SIZE,
+  DEFAULT_ADAPT_RESIZE_OUTLIER_PERCENTILE,
+  DEFAULT_ADAPT_RESIZE_THRESHOLD,
   DEFAULT_BACKUP,
+  DEFAULT_COPY_IMAGES,
   DEFAULT_HEIGHT_INCREMENT,
   DEFAULT_LABEL_STUDIO_FILE_PATTERN,
   DEFAULT_PPOCR_FILE_NAME,
@@ -12,66 +20,64 @@ import {
   DEFAULT_SORT_HORIZONTAL,
   DEFAULT_SORT_VERTICAL,
   DEFAULT_WIDTH_INCREMENT,
-  type HorizontalSortOrder,
-  SHAPE_NORMALIZE_NONE,
-  type ShapeNormalizeOption,
-  type VerticalSortOrder,
 } from '@/constants';
 import type { LocalContext } from '@/context';
-import { backupFileIfExists } from '@/lib/backup-utils';
-import { findFiles, getRelativePathFromInputs } from '@/lib/file-utils';
-import { labelStudioToPPOCR, minLabelStudioToPPOCR } from '@/lib/label-studio';
 import {
-  type FullOCRLabelStudio,
-  FullOCRLabelStudioSchema,
-  type MinOCRLabelStudio,
-  MinOCRLabelStudioSchema,
+  type BaseEnhanceOptions,
   PPOCRLabelSchema,
-} from '@/lib/schema';
-import { sortBoundingBoxes } from '@/lib/sort';
+  type PPOCRLabelTask,
+  fullLabelStudioToPPOCRConverters,
+  minLabelStudioToPPOCRConverters,
+} from '@/lib';
+import { backupFileIfExists } from '@/lib/backup-utils';
+import { findFiles } from '@/lib/file-utils';
+import {
+  FullOCRLabelStudioSchema,
+  type LabelStudioTask,
+} from '@/modules/label-studio-full/schema';
+import {
+  type LabelStudioTaskMin,
+  MinOCRLabelStudioSchema,
+} from '@/modules/label-studio-min/schema';
 
-interface CommandFlags {
+type CommandFlags = {
   outDir?: string;
   fileName?: string;
   backup?: boolean;
+  copyImages?: boolean;
   baseImageDir?: string;
-  sortVertical?: string;
-  sortHorizontal?: string;
-  normalizeShape?: string;
-  widthIncrement?: number;
-  heightIncrement?: number;
-  precision?: number;
   recursive?: boolean;
   filePattern?: string;
-}
+} & BaseEnhanceOptions;
 
-const isLabelStudioFullJSON = (
+export const isLabelStudioFullJSON = (
   data: unknown,
-): {
-  isFull: boolean;
-  data: FullOCRLabelStudio | MinOCRLabelStudio;
-} => {
-  // Try parsing as full format array
-  const parsedFull = FullOCRLabelStudioSchema.safeParse(data);
-  if (parsedFull.success) {
-    return { isFull: true, data: parsedFull.data };
-  }
-
-  // Try parsing as single full format object (wrap in array)
-  if (!Array.isArray(data) && typeof data === 'object' && data !== null) {
-    const parsedSingleFull = FullOCRLabelStudioSchema.safeParse([data]);
-    if (parsedSingleFull.success) {
-      return { isFull: true, data: parsedSingleFull.data };
+):
+  | {
+      isFull: true;
+      tasks: LabelStudioTask[];
     }
+  | {
+      isFull: false;
+      tasks: LabelStudioTaskMin[];
+    } => {
+  const newData = Array.isArray(data) ? data : [data];
+
+  // Try parsing as full format array
+  const parsedFull = FullOCRLabelStudioSchema.array().safeParse(newData);
+  if (parsedFull.success) {
+    return { isFull: true as const, tasks: parsedFull.data };
   }
 
   // Try parsing as min format
-  const parsedMin = MinOCRLabelStudioSchema.safeParse(data);
+  const parsedMin = MinOCRLabelStudioSchema.array().safeParse(newData);
   if (parsedMin.success) {
-    return { isFull: false, data: parsedMin.data };
+    return { isFull: false, tasks: parsedMin.data };
   }
 
-  throw new Error('Input data is not valid Label Studio JSON format.');
+  throw new Error(
+    `Input data is not valid Label Studio JSON format. ${[parsedFull.error.message, parsedMin.error.message].filter(Boolean)}`,
+  );
 };
 
 export async function convertToPPOCR(
@@ -83,12 +89,21 @@ export async function convertToPPOCR(
     outDir,
     fileName = DEFAULT_PPOCR_FILE_NAME,
     backup = DEFAULT_BACKUP,
+    copyImages = DEFAULT_COPY_IMAGES,
     baseImageDir,
     sortVertical = DEFAULT_SORT_VERTICAL,
     sortHorizontal = DEFAULT_SORT_HORIZONTAL,
     normalizeShape = DEFAULT_SHAPE_NORMALIZE,
     widthIncrement = DEFAULT_WIDTH_INCREMENT,
     heightIncrement = DEFAULT_HEIGHT_INCREMENT,
+    adaptResize = false,
+    adaptResizeThreshold = DEFAULT_ADAPT_RESIZE_THRESHOLD,
+    adaptResizeMargin = DEFAULT_ADAPT_RESIZE_MARGIN,
+    adaptResizeMinComponentSize = DEFAULT_ADAPT_RESIZE_MIN_COMPONENT_SIZE,
+    adaptResizeMaxComponentSize = DEFAULT_ADAPT_RESIZE_MAX_COMPONENT_SIZE,
+    adaptResizeOutlierPercentile = DEFAULT_ADAPT_RESIZE_OUTLIER_PERCENTILE,
+    adaptResizeMorphologySize = DEFAULT_ADAPT_RESIZE_MORPHOLOGY_SIZE,
+    adaptResizeMaxHorizontalExpansion = DEFAULT_ADAPT_RESIZE_MAX_HORIZONTAL_EXPANSION,
     precision = DEFAULT_PPOCR_PRECISION,
     recursive = DEFAULT_RECURSIVE,
     filePattern = DEFAULT_LABEL_STUDIO_FILE_PATTERN,
@@ -108,7 +123,7 @@ export async function convertToPPOCR(
   for (const filePath of filePaths) {
     const file = basename(filePath);
     // Get relative path to preserve directory structure
-    const relativePath = getRelativePathFromInputs(filePath, inputDirs);
+    const relativePath = relative(process.cwd(), filePath);
     const relativeDir = dirname(relativePath);
 
     console.log(chalk.gray(`Processing file: ${filePath}`));
@@ -117,56 +132,120 @@ export async function convertToPPOCR(
       const fileData = await readFile(filePath, 'utf-8');
       const labelStudioData = JSON.parse(fileData);
 
-      const { data, isFull } = isLabelStudioFullJSON(labelStudioData);
+      const { tasks: inputTasks, isFull } =
+        isLabelStudioFullJSON(labelStudioData);
 
-      // Convert based on format type
-      const ppocrDataMap = isFull
-        ? await labelStudioToPPOCR(data as FullOCRLabelStudio, {
-            baseImageDir,
-            normalizeShape:
-              normalizeShape !== SHAPE_NORMALIZE_NONE
-                ? (normalizeShape as ShapeNormalizeOption)
-                : undefined,
-            widthIncrement,
-            heightIncrement,
-            precision,
-          })
-        : await minLabelStudioToPPOCR(data as MinOCRLabelStudio, {
-            baseImageDir,
-            normalizeShape:
-              normalizeShape !== SHAPE_NORMALIZE_NONE
-                ? (normalizeShape as ShapeNormalizeOption)
-                : undefined,
-            widthIncrement,
-            heightIncrement,
-            precision,
-          });
+      let outputTasks: PPOCRLabelTask[] = [];
+
+      const convertParams = {
+        baseImageDir,
+      };
+
+      const enhanceParams = {
+        sortVertical,
+        sortHorizontal,
+        normalizeShape,
+        widthIncrement,
+        heightIncrement,
+        adaptResize,
+        adaptResizeThreshold,
+        adaptResizeMargin,
+        adaptResizeMinComponentSize,
+        adaptResizeMaxComponentSize,
+        adaptResizeOutlierPercentile,
+        adaptResizeMorphologySize,
+        adaptResizeMaxHorizontalExpansion,
+        precision,
+      };
+
+      // Determine output directory before calling converters
+      const outputSubDir = outDir
+        ? join(outDir, relativeDir)
+        : dirname(filePath);
+
+      if (isFull) {
+        outputTasks = await fullLabelStudioToPPOCRConverters(
+          inputTasks,
+          filePath,
+          outputSubDir,
+          {
+            ...convertParams,
+            ...enhanceParams,
+          },
+        );
+      } else {
+        outputTasks = await minLabelStudioToPPOCRConverters(
+          inputTasks,
+          filePath,
+          outputSubDir,
+          {
+            ...convertParams,
+            ...enhanceParams,
+          },
+        );
+      }
+
+      // Copy images to output directory if requested
+      if (outDir && copyImages) {
+        const taskFileDir = dirname(filePath);
+
+        for (const task of inputTasks) {
+          try {
+            // Extract image path from Label Studio task
+            const imageUrl = isFull
+              ? (task as LabelStudioTask).data.ocr
+              : (task as LabelStudioTaskMin).ocr;
+
+            // Handle URLs vs local paths
+            let sourceImagePath: string;
+            if (
+              imageUrl.startsWith('http://') ||
+              imageUrl.startsWith('https://')
+            ) {
+              // For URLs, the image should have been downloaded to task directory
+              // Extract filename from URL
+              const urlFileName = basename(new URL(imageUrl).pathname);
+              sourceImagePath = join(taskFileDir, urlFileName);
+            } else {
+              // Local path - strip leading slash and resolve from task directory
+              const cleanPath = imageUrl.startsWith('/')
+                ? imageUrl.slice(1)
+                : imageUrl;
+              sourceImagePath = join(taskFileDir, cleanPath);
+            }
+
+            const destImagePath = join(outputSubDir, basename(sourceImagePath));
+
+            await mkdir(dirname(destImagePath), { recursive: true });
+            await copyFile(sourceImagePath, destImagePath);
+            console.log(
+              chalk.gray(`  ✓ Copied image: ${basename(sourceImagePath)}`),
+            );
+          } catch (error) {
+            console.warn(
+              chalk.yellow(
+                `  ⚠ Failed to copy image: ${error instanceof Error ? error.message : error}`,
+              ),
+            );
+          }
+        }
+      }
 
       // Format output as PPOCR label format: image_path<tab>[{JSON array}]
       const outputLines: string[] = [];
-      for (const [imagePath, annotations] of ppocrDataMap.entries()) {
-        // Sort annotations if requested
-        const sortedAnnotations = sortBoundingBoxes(
-          annotations,
-          sortVertical as VerticalSortOrder,
-          sortHorizontal as HorizontalSortOrder,
-        );
 
-        // Validate each annotation group
-        PPOCRLabelSchema.parse(sortedAnnotations);
+      for (const task of outputTasks) {
+        PPOCRLabelSchema.parse(task.data);
 
         // Format as: image_path<tab>[{annotations}]
-        const jsonArray = JSON.stringify(sortedAnnotations);
-        outputLines.push(`${imagePath}\t${jsonArray}`);
+        const jsonArray = JSON.stringify(task.data);
+        outputLines.push(`${task.imagePath}\t${jsonArray}`);
       }
 
       // Write to output file
       const baseName = file.replace('.json', '');
 
-      // Use outDir if specified, otherwise use source file directory
-      const outputSubDir = outDir
-        ? join(outDir, relativeDir)
-        : dirname(filePath);
+      // Ensure output directory exists
       await mkdir(outputSubDir, { recursive: true });
 
       const outputPath = join(outputSubDir, `${baseName}_${fileName}`);

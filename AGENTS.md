@@ -77,13 +77,30 @@
 
 - **Constants**: Centralized in `src/constants.ts`
   - **ALL default flag values MUST be defined as constants**
-  - Group related constants together (e.g., sorting options, shape normalization, backup options)
+  - **ALL default transformer option values MUST be defined as constants**
+  - **ALL internal magic values MUST be defined as constants** (timeouts, size limits, etc.)
+  - Group related constants together (e.g., sorting options, shape normalization, backup options, transformer options)
   - Document defaults clearly with comments
   - Use const assertions (`as const`) where appropriate
   - Examples:
     - `DEFAULT_BACKUP = false` - Default for --backup flag
     - `DEFAULT_RECURSIVE = false` - Default for --recursive flag
     - `DEFAULT_PPOCR_FILE_NAME = 'Label.txt'` - Default output filename
+    - `DEFAULT_USE_ORIENTED_BOX = false` - Default for normalize transformer
+    - `DEFAULT_ADAPT_RESIZE_TIMEOUT_MS = 30000` - Timeout for adaptive resize
+    - `DEFAULT_ADAPT_RESIZE_MAX_BOX_SIZE = 3000` - Max box size for adaptive resize
+
+- **Transformer Options**: Follow constants-first approach
+  - All default values in transformers must reference constants from `src/constants.ts`
+  - ✅ `const { threshold = DEFAULT_ADAPT_RESIZE_THRESHOLD } = options;`
+  - ❌ `const { threshold = 128 } = options;`
+  - Options that should be user-controllable must flow through: Config → Converters → Transformers
+  - Add new options to `BaseEnhanceOptions` type in `src/config.ts`
+  - Add corresponding flags to `baseEnhanceFlagOptions` with brief descriptions
+  - Extract and pass options in all converter functions
+  - Examples:
+    - `useOrientedBox` - Controls oriented bounding box in normalize transformer
+    - `adaptResizeThreshold` - Controls binarization threshold in adaptive resize
 
 - **Command Flag Briefs**: Always reference constants in `command.ts` files
   - Import DEFAULT\_\* constants from `@/constants`
@@ -231,6 +248,28 @@ When implementing new features or making changes, follow this systematic approac
 - Use TypeScript best practices
 - Ensure proper error handling
 
+### CRITICAL: Always Use Real Fixture Files
+
+**NEVER use artificial test data when real fixtures exist.**
+
+- The `test/fixtures/` directory contains REAL data exported from actual tools:
+  - **PPOCRLabel**: Real Label.txt files exported from PPOCRLabel v2
+  - **Label Studio**: Real JSON exports from Label Studio Docker
+  - **Images**: Actual image files used in the tools
+
+- **When writing tests**:
+  - ✅ Use actual fixture file paths: `./test/fixtures/label_studio_full_one_rect.json`
+  - ✅ Reference fixture task files with their real paths: `'test/fixtures/Label.txt'`
+  - ❌ NEVER use fake paths like `'test.json'` or `'test.txt'`
+  - ❌ NEVER create artificial test data when fixtures exist
+
+- **Respect the effort**: These fixtures represent real exports from running applications. Use them properly.
+
+- **Image Paths in Fixtures**:
+  - Label Studio paths like `/example.jpg` are REAL exports from Docker volume (absolute paths)
+  - PPOCR paths like `fixtures/example.jpg` are REAL exports from PPOCRLabel (relative to opened folder)
+  - Do NOT modify fixture files unless they are incorrect
+
 ### 2. Quality Checks (Run ALL Before Completion)
 
 **Build and Type Check:**
@@ -325,7 +364,7 @@ label-studio-converter enhance-ppocr ./data --sortVertical top-bottom
 
 ```typescript
 import {
-  labelStudioToPPOCR,
+  fullLabelStudioToPPOCRConverters,
   enhancePPOCRLabel,
   enhanceLabelStudioData,
 } from 'label-studio-converter';

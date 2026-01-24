@@ -1,9 +1,17 @@
-import { mkdir, readFile, writeFile } from 'fs/promises';
-import { basename, dirname, join } from 'path';
+import { copyFile, mkdir, readFile, writeFile } from 'fs/promises';
+import { basename, dirname, join, relative, resolve } from 'path';
 import chalk from 'chalk';
 import {
+  DEFAULT_ADAPT_RESIZE_MARGIN,
+  DEFAULT_ADAPT_RESIZE_MAX_COMPONENT_SIZE,
+  DEFAULT_ADAPT_RESIZE_MAX_HORIZONTAL_EXPANSION,
+  DEFAULT_ADAPT_RESIZE_MIN_COMPONENT_SIZE,
+  DEFAULT_ADAPT_RESIZE_MORPHOLOGY_SIZE,
+  DEFAULT_ADAPT_RESIZE_OUTLIER_PERCENTILE,
+  DEFAULT_ADAPT_RESIZE_THRESHOLD,
   DEFAULT_BACKUP,
   DEFAULT_BASE_SERVER_URL,
+  DEFAULT_COPY_IMAGES,
   DEFAULT_CREATE_FILE_LIST_FOR_SERVING,
   DEFAULT_CREATE_FILE_PER_IMAGE,
   DEFAULT_FILE_LIST_NAME,
@@ -18,39 +26,35 @@ import {
   DEFAULT_SORT_HORIZONTAL,
   DEFAULT_SORT_VERTICAL,
   DEFAULT_WIDTH_INCREMENT,
-  type HorizontalSortOrder,
-  type OutputMode,
-  SHAPE_NORMALIZE_NONE,
-  type ShapeNormalizeOption,
-  type VerticalSortOrder,
 } from '@/constants';
 import type { LocalContext } from '@/context';
+import {
+  type BaseEnhanceOptions,
+  type LabelStudioTask,
+  type LabelStudioTaskMin,
+  PPOCRLabelSchema,
+  type PPOCRLabelTask,
+  ppocrToFullLabelStudioConverters,
+  ppocrToMinLabelStudioConverters,
+} from '@/lib';
 import { backupFileIfExists } from '@/lib/backup-utils';
-import { findFiles, getRelativePathFromInputs } from '@/lib/file-utils';
-import { ppocrToLabelStudio } from '@/lib/ppocr-label';
-import { type PPOCRLabel, PPOCRLabelSchema } from '@/lib/schema';
-import { sortBoundingBoxes } from '@/lib/sort';
+import { findFiles } from '@/lib/file-utils';
 
-interface CommandFlags {
+type CommandFlags = {
   outDir?: string;
   fileName?: string;
   backup?: boolean;
+  copyImages?: boolean;
   defaultLabelName?: string;
   toFullJson?: boolean;
   createFilePerImage?: boolean;
   createFileListForServing?: boolean;
   fileListName?: string;
   baseServerUrl?: string;
-  sortVertical?: string;
-  sortHorizontal?: string;
-  normalizeShape?: string;
-  widthIncrement?: number;
-  heightIncrement?: number;
-  precision?: number;
   recursive?: boolean;
   filePattern?: string;
   outputMode?: string;
-}
+} & BaseEnhanceOptions;
 
 export async function convertToLabelStudio(
   this: LocalContext,
@@ -61,6 +65,7 @@ export async function convertToLabelStudio(
     outDir,
     fileName,
     backup = DEFAULT_BACKUP,
+    copyImages = DEFAULT_COPY_IMAGES,
     defaultLabelName = DEFAULT_LABEL_NAME,
     toFullJson = DEFAULT_LABEL_STUDIO_FULL_JSON,
     createFilePerImage = DEFAULT_CREATE_FILE_PER_IMAGE,
@@ -72,6 +77,14 @@ export async function convertToLabelStudio(
     normalizeShape = DEFAULT_SHAPE_NORMALIZE,
     widthIncrement = DEFAULT_WIDTH_INCREMENT,
     heightIncrement = DEFAULT_HEIGHT_INCREMENT,
+    adaptResize = false,
+    adaptResizeThreshold = DEFAULT_ADAPT_RESIZE_THRESHOLD,
+    adaptResizeMargin = DEFAULT_ADAPT_RESIZE_MARGIN,
+    adaptResizeMinComponentSize = DEFAULT_ADAPT_RESIZE_MIN_COMPONENT_SIZE,
+    adaptResizeMaxComponentSize = DEFAULT_ADAPT_RESIZE_MAX_COMPONENT_SIZE,
+    adaptResizeOutlierPercentile = DEFAULT_ADAPT_RESIZE_OUTLIER_PERCENTILE,
+    adaptResizeMorphologySize = DEFAULT_ADAPT_RESIZE_MORPHOLOGY_SIZE,
+    adaptResizeMaxHorizontalExpansion = DEFAULT_ADAPT_RESIZE_MAX_HORIZONTAL_EXPANSION,
     precision = DEFAULT_LABEL_STUDIO_PRECISION,
     recursive = DEFAULT_RECURSIVE,
     filePattern = DEFAULT_PPOCR_FILE_PATTERN,
@@ -88,11 +101,6 @@ export async function convertToLabelStudio(
     return;
   }
 
-  // NOTE: Ensure baseServerUrl ends with a single slash, but keeps empty string
-  // as is
-  const newBaseServerUrl =
-    baseServerUrl.replace(/\/+$/, '') + (baseServerUrl === '' ? '' : '');
-
   // Find all files matching the pattern
   console.log(chalk.blue('Finding files...'));
   const filePaths = await findFiles(inputDirs, filePattern, recursive);
@@ -104,21 +112,27 @@ export async function convertToLabelStudio(
 
   console.log(chalk.blue(`Found ${filePaths.length} files to process\n`));
 
+  // Resolve outDir to absolute path if provided
+  const resolvedOutDir = outDir ? resolve(outDir) : undefined;
+
   // Prepare file list for serving if needed
   let fileListPath: string | null = null;
-  if (createFileListForServing && outDir) {
-    fileListPath = join(outDir, fileListName);
+  if (createFileListForServing && resolvedOutDir) {
+    fileListPath = join(resolvedOutDir, fileListName);
     // Create output directory and file list file
-    await mkdir(outDir, { recursive: true });
+    await mkdir(resolvedOutDir, { recursive: true });
     await writeFile(fileListPath, '', 'utf-8');
   }
 
+  // Use first input directory as base for relative paths (resolve to absolute)
+  // If no input dirs, use current working directory
+  const baseDir = inputDirs.length > 0 ? resolve(inputDirs[0]!) : process.cwd();
+
   for (const filePath of filePaths) {
     const file = basename(filePath);
-    // Image paths in Label.txt are relative to the directory containing Label.txt
-    const baseImageDir = dirname(filePath);
+
     // Get relative path to preserve directory structure
-    const relativePath = getRelativePathFromInputs(filePath, inputDirs);
+    const relativePath = relative(baseDir, filePath);
     const relativeDir = dirname(relativePath);
 
     console.log(chalk.gray(`Processing file: ${filePath}`));
@@ -136,8 +150,7 @@ export async function convertToLabelStudio(
       const lines = trimmedData.split('\n');
 
       // Parse PPOCRLabelV2 format: <filename>\t<json_array_of_annotations>
-      // Group by filename since each line represents one image file with its annotations
-      const imageDataMap = new Map<string, PPOCRLabel>();
+      const inputTasks: PPOCRLabelTask[] = [];
 
       for (const line of lines) {
         // Skip empty lines
@@ -148,20 +161,37 @@ export async function convertToLabelStudio(
         const parts = line.split('\t');
 
         if (parts.length !== 2) {
-          throw new Error(`Invalid PPOCRLabelV2 format in line: ${line}`);
+          console.warn(`Skipping invalid PPOCRLabelV2 format in line: ${line}`);
+          continue;
         }
         const [imagePath, annotationsStr] = parts;
-        const annotations = JSON.parse(annotationsStr!);
 
-        // Each annotation already has the structure: {transcription, points, dt_score}
-        // Validate each annotation
-        PPOCRLabelSchema.parse(annotations);
+        if (!imagePath || !annotationsStr) {
+          console.warn(
+            `Skipping line with missing imagePath or annotations: ${line}`,
+          );
+          continue;
+        }
 
-        imageDataMap.set(imagePath!, annotations);
+        try {
+          const inputTask = JSON.parse(annotationsStr);
+
+          // Each annotation already has the structure: {transcription, points, dt_score}
+          // Validate each annotation
+          PPOCRLabelSchema.parse(inputTask);
+
+          inputTasks.push({ imagePath, data: inputTask });
+        } catch (error) {
+          console.warn(
+            `Skipping line due to parse/validation error: ${line}`,
+            error,
+          );
+          continue;
+        }
       }
 
       // If no valid lines were found, skip this file
-      if (imageDataMap.size === 0) {
+      if (inputTasks.length === 0) {
         console.log(
           chalk.yellow(`  Skipping file with no valid data: ${filePath}`),
         );
@@ -169,56 +199,109 @@ export async function convertToLabelStudio(
       }
 
       // Convert each image's annotations to Label Studio format
-      const allLabelStudioData = [];
-      let taskId = 1;
+      let outputTasks: (LabelStudioTask | LabelStudioTaskMin)[] = [];
 
-      for (const [imagePath, ppocrData] of imageDataMap.entries()) {
-        // Sort annotations if requested
-        const sortedPpocrData = sortBoundingBoxes(
-          ppocrData,
-          sortVertical as VerticalSortOrder,
-          sortHorizontal as HorizontalSortOrder,
+      // Determine output directory for converter (where JSON will be written)
+      const converterOutputDir = resolvedOutDir
+        ? join(resolvedOutDir, relativeDir)
+        : dirname(filePath);
+
+      const convertParams = {
+        defaultLabelName,
+        baseServerUrl,
+        outDir: converterOutputDir,
+        copyImages: resolvedOutDir ? copyImages : false,
+      };
+
+      const enhanceParams = {
+        sortVertical,
+        sortHorizontal,
+        normalizeShape,
+        widthIncrement,
+        heightIncrement,
+        adaptResize,
+        adaptResizeThreshold,
+        adaptResizeMargin,
+        adaptResizeMinComponentSize,
+        adaptResizeMaxComponentSize,
+        adaptResizeOutlierPercentile,
+        adaptResizeMorphologySize,
+        adaptResizeMaxHorizontalExpansion,
+        precision,
+      };
+
+      if (toFullJson) {
+        outputTasks = await ppocrToFullLabelStudioConverters(
+          inputTasks,
+          filePath,
+          {
+            ...convertParams,
+            ...enhanceParams,
+          },
         );
+      } else {
+        outputTasks = await ppocrToMinLabelStudioConverters(
+          inputTasks,
+          filePath,
+          {
+            ...convertParams,
+            ...enhanceParams,
+          },
+        );
+      }
 
-        // Update imagePath to use baseServerUrl if createFileListForServing is enabled
-        // Include the relative directory structure from input dir to maintain hierarchy
-        const finalImagePath = createFileListForServing
-          ? encodeURI(`${newBaseServerUrl}${relativeDir}/${imagePath}`)
-          : imagePath;
+      // Copy images to output directory if requested
+      if (resolvedOutDir && copyImages) {
+        const taskFileDir = dirname(filePath);
+        const outputSubDir = join(resolvedOutDir, relativeDir);
 
-        const labelStudioData = await ppocrToLabelStudio(sortedPpocrData, {
-          toFullJson,
-          imagePath,
-          baseServerUrl: newBaseServerUrl,
-          inputDir: baseImageDir,
-          relativeDir,
-          taskId,
-          labelName: defaultLabelName,
-          normalizeShape:
-            normalizeShape !== SHAPE_NORMALIZE_NONE
-              ? (normalizeShape as ShapeNormalizeOption)
-              : undefined,
-          widthIncrement,
-          heightIncrement,
-          precision,
-          outputMode: outputMode as OutputMode,
-        });
+        for (const task of inputTasks) {
+          try {
+            // Resolve imagePath from PPOCR Label.txt
+            // The path is like "folder/file.jpg" where folder is the opened directory name
+            const parts = task.imagePath.split('/');
+            const folderName = parts.length > 1 ? parts[0] : '';
+            const fileName =
+              parts.length > 1 ? parts.slice(1).join('/') : task.imagePath;
 
-        if (toFullJson) {
-          allLabelStudioData.push(labelStudioData[0]);
-        } else {
-          allLabelStudioData.push(...labelStudioData);
+            // Resolve from parent directory of task file
+            const sourceImagePath = folderName
+              ? resolve(dirname(taskFileDir), folderName, fileName)
+              : resolve(taskFileDir, fileName);
+
+            const destImagePath = join(outputSubDir, basename(sourceImagePath));
+
+            await mkdir(dirname(destImagePath), { recursive: true });
+            await copyFile(sourceImagePath, destImagePath);
+            console.log(
+              chalk.gray(`  ✓ Copied image: ${basename(sourceImagePath)}`),
+            );
+          } catch (error) {
+            console.warn(
+              chalk.yellow(
+                `  ⚠ Failed to copy image ${task.imagePath}: ${error instanceof Error ? error.message : error}`,
+              ),
+            );
+          }
         }
+      }
 
-        // Create individual file per image if requested
-        if (createFilePerImage) {
-          const imageBaseName = imagePath
+      // Create individual file per image if requested
+      if (createFilePerImage) {
+        for await (const taskOutput of outputTasks) {
+          const imageFilePath = toFullJson
+            ? (taskOutput as LabelStudioTask).data.ocr
+            : (taskOutput as LabelStudioTaskMin).ocr;
+
+          const imageBaseName = imageFilePath
+            .split('/')
+            .pop()!
             .replace(/\//g, '_')
             .replace(/\.[^.]+$/, '');
 
-          // Use outDir if specified, otherwise use source file directory
-          const outputSubDir = outDir
-            ? join(outDir, relativeDir)
+          // Use resolvedOutDir if specified, otherwise use source file directory
+          const outputSubDir = resolvedOutDir
+            ? join(resolvedOutDir, relativeDir)
             : dirname(filePath);
           await mkdir(outputSubDir, { recursive: true });
 
@@ -228,35 +311,29 @@ export async function convertToLabelStudio(
           );
           await writeFile(
             individualOutputPath,
-            JSON.stringify(
-              toFullJson ? labelStudioData[0] : labelStudioData,
-              null,
-              2,
-            ),
+            JSON.stringify(taskOutput, null, 2),
             'utf-8',
           );
           console.log(
             chalk.gray(`  ✓ Created individual file: ${individualOutputPath}`),
           );
-        }
 
-        // Add to file list for serving (write incrementally)
-        if (fileListPath) {
-          await writeFile(fileListPath, `${finalImagePath}\n`, {
-            encoding: 'utf-8',
-            flag: 'a',
-          });
+          // Add to file list for serving (write incrementally)
+          if (fileListPath) {
+            await writeFile(fileListPath, `${imageFilePath}\n`, {
+              encoding: 'utf-8',
+              flag: 'a',
+            });
+          }
         }
-
-        taskId++;
       }
 
       // Write combined output file
       const baseName = fileName || file.replace('.txt', '');
 
-      // Use outDir if specified, otherwise use source file directory
-      const outputSubDir = outDir
-        ? join(outDir, relativeDir)
+      // Use resolvedOutDir if specified, otherwise use source file directory
+      const outputSubDir = resolvedOutDir
+        ? join(resolvedOutDir, relativeDir)
         : dirname(filePath);
       await mkdir(outputSubDir, { recursive: true });
 
@@ -276,7 +353,7 @@ export async function convertToLabelStudio(
       }
       await writeFile(
         outputPath,
-        JSON.stringify(allLabelStudioData, null, 2),
+        JSON.stringify(outputTasks, null, 2),
         'utf-8',
       );
 

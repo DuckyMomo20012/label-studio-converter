@@ -3,9 +3,7 @@
  */
 
 import { round } from 'es-toolkit';
-import type { ShapeNormalizeOption } from '@/constants';
-
-export type Point = [number, number];
+import { type UnifiedPoint } from '@/lib/unified';
 
 /**
  * Round a number to a specified precision
@@ -26,29 +24,71 @@ export function roundToPrecision(value: number, precision: number): number {
  * @param precision - Number of decimal places (-1 means no rounding)
  * @returns Rounded points
  */
-export function roundPoints(points: Point[], precision: number): Point[] {
+export function roundPoints(
+  points: UnifiedPoint[],
+  precision: number,
+): UnifiedPoint[] {
   if (precision < 0) {
     return points; // No rounding
   }
   return points.map(
-    ([x, y]) => [round(x, precision), round(y, precision)] as Point,
+    ({ x, y }) =>
+      ({ x: round(x, precision), y: round(y, precision) }) as UnifiedPoint,
   );
 }
 
 /**
  * Calculate the center point of a polygon
  */
-export function calculateCenter(points: Point[]): Point {
-  const sum = points.reduce((acc, [x, y]) => [acc[0] + x, acc[1] + y], [
-    0, 0,
-  ] as Point);
-  return [sum[0] / points.length, sum[1] / points.length];
+export function calculateCenter(points: UnifiedPoint[]): UnifiedPoint {
+  const sum = points.reduce(
+    (acc, { x, y }) => ({ x: acc.x + x, y: acc.y + y }),
+    {
+      x: 0,
+      y: 0,
+    } as UnifiedPoint,
+  );
+  return {
+    x: sum.x / points.length,
+    y: sum.y / points.length,
+  };
+}
+
+/**
+ * Calculate the bounding box center point from polygon points
+ */
+export function getBoundingBoxCenter(points: UnifiedPoint[]): {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+} {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+
+  for (const { x, y } of points) {
+    if (x !== undefined && y !== undefined) {
+      minX = Math.min(minX, x);
+      minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x);
+      maxY = Math.max(maxY, y);
+    }
+  }
+
+  return {
+    x: (minX + maxX) / 2,
+    y: (minY + maxY) / 2,
+    width: maxX - minX,
+    height: maxY - minY,
+  };
 }
 
 /**
  * Calculate the minimum bounding rectangle of a polygon
  */
-export function getMinimumBoundingRect(points: Point[]): {
+export function getMinimumBoundingRect(points: UnifiedPoint[]): {
   minX: number;
   minY: number;
   maxX: number;
@@ -56,10 +96,10 @@ export function getMinimumBoundingRect(points: Point[]): {
   width: number;
   height: number;
 } {
-  const minX = Math.min(...points.map(([x]) => x));
-  const maxX = Math.max(...points.map(([x]) => x));
-  const minY = Math.min(...points.map(([, y]) => y));
-  const maxY = Math.max(...points.map(([, y]) => y));
+  const minX = Math.min(...points.map(({ x }) => x));
+  const maxX = Math.max(...points.map(({ x }) => x));
+  const minY = Math.min(...points.map(({ y }) => y));
+  const maxY = Math.max(...points.map(({ y }) => y));
 
   return {
     minX,
@@ -71,98 +111,174 @@ export function getMinimumBoundingRect(points: Point[]): {
   };
 }
 
-/**
- * Convert diamond-like shapes to axis-aligned rectangles
- * @param points - Array of points representing the shape
- * @returns Normalized rectangle points
- */
-export function normalizeShape(points: Point[]): Point[] {
-  if (points.length < 3) {
-    return points;
+export function tupleToPoints(tuples: number[][]): UnifiedPoint[] {
+  return tuples
+    .filter(
+      (tuple): tuple is [number, number] =>
+        tuple.length === 2 &&
+        typeof tuple[0] === 'number' &&
+        typeof tuple[1] === 'number',
+    )
+    .map(([x, y]) => ({ x, y }));
+}
+
+export function pointsToTuple(points: UnifiedPoint[]): number[][] {
+  return points.map(({ x, y }) => [x, y]);
+}
+
+export function rectangleToPoints(
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  original_width?: number,
+  original_height?: number,
+): UnifiedPoint[] {
+  // If original dimensions are provided, convert from percentages to absolute
+  if (original_width && original_height) {
+    x = (x / 100) * original_width;
+    y = (y / 100) * original_height;
+    width = (width / 100) * original_width;
+    height = (height / 100) * original_height;
   }
 
-  // Convert to axis-aligned bounding rectangle
-  const { minX, minY, maxX, maxY } = getMinimumBoundingRect(points);
-
   return [
-    [minX, minY],
-    [maxX, minY],
-    [maxX, maxY],
-    [minX, maxY],
+    { x, y },
+    { x: x + width, y },
+    { x: x + width, y: y + height },
+    { x: x, y: y + height },
   ];
 }
 
-/**
- * Resize bounding box by a certain amount while keeping it centered
- * @param points - Array of points representing the bounding box
- * @param widthIncrement - Amount to increase width (can be negative to decrease)
- * @param heightIncrement - Amount to increase height (can be negative to decrease)
- * @returns Resized points
- */
-export function resizeBoundingBox(
-  points: Point[],
-  widthIncrement: number,
-  heightIncrement: number,
-): Point[] {
-  if (points.length === 0) {
-    return points;
-  }
-
-  // Calculate center
-  const center = calculateCenter(points);
-
-  // Calculate current bounding box
-  const bbox = getMinimumBoundingRect(points);
-
-  // Calculate new dimensions
-  const newWidth = Math.max(1, bbox.width + widthIncrement);
-  const newHeight = Math.max(1, bbox.height + heightIncrement);
-
-  // Calculate scale factors
-  const scaleX = newWidth / bbox.width;
-  const scaleY = newHeight / bbox.height;
-
-  // Transform each point: translate to origin, scale, translate back
-  return points.map(([x, y]) => {
-    const relX = x - center[0];
-    const relY = y - center[1];
-
-    return [center[0] + relX * scaleX, center[1] + relY * scaleY] as Point;
-  });
+// Convert absolute pixel coordinates to percentage (0-100)
+export function pixelToPercentage(
+  points: number[][],
+  imgWidth: number,
+  imgHeight: number,
+): number[][] {
+  return points.map(([x, y]) => [
+    ((x ?? 0) / imgWidth) * 100,
+    ((y ?? 0) / imgHeight) * 100,
+  ]);
 }
 
 /**
- * Apply geometry transformations to points
- * @param points - Original points
- * @param options - Transformation options
- * @returns Transformed points
+ * Calculate the rotation angle of a shape
+ * Uses PCA (Principal Component Analysis) to find the dominant axis
  */
-export function transformPoints(
-  points: Point[],
-  options: {
-    normalizeShape?: ShapeNormalizeOption;
-    widthIncrement?: number;
-    heightIncrement?: number;
-  },
-): Point[] {
-  let result = points;
+export function calculateRotationAngle(points: UnifiedPoint[]): number {
+  if (points.length < 2) return 0;
 
-  // Apply shape normalization first
-  if (options.normalizeShape && options.normalizeShape === 'rectangle') {
-    result = normalizeShape(result);
+  // Calculate centroid
+  const center = calculateCenter(points);
+
+  // Calculate covariance matrix elements
+  let cxx = 0;
+  let cxy = 0;
+  let cyy = 0;
+
+  for (const { x, y } of points) {
+    const dx = x - center.x;
+    const dy = y - center.y;
+    cxx += dx * dx;
+    cxy += dx * dy;
+    cyy += dy * dy;
   }
 
-  // Then apply resizing
+  cxx /= points.length;
+  cxy /= points.length;
+  cyy /= points.length;
+
+  // Calculate angle using eigenvector of covariance matrix
+  // Angle = 0.5 * atan2(2*cxy, cxx - cyy)
+  return 0.5 * Math.atan2(2 * cxy, cxx - cyy);
+}
+
+/**
+ * Calculate oriented (rotated) bounding box
+ * Returns 4 corner points of the minimum area rectangle
+ */
+export function getOrientedBoundingBox(points: UnifiedPoint[]): {
+  points: UnifiedPoint[];
+  angle: number;
+  center: UnifiedPoint;
+  width: number;
+  height: number;
+} {
+  if (points.length < 3) {
+    const bbox = getMinimumBoundingRect(points);
+    return {
+      points: rectangleToPoints(bbox.minX, bbox.minY, bbox.width, bbox.height),
+      angle: 0,
+      center: { x: bbox.minX + bbox.width / 2, y: bbox.minY + bbox.height / 2 },
+      width: bbox.width,
+      height: bbox.height,
+    };
+  }
+
+  const angle = calculateRotationAngle(points);
+  const center = calculateCenter(points);
+  const cos = Math.cos(-angle);
+  const sin = Math.sin(-angle);
+
+  // Rotate points to align with axes
+  const rotated = points.map(({ x, y }) => ({
+    x: (x - center.x) * cos - (y - center.y) * sin,
+    y: (x - center.x) * sin + (y - center.y) * cos,
+  }));
+
+  // Get axis-aligned bounds of rotated points
+  const minX = Math.min(...rotated.map((p) => p.x));
+  const maxX = Math.max(...rotated.map((p) => p.x));
+  const minY = Math.min(...rotated.map((p) => p.y));
+  const maxY = Math.max(...rotated.map((p) => p.y));
+
+  const width = maxX - minX;
+  const height = maxY - minY;
+
+  // Rotate corners back to original orientation
+  const cosInv = Math.cos(angle);
+  const sinInv = Math.sin(angle);
+
+  const corners = [
+    { x: minX, y: minY },
+    { x: maxX, y: minY },
+    { x: maxX, y: maxY },
+    { x: minX, y: maxY },
+  ].map(({ x, y }) => ({
+    x: x * cosInv - y * sinInv + center.x,
+    y: x * sinInv + y * cosInv + center.y,
+  }));
+
+  return {
+    points: corners,
+    angle,
+    center,
+    width,
+    height,
+  };
+}
+
+/**
+ * Check if points form an oriented (rotated) rectangle
+ * Returns angle if rotated, 0 if axis-aligned
+ */
+export function getBoxRotation(points: UnifiedPoint[]): number {
+  if (points.length !== 4) return 0;
+
+  // Calculate angle from first edge
+  const dx = points[1]!.x - points[0]!.x;
+  const dy = points[1]!.y - points[0]!.y;
+  const angle = Math.atan2(dy, dx);
+
+  // If nearly horizontal (< 5 degrees), treat as axis-aligned
+  const threshold = (5 * Math.PI) / 180;
   if (
-    options.widthIncrement !== undefined ||
-    options.heightIncrement !== undefined
+    Math.abs(angle) < threshold ||
+    Math.abs(Math.abs(angle) - Math.PI) < threshold
   ) {
-    result = resizeBoundingBox(
-      result,
-      options.widthIncrement ?? 0,
-      options.heightIncrement ?? 0,
-    );
+    return 0;
   }
 
-  return result;
+  return angle;
 }

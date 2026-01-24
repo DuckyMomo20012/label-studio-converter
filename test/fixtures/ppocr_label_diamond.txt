@@ -1,1 +1,1 @@
-output/example.jpg	[{"transcription": "ACUTE CORONARY SYNDROME", "points": [[242, 317], [455, 305], [624, 316], [418, 329]], "difficult": false, "dt_score": 1}]
+fixtures/example.jpg	[{"transcription": "ACUTE CORONARY SYNDROME", "points": [[242, 317], [455, 305], [624, 316], [418, 329]], "difficult": false, "dt_score": 1}]

@@ -1,1 +1,282 @@
-[{"id":1,"annotations":[{"id":201,"completed_by":1,"result":[{"original_width":889,"original_height":520,"image_rotation":0,"value":{"x":27.44656917885264,"y":58.07692307692308,"width":42.63217097862767,"height":5.961538461538453,"rotation":0},"id":"JQAipC-2LH","from_name":"bbox","to_name":"image","type":"rectangle","origin":"manual"},{"original_width":889,"original_height":520,"image_rotation":0,"value":{"x":27.44656917885264,"y":58.07692307692308,"width":42.63217097862767,"height":5.961538461538453,"rotation":0,"labels":["Text"]},"id":"JQAipC-2LH","from_name":"label","to_name":"image","type":"labels","origin":"manual"},{"original_width":889,"original_height":520,"image_rotation":0,"value":{"x":27.44656917885264,"y":58.07692307692308,"width":42.63217097862767,"height":5.961538461538453,"rotation":0,"text":["ACUTE CORONARY SYNDROME"]},"id":"JQAipC-2LH","from_name":"transcription","to_name":"image","type":"textarea","origin":"manual"},{"original_width":889,"original_height":520,"image_rotation":0,"value":{"x":27.559055118110237,"y":64.8076923076923,"width":26.884374807767497,"height":4.423038206853052,"rotation":359.76027010391914},"id":"gydCl1Q9Nt","from_name":"bbox","to_name":"image","type":"rectangle","origin":"manual"},{"original_width":889,"original_height":520,"image_rotation":0,"value":{"x":27.559055118110237,"y":64.8076923076923,"width":26.884374807767497,"height":4.423038206853052,"rotation":359.76027010391914,"labels":["Handwriting"]},"id":"gydCl1Q9Nt","from_name":"label","to_name":"image","type":"labels","origin":"manual"},{"original_width":889,"original_height":520,"image_rotation":0,"value":{"x":27.559055118110237,"y":64.8076923076923,"width":26.884374807767497,"height":4.423038206853052,"rotation":359.76027010391914,"text":["UNSTABLE ANGINA"]},"id":"gydCl1Q9Nt","from_name":"transcription","to_name":"image","type":"textarea","origin":"manual"}],"was_cancelled":false,"ground_truth":false,"created_at":"2026-01-07T03:14:39.424067Z","updated_at":"2026-01-07T03:14:39.424096Z","draft_created_at":"2026-01-07T03:14:04.596361Z","lead_time":56.087,"prediction":{},"result_count":2,"unique_id":"7e8c79f1-49ce-471c-8b26-8b8c6f9c3401","import_id":null,"last_action":null,"bulk_created":false,"task":1,"project":2,"updated_by":1,"parent_prediction":null,"parent_annotation":null,"last_created_by":null}],"file_upload":"5b1e3483-example.jpg","drafts":[],"predictions":[],"data":{"ocr":"\/data\/upload\/2\/5b1e3483-example.jpg"},"meta":{},"created_at":"2026-01-07T03:13:41.175183Z","updated_at":"2026-01-07T03:14:39.478016Z","allow_skip":true,"inner_id":1,"total_annotations":1,"cancelled_annotations":0,"total_predictions":0,"comment_count":0,"unresolved_comment_count":0,"last_comment_updated_at":null,"project":2,"updated_by":1,"comment_authors":[]}]
+[
+  {
+    "id": 1,
+    "annotations": [
+      {
+        "id": 1,
+        "completed_by": 1,
+        "result": [
+          {
+            "original_width": 889,
+            "original_height": 520,
+            "image_rotation": 0,
+            "value": {
+              "x": 27.630018614722168,
+              "y": 58.08133472367049,
+              "width": 42.57340616573084,
+              "height": 5.526590198123046,
+              "rotation": 0
+            },
+            "id": "EhgjMD73PD",
+            "from_name": "bbox",
+            "to_name": "image",
+            "type": "rectangle",
+            "origin": "manual"
+          },
+          {
+            "original_width": 889,
+            "original_height": 520,
+            "image_rotation": 0,
+            "value": {
+              "x": 27.630018614722168,
+              "y": 58.08133472367049,
+              "width": 42.57340616573084,
+              "height": 5.526590198123046,
+              "rotation": 0,
+              "labels": ["Text"]
+            },
+            "id": "EhgjMD73PD",
+            "from_name": "label",
+            "to_name": "image",
+            "type": "labels",
+            "origin": "manual"
+          },
+          {
+            "original_width": 889,
+            "original_height": 520,
+            "image_rotation": 0,
+            "value": {
+              "x": 27.630018614722168,
+              "y": 58.08133472367049,
+              "width": 42.57340616573084,
+              "height": 5.526590198123046,
+              "rotation": 0,
+              "text": ["ACUTE CORONARY SYNDROME"]
+            },
+            "id": "EhgjMD73PD",
+            "from_name": "transcription",
+            "to_name": "image",
+            "type": "textarea",
+            "origin": "manual"
+          },
+          {
+            "original_width": 889,
+            "original_height": 520,
+            "image_rotation": 0,
+            "value": {
+              "x": 28.361939637628712,
+              "y": 64.3378519290928,
+              "width": 26.04418973175798,
+              "height": 4.900938477580799,
+              "rotation": 0
+            },
+            "id": "5zgWeethcv",
+            "from_name": "bbox",
+            "to_name": "image",
+            "type": "rectangle",
+            "origin": "manual"
+          },
+          {
+            "original_width": 889,
+            "original_height": 520,
+            "image_rotation": 0,
+            "value": {
+              "x": 28.361939637628712,
+              "y": 64.3378519290928,
+              "width": 26.04418973175798,
+              "height": 4.900938477580799,
+              "rotation": 0,
+              "labels": ["Handwriting"]
+            },
+            "id": "5zgWeethcv",
+            "from_name": "label",
+            "to_name": "image",
+            "type": "labels",
+            "origin": "manual"
+          },
+          {
+            "original_width": 889,
+            "original_height": 520,
+            "image_rotation": 0,
+            "value": {
+              "x": 28.361939637628712,
+              "y": 64.3378519290928,
+              "width": 26.04418973175798,
+              "height": 4.900938477580799,
+              "rotation": 0,
+              "text": ["UNSTABLE ANGINA"]
+            },
+            "id": "5zgWeethcv",
+            "from_name": "transcription",
+            "to_name": "image",
+            "type": "textarea",
+            "origin": "manual"
+          },
+          {
+            "original_width": 889,
+            "original_height": 520,
+            "image_rotation": 0,
+            "value": {
+              "points": [
+                [27.691012033297714, 70.07299270072993],
+                [76.30276663800757, 69.65589155370178],
+                [76.66872714946085, 74.24400417101147],
+                [27.87399228902435, 74.66110531803962]
+              ],
+              "closed": true
+            },
+            "id": "hpM0ik1KfJ",
+            "from_name": "poly",
+            "to_name": "image",
+            "type": "polygon",
+            "origin": "manual"
+          },
+          {
+            "original_width": 889,
+            "original_height": 520,
+            "image_rotation": 0,
+            "value": {
+              "points": [
+                [27.691012033297714, 70.07299270072993],
+                [76.30276663800757, 69.65589155370178],
+                [76.66872714946085, 74.24400417101147],
+                [27.87399228902435, 74.66110531803962]
+              ],
+              "closed": true,
+              "labels": ["Text"]
+            },
+            "id": "hpM0ik1KfJ",
+            "from_name": "label",
+            "to_name": "image",
+            "type": "labels",
+            "origin": "manual"
+          },
+          {
+            "original_width": 889,
+            "original_height": 520,
+            "image_rotation": 0,
+            "value": {
+              "points": [
+                [27.691012033297714, 70.07299270072993],
+                [76.30276663800757, 69.65589155370178],
+                [76.66872714946085, 74.24400417101147],
+                [27.87399228902435, 74.66110531803962]
+              ],
+              "closed": true,
+              "text": ["MILD CORONARY ARTERY DISEASE"]
+            },
+            "id": "hpM0ik1KfJ",
+            "from_name": "transcription",
+            "to_name": "image",
+            "type": "textarea",
+            "origin": "manual"
+          },
+          {
+            "original_width": 889,
+            "original_height": 520,
+            "image_rotation": 0,
+            "value": {
+              "points": [
+                [28.178959381902075, 83.31595411887382],
+                [40.926583864191116, 80.60479666319083],
+                [51.47844527776051, 80.91762252346194],
+                [61.725339598452166, 81.54327424400417],
+                [62.15229352848098, 85.71428571428571],
+                [47.391886233198946, 86.86131386861314],
+                [28.361939637628712, 86.54848800834203]
+              ],
+              "closed": true
+            },
+            "id": "Ucc3VyvKP7",
+            "from_name": "poly",
+            "to_name": "image",
+            "type": "polygon",
+            "origin": "manual"
+          },
+          {
+            "original_width": 889,
+            "original_height": 520,
+            "image_rotation": 0,
+            "value": {
+              "points": [
+                [28.178959381902075, 83.31595411887382],
+                [40.926583864191116, 80.60479666319083],
+                [51.47844527776051, 80.91762252346194],
+                [61.725339598452166, 81.54327424400417],
+                [62.15229352848098, 85.71428571428571],
+                [47.391886233198946, 86.86131386861314],
+                [28.361939637628712, 86.54848800834203]
+              ],
+              "closed": true,
+              "labels": ["Text"]
+            },
+            "id": "Ucc3VyvKP7",
+            "from_name": "label",
+            "to_name": "image",
+            "type": "labels",
+            "origin": "manual"
+          },
+          {
+            "original_width": 889,
+            "original_height": 520,
+            "image_rotation": 0,
+            "value": {
+              "points": [
+                [28.178959381902075, 83.31595411887382],
+                [40.926583864191116, 80.60479666319083],
+                [51.47844527776051, 80.91762252346194],
+                [61.725339598452166, 81.54327424400417],
+                [62.15229352848098, 85.71428571428571],
+                [47.391886233198946, 86.86131386861314],
+                [28.361939637628712, 86.54848800834203]
+              ],
+              "closed": true,
+              "text": ["MEDICAL MANAGEMENT"]
+            },
+            "id": "Ucc3VyvKP7",
+            "from_name": "transcription",
+            "to_name": "image",
+            "type": "textarea",
+            "origin": "manual"
+          }
+        ],
+        "was_cancelled": false,
+        "ground_truth": false,
+        "created_at": "2026-01-23T09:51:54.025288Z",
+        "updated_at": "2026-01-23T10:00:14.948930Z",
+        "draft_created_at": "2026-01-23T09:51:19.979936Z",
+        "lead_time": 434.553,
+        "prediction": {},
+        "result_count": 4,
+        "unique_id": "b48b5f25-fe45-42f1-8a00-32ece36da92f",
+        "import_id": null,
+        "last_action": null,
+        "bulk_created": false,
+        "task": 1,
+        "project": 1,
+        "updated_by": 1,
+        "parent_prediction": null,
+        "parent_annotation": null,
+        "last_created_by": null
+      }
+    ],
+    "file_upload": "fcce8591-example.jpg",
+    "drafts": [],
+    "predictions": [],
+    "data": { "ocr": "\/example.jpg" },
+    "meta": {},
+    "created_at": "2026-01-23T09:49:15.941757Z",
+    "updated_at": "2026-01-23T10:00:15.036770Z",
+    "allow_skip": true,
+    "inner_id": 1,
+    "total_annotations": 1,
+    "cancelled_annotations": 0,
+    "total_predictions": 0,
+    "comment_count": 0,
+    "unresolved_comment_count": 0,
+    "last_comment_updated_at": null,
+    "project": 1,
+    "updated_by": 1,
+    "comment_authors": []
+  }
+]
