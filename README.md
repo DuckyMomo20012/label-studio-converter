@@ -22,28 +22,28 @@
   - [Library Usage](#library-usage)
   - [CLI Usage](#cli-usage)
     - [Available Commands](#available-commands)
-    - [Command Options Reference](#command-options-reference)
-      - [Common Options (All Commands)](#common-options-all-commands)
-      - [Enhancement Options (All Commands)](#enhancement-options-all-commands)
-      - [toLabelStudio Specific Options](#tolabelstudio-specific-options)
-      - [toPPOCR Specific Options](#toppocr-specific-options)
-      - [enhance-labelstudio Specific Options](#enhance-labelstudio-specific-options)
-      - [Error Handling](#error-handling)
+    - [Command Flags Reference](#command-flags-reference)
+      - [Flags Available for All Commands](#flags-available-for-all-commands)
+      - [Flags Specific to toLabelStudio Command](#flags-specific-to-tolabelstudio-command)
+      - [Flags Specific to toPPOCR Command](#flags-specific-to-toppocr-command)
+      - [Flags Specific to enhance-labelstudio Command](#flags-specific-to-enhance-labelstudio-command)
+      - [Image Path Resolution Logic](#image-path-resolution-logic)
+    - [Image Path Resolution Logic](#image-path-resolution-logic)
+      - [toLabelStudio: PPOCRLabel → Label Studio](#tolabelstudio-ppocrlabel--label-studio)
+      - [toPPOCR: Label Studio → PPOCRLabel](#toppocr-label-studio--ppocrlabel)
+      - [enhance-labelstudio: Label Studio Enhancement](#enhance-labelstudio-label-studio--label-studio-enhanced)
+      - [enhance-ppocr: PPOCRLabel Enhancement](#enhance-ppocr-ppocrlabel--ppocrlabel-enhanced)
+    - [Adaptive Resize Feature](#adaptive-resize-feature)
     - [Detailed Command Help](#detailed-command-help)
       - [toLabelStudio Command](#tolabelstudio-command)
       - [toPPOCR Command](#toppocr-command)
       - [enhance-labelstudio Command](#enhance-labelstudio-command)
       - [enhance-ppocr Command](#enhance-ppocr-command)
     - [Examples](#examples)
-      - [Basic Conversion Examples](#basic-conversion-examples)
-      - [toLabelStudio Examples](#tolabelstudio-examples)
-      - [toPPOCR Examples](#toppocr-examples)
-      - [Recursive Search and Pattern Matching Examples](#recursive-search-and-pattern-matching-examples)
-      - [Enhancement Examples](#enhancement-examples)
-      - [Shape Normalization Examples](#shape-normalization-examples)
-      - [Bounding Box Resizing Examples](#bounding-box-resizing-examples)
-      - [Combined Enhancement Examples](#combined-enhancement-examples)
-      - [Special Format Examples](#special-format-examples)
+      - [Basic Conversion](#basic-conversion)
+      - [Enhancement Pipeline](#enhancement-pipeline)
+      - [File Organization](#file-organization)
+      - [Shape Normalization](#shape-normalization)
   - [Using generated files with Label Studio](#using-generated-files-with-label-studio)
     - [Interface setup](#interface-setup)
     - [Serving annotation files locally](#serving-annotation-files-locally)
@@ -268,108 +268,564 @@ COMMANDS
   enhance-ppocr        Enhance PPOCRLabel files with sorting, normalization, and resizing
 ```
 
-#### Command Options Reference
+#### Command Flags Reference
 
-##### Common Options (All Commands)
+##### Flags Available for All Commands
 
-These options are available for all commands:
+**File I/O Flags:**
 
-- **`--outDir <path>`**: Output directory. If not specified, files are saved in
-  the same directory as the source files
-- **`--fileName <name>`**: Custom output filename. If not specified, uses source
-  filename with format suffix
-- **`--backup` / `--noBackup`**: Create backup of existing files before
-  overwriting. Default: `false`
-- **`--recursive` / `--noRecursive`**: Recursively search directories for files.
-  Default: `false`
-- **`--filePattern <regex>`**: Regex pattern to match files. Default: `.*\.txt$`
-  (PPOCR) or `.*\.json$` (Label Studio)
-- **`-h` / `--help`**: Print help information and exit
+- `--outDir <path>`: Output directory path
+  - **Behavior**: Saves converted/enhanced files to specified directory
+  - **Default**: Same directory as input files
+  - **Example**: `--outDir ./output` saves all files to `./output/`
 
-##### Enhancement Options (All Commands)
+- `--fileName <name>`: Custom output filename
+  - **Behavior**: Renames output file (without extension for JSON, with extension for txt)
+  - **Default**:
+    - toLabelStudio: `{source}_full.json` or `{source}_min.json`
+    - toPPOCR: `Label.txt`
+    - enhance commands: Same as input filename
+  - **Example**: `--fileName MyLabels.txt` creates `MyLabels.txt` instead of `Label.txt`
 
-These options control bounding box transformations:
+- `--backup` / `--noBackup`: Create backup before overwriting
+  - **Behavior**: Copies existing file to `{filename}.backup` before overwriting
+  - **Default**: `false` (no backup)
+  - **Example**: `--backup` creates `Label.txt.backup` if `Label.txt` exists
 
-- **`--sortVertical <order>`**: Sort bounding boxes vertically
-  - Options: `none` (default), `top-bottom`, `bottom-top`
-  - Useful for organizing annotations by reading order
+- `--recursive` / `--noRecursive`: Search subdirectories
+  - **Behavior**: Processes files in all subdirectories recursively
+  - **Default**: `false` (current directory only)
+  - **Example**: `--recursive` processes `./data/train/Label.txt` and `./data/test/Label.txt`
 
-- **`--sortHorizontal <order>`**: Sort bounding boxes horizontally
-  - Options: `none` (default), `ltr` (left-to-right), `rtl` (right-to-left)
-  - `ltr`: For English, most European languages
-  - `rtl`: For Arabic, Hebrew, and SinoNom (classical Vietnamese/Chinese
-    vertical text)
+- `--filePattern <regex>`: Pattern to match input files
+  - **Behavior**: Only processes files matching regex pattern
+  - **Default**:
+    - PPOCRLabel commands: `.*\.txt$` (all .txt files)
+    - Label Studio commands: `.*\.json$` (all .json files)
+  - **Example**: `--filePattern "train_.*\.txt$"` only processes files starting with `train_`
 
-- **`--normalizeShape <shape>`**: Normalize shapes to standard forms
-  - Options: `none` (default), `rectangle`
-  - `rectangle`: Converts diamond-like or rotated quadrilaterals to axis-aligned
-    rectangles
+- `--copyImages` / `--noCopyImages`: Copy images when using --outDir
+  - **Behavior**: When --outDir is specified, automatically copies/moves images to output directory alongside converted files
+  - **Default**: `true` (copy images)
+  - **Example**: `--noCopyImages` keeps images in original location, only copies task files
+  - **Note**: Only applies to toLabelStudio and toPPOCR converters when --outDir is used
 
-- **`--widthIncrement <pixels>`**: Increase/decrease bounding box width (can be
-  negative)
-  - Default: `0`
-  - Example: `10` adds 10px, `-5` removes 5px
+**Enhancement Flags:**
 
-- **`--heightIncrement <pixels>`**: Increase/decrease bounding box height (can
-  be negative)
-  - Default: `0`
-  - Example: `15` adds 15px, `-3` removes 3px
+- `--sortVertical <order>`: Vertical sorting order
+  - **Behavior**: Sorts bounding boxes by vertical position
+  - **Options**: `none`, `top-bottom`, `bottom-top`
+  - **Default**: `none` (no sorting)
+  - **Example**: `--sortVertical top-bottom` sorts boxes from top to bottom
 
-- **`--precision <decimals>`**: Number of decimal places for coordinates
-  - `-1`: Full precision, no rounding (default for Label Studio output)
-  - `0`: Round to integers (default for PPOCR output)
-  - `1+`: Round to specified decimal places
+- `--sortHorizontal <order>`: Horizontal sorting order
+  - **Behavior**: Sorts bounding boxes by horizontal position (applied after vertical sort)
+  - **Options**: `none`, `ltr` (left-to-right), `rtl` (right-to-left)
+  - **Default**: `none` (no sorting)
+  - **Example**: `--sortHorizontal rtl` sorts boxes right-to-left (for vertical text)
 
-##### toLabelStudio Specific Options
+- `--normalizeShape <option>`: Shape normalization
+  - **Behavior**: Converts diamond/rotated shapes to axis-aligned rectangles
+  - **Options**: `none`, `rectangle`
+  - **Default**: `none` (preserve original shapes)
+  - **Example**: `--normalizeShape rectangle` converts all polygons to rectangles
 
-- **`--defaultLabelName <name>`**: Default label name for text annotations.
-  Default: `"Text"`
-- **`--toFullJson` / `--noToFullJson`**: Convert to Full OCR Label Studio
-  format. Default: `true`
-- **`--createFilePerImage` / `--noCreateFilePerImage`**: Create separate JSON
-  file for each image. Default: `false`
-- **`--createFileListForServing` / `--noCreateFileListForServing`**: Create file
-  list for serving in Label Studio. Default: `true`
-- **`--fileListName <name>`**: Name of the file list for serving. Default:
-  `"files.txt"`
-- **`--baseServerUrl <url>`**: Base server URL for image URLs in file list.
-  Default: `"http://localhost:8081"`
-- **`--outputMode <mode>`**: Output format mode
-  - Options: `annotations` (default), `predictions`
-  - `annotations`: Editable annotations (ground truth)
-  - `predictions`: Read-only predictions (pre-annotations)
-  - Only available with `--toFullJson`
+- `--widthIncrement <pixels>`: Adjust box width
+  - **Behavior**: Adds pixels to box width (can be negative to shrink)
+  - **Default**: `0` (no change)
+  - **Example**: `--widthIncrement 5` expands boxes by 5px horizontally
 
-##### toPPOCR Specific Options
+- `--heightIncrement <pixels>`: Adjust box height
+  - **Behavior**: Adds pixels to box height (can be negative to shrink)
+  - **Default**: `0` (no change)
+  - **Example**: `--heightIncrement -3` shrinks boxes by 3px vertically
 
-- **`--baseImageDir <path>`**: Base directory path to prepend to image filenames
-  (e.g., `"ch"` or `"images/ch"`)
-- **`--fileName <name>`**: Output PPOCR file name. Default: `"Label.txt"`
+- `--precision <decimals>`: Coordinate precision
+  - **Behavior**: Number of decimal places for coordinates
+  - **Default**:
+    - toLabelStudio: `-1` (full precision, no rounding)
+    - toPPOCR: `0` (integers only)
+    - enhance-labelstudio: `-1` (full precision)
+    - enhance-ppocr: `0` (integers)
+  - **Example**: `--precision 2` rounds to 2 decimal places (e.g., 123.45)
 
-##### enhance-labelstudio Specific Options
+**Adaptive Resize Flags (Advanced):**
 
-- **`--outputMode <mode>`**: Output format mode
-  - Options: `annotations` (default), `predictions`
-  - Only available for Full JSON format files
+- `--adaptResize` / `--noAdaptResize`: Enable intelligent box resizing
+  - **Behavior**: Uses image analysis to shrink oversized boxes to fit actual text
+  - **Default**: `false` (disabled)
+  - **Use Case**: Sino-Nom OCR datasets with excessive padding
+  - **Example**: `--adaptResize` enables feature with default parameters
 
-> [!NOTE]
-> **Output Mode Availability:**
->
-> - `--outputMode` is only available for:
->   - `toLabelStudio` (when using `--toFullJson`)
->   - `enhance-labelstudio` (for Full JSON format only)
-> - Not available for `toPPOCR` or `enhance-ppocr` (PPOCR format doesn't
->   distinguish annotations/predictions)
-> - When using `--outputMode predictions`, the `dt_score` field from PPOCRLabel
->   is mapped to Label Studio's prediction `score` field
+- `--adaptResizeThreshold <0-255>`: Grayscale threshold
+  - **Behavior**: Pixels ≥ threshold are considered text (white), < threshold are background (black)
+  - **Default**: `128`
+  - **Example**: `--adaptResizeThreshold 140` for darker text on light background
 
-##### Error Handling
+- `--adaptResizeMargin <pixels>`: Padding around detected content
+  - **Behavior**: Additional pixels added on all sides after detection
+  - **Default**: `5`
+  - **Example**: `--adaptResizeMargin 8` adds 8px padding
 
-The `toLabelStudio` command handles missing or unreadable image files gracefully:
+- `--adaptResizeMinComponentSize <pixels>`: Noise filter
+  - **Behavior**: Regions smaller than this are ignored (filters dirt dots)
+  - **Default**: `10`
+  - **Example**: `--adaptResizeMinComponentSize 15` filters more aggressively
 
-- If an image file cannot be found or read, a warning is logged
-- Default dimensions of **1920×1080** are used as fallback
-- Conversion continues for remaining images without interruption
+- `--adaptResizeMaxComponentSize <pixels>`: Artifact filter
+  - **Behavior**: Regions larger than this are ignored (filters huge artifacts)
+  - **Default**: `100000`
+  - **Example**: `--adaptResizeMaxComponentSize 50000` for smaller characters
+
+- `--adaptResizeOutlierPercentile <%>`: Outlier removal
+  - **Behavior**: Ignores this % of smallest and largest pixels when calculating boundaries
+  - **Default**: `2` (ignore 2% on each end)
+  - **Example**: `--adaptResizeOutlierPercentile 3` for more aggressive outlier removal
+
+- `--adaptResizeMorphologySize <pixels>`: Stroke connection
+  - **Behavior**: Kernel size for connecting broken character strokes
+  - **Default**: `2`
+  - **Example**: `--adaptResizeMorphologySize 3` connects larger gaps
+
+- `--adaptResizeMaxHorizontalExpansion <pixels>`: Column overlap prevention
+  - **Behavior**: Maximum pixels boxes can expand horizontally (CRITICAL for vertical text)
+  - **Default**: `50`
+  - **Example**: `--adaptResizeMaxHorizontalExpansion 30` for closely-spaced columns
+
+##### Flags Specific to toLabelStudio Command
+
+- `--defaultLabelName <name>`: Default label for annotations
+  - **Behavior**: Label assigned to all text regions
+  - **Default**: `"Text"`
+  - **Example**: `--defaultLabelName "Handwriting"` labels all regions as Handwriting
+
+- `--toFullJson` / `--noToFullJson`: Output format
+  - **Behavior**: `true` = Full format (more metadata), `false` = Min format (compact)
+  - **Default**: `true` (Full format)
+  - **Example**: `--noToFullJson` creates minimal format files
+
+- `--createFilePerImage` / `--noCreateFilePerImage`: File splitting
+  - **Behavior**: `true` = one JSON per image, `false` = all tasks in one file
+  - **Default**: `false` (single file)
+  - **Example**: `--createFilePerImage` creates `image1.json`, `image2.json`, etc.
+
+- `--createFileListForServing` / `--noCreateFileListForServing`: Generate file list
+  - **Behavior**: Creates `files.txt` with image URLs for Label Studio import
+  - **Default**: `true` (create file list)
+  - **Example**: `--noCreateFileListForServing` skips file list creation
+
+- `--fileListName <name>`: File list filename
+  - **Behavior**: Name of the file containing image URLs for serving
+  - **Default**: `"files.txt"`
+  - **Example**: `--fileListName "images.txt"` creates `images.txt` instead
+
+- `--baseServerUrl <url>`: Base URL for images
+  - **Behavior**: Prepended to image paths in output JSON (e.g., for local HTTP server)
+  - **Default**: `"http://localhost:8081"`
+  - **Example**: `--baseServerUrl "http://192.168.1.100:8080"` for network access
+
+- `--outputMode <mode>`: Annotation mode
+  - **Behavior**:
+    - `annotations` = editable ground truth annotations
+    - `predictions` = read-only pre-annotations
+  - **Default**: `"annotations"`
+  - **Example**: `--outputMode predictions` for model predictions import
+
+##### Flags Specific to toPPOCR Command
+
+- `--baseImageDir <path>`: Image directory prefix
+  - **Behavior**: Prepended to image filenames in output `Label.txt`
+  - **Default**: Empty string (no prefix)
+  - **Example**: `--baseImageDir "images/ch"` writes `images/ch/example.jpg` in Label.txt
+
+##### Flags Specific to enhance-labelstudio Command
+
+- `--outputMode <mode>`: Same as toLabelStudio command
+  - See toLabelStudio flags section above
+
+#### Image Path Resolution Logic
+
+Understanding how image paths are resolved is critical for organizing your files before conversion. The key is knowing **where you run the command** and **what input parameter you provide**.
+
+##### toLabelStudio: PPOCRLabel → Label Studio
+
+**INPUT Resolution (Reading PPOCRLabel files):**
+
+**Command Execution Context:**
+
+- You run: `cd project && label-studio-converter toLabelStudio data/`
+- Current working directory (CWD): `project/`
+- Input parameter: `data/` (directory to search for Label.txt files)
+- Converter finds: `project/data/Label.txt` (and other Label.txt files in subdirectories if --recursive)
+- Task file being processed: `project/data/Label.txt`
+
+**How Resolvers Work:**
+
+1. **What's in the Label.txt file**:
+   - Path format: `data/example.jpg` (PPOCRLabel standard: folder/filename)
+   - PPOCRLabel was opened on `data/` folder, so paths use `data/` prefix
+
+2. **How input resolver finds images**:
+   - Reads path from Label.txt: `data/example.jpg`
+   - Task file is at: `project/data/Label.txt`
+   - Task directory: `project/data/`
+   - Check if path starts with task folder name (`data/`):
+     - YES → resolve from parent: `dirname(project/data/) + data/example.jpg` = `project/data/example.jpg`
+     - NO → resolve from task dir: `project/data/ + example.jpg` = `project/data/example.jpg`
+
+3. **What the processor receives**:
+   - Path relative to CWD: `data/example.jpg`
+   - (This is `relative(project/, project/data/example.jpg)` = `data/example.jpg`)
+
+**OUTPUT Resolution (Writing Label Studio JSON):**
+
+**Command Execution Context:**
+
+- Output location: Same as task file location (no --outDir specified)
+- Output file: `project/data/Label_full.json`
+
+**How Resolvers Work:**
+
+1. **What the processor has**:
+   - Path relative to CWD: `data/example.jpg`
+   - (From input resolution step)
+
+2. **How output resolver formats paths**:
+   - No --outDir: Compute relative path from output JSON to image
+   - Output JSON at: `project/data/Label_full.json`
+   - Image at: `project/data/example.jpg`
+   - Relative path: `relative(project/data/, project/data/example.jpg)` = `example.jpg`
+   - Apply baseServerUrl: `http://localhost:8081/example.jpg`
+
+3. **What goes in the output file**:
+   - Label Studio JSON: `"ocr": "http://localhost:8081/example.jpg"`
+
+**File Organization Examples:**
+
+<details>
+<summary><b>Example 1: Default Location (No --outDir)</b></summary>
+
+**Setup**: Images and output in same place as task file
+
+```
+project/
+└── data/
+    ├── Label.txt              # Contains: data/example.jpg	[...]
+    └── example.jpg
+```
+
+**Command:**
+
+```bash
+cd project
+label-studio-converter toLabelStudio data/
+```
+
+**Result:**
+
+```
+project/
+└── data/
+    ├── Label.txt              # Original task file
+    ├── Label_full.json        # NEW: Generated output
+    ├── files.txt              # NEW: File list for serving
+    └── example.jpg            # Original image (unchanged)
+```
+
+**Generated Label_full.json contains:**
+
+```json
+{
+  "data": {
+    "ocr": "http://localhost:8081/example.jpg"
+  }
+}
+```
+
+**Image Path Flow:**
+
+- Input path in Label.txt: `data/example.jpg`
+- Resolved path: `data/example.jpg` (relative to CWD)
+- Output saved in: `data/` (same as task)
+- Relative to output: `example.jpg`
+- Final URL: `http://localhost:8081/example.jpg`
+
+</details>
+
+<details>
+<summary><b>Example 2: With --outDir Configuration</b></summary>
+
+**Setup**: Separate output directory for organized export
+
+```
+project/
+├── data/
+│   ├── Label.txt              # Contains: data/example.jpg	[...]
+│   └── example.jpg
+└── output/                    # Target output directory
+```
+
+**Command:**
+
+```bash
+cd project
+label-studio-converter toLabelStudio data/ \
+  --outDir output \
+  --baseServerUrl http://localhost:8081
+```
+
+**Result:**
+
+```
+project/
+├── data/
+│   ├── Label.txt              # Original (unchanged)
+│   └── example.jpg            # Original (unchanged)
+└── output/                    # NEW: All outputs here
+    ├── Label_full.json        # NEW: Generated tasks
+    ├── files.txt              # NEW: File list
+    └── example.jpg            # NEW: Copied from source
+```
+
+**Generated Label_full.json contains:**
+
+```json
+{
+  "data": {
+    "ocr": "http://localhost:8081/example.jpg"
+  }
+}
+```
+
+**Image Path Flow:**
+
+- Input path in Label.txt: `data/example.jpg`
+- Resolved path: `data/example.jpg` (relative to CWD)
+- Copied to: `output/example.jpg`
+- Relative to output: `example.jpg`
+- Final URL: `http://localhost:8081/example.jpg`
+
+</details>
+
+##### toPPOCR: Label Studio → PPOCRLabel
+
+**INPUT Resolution (Reading Label Studio JSON):**
+
+**Command Execution Context:**
+
+- You run: `cd project && label-studio-converter toPPOCR data/`
+- Current working directory (CWD): `project/`
+- Input parameter: `data/` (directory to search for JSON files)
+- Converter finds: `project/data/export.json` (and other JSON files in subdirectories if --recursive)
+- Task file being processed: `project/data/export.json`
+
+**How Resolvers Work:**
+
+1. **What's in the JSON file**:
+   - Local path: `"ocr": "/example.jpg"` or `"ocr": "example.jpg"`
+   - OR Remote URL: `"ocr": "http://localhost:8081/example.jpg"`
+
+2. **How input resolver finds/downloads images**:
+   - **Local path** (`/example.jpg` or `example.jpg`):
+     - Strip leading slashes: `/example.jpg` → `example.jpg`
+     - Task directory: `project/data/`
+     - Resolve: `project/data/ + example.jpg` = `project/data/example.jpg`
+   - **Remote URL** (`http://localhost:8081/example.jpg`):
+     - Extract filename: `basename(URL)` = `example.jpg`
+     - Download to task directory: `project/data/example.jpg`
+
+3. **What the processor receives**:
+   - Path relative to CWD: `data/example.jpg`
+   - (This is `relative(project/, project/data/example.jpg)` = `data/example.jpg`)
+
+**OUTPUT Resolution (Writing PPOCRLabel Label.txt):**
+
+**Command Execution Context:**
+
+- No --outDir specified: Output at task file location
+- Output file: `project/data/Label.txt`
+
+**How Resolvers Work:**
+
+1. **What the processor has**:
+   - Path relative to CWD: `data/example.jpg`
+   - (From input resolution step)
+
+2. **How output resolver formats paths**:
+   - Extract filename: `basename(data/example.jpg)` = `example.jpg`
+   - Determine folder prefix:
+     - No --baseImageDir: Use output directory basename
+     - Output at: `project/data/Label.txt` → folder is `data`
+     - Result: `data/example.jpg`
+   - With --baseImageDir="images": Result would be `images/example.jpg`
+
+3. **What goes in the output file**:
+   - PPOCRLabel Label.txt: `data/example.jpg	[{"transcription":"Text",...}]`
+   - **Important**: Path in Label.txt is a reference format, NOT the physical location
+   - Physical images stay in task directory (`data/`), but Label.txt uses folder prefix
+
+**File Organization Examples:**
+
+<details>
+<summary><b>Example 1: Default Location (No --outDir)</b></summary>
+
+**Setup**: Export Label.txt to same directory as task
+
+```
+project/
+└── data/
+    └── export.json            # Contains: "ocr": "http://localhost:8081/example.jpg"
+```
+
+**Command:**
+
+```bash
+cd project
+label-studio-converter toPPOCR data/ \
+  --baseImageDir data
+```
+
+**Result:**
+
+```
+project/
+└── data/
+    ├── export.json            # Original (unchanged)
+    ├── Label.txt              # NEW: Generated PPOCR file
+    └── example.jpg            # NEW: Downloaded from server
+```
+
+**Generated Label.txt contains:**
+
+```
+data/example.jpg	[{"transcription":"Text","points":[[...]],"dt_score":1}]
+```
+
+**Image Path Flow:**
+
+- Input URL in JSON: `http://localhost:8081/example.jpg`
+- **Downloaded to**: `data/example.jpg` (task file directory)
+- Resolved path: `data/example.jpg` (relative to CWD)
+- Extracted filename: `example.jpg`
+- baseImageDir: `data`
+- Output in Label.txt: `data/example.jpg`
+
+</details>
+
+<details>
+<summary><b>Example 2: With --outDir Configuration</b></summary>
+
+**Setup**: Organize output in separate directory
+
+```
+project/
+├── data/
+│   └── export.json            # Contains: "ocr": "http://localhost:8081/example.jpg"
+└── output/                    # Target output directory
+```
+
+**Command:**
+
+```bash
+cd project
+label-studio-converter toPPOCR data/ \
+  --outDir output
+```
+
+**Result:**
+
+```
+project/
+├── data/
+│   ├── export.json            # Original (unchanged)
+│   └── example.jpg            # Downloaded, then copied to output
+└── output/
+    ├── Label.txt              # NEW: Generated PPOCR file
+    └── example.jpg            # NEW: Copied from data/
+```
+
+**Generated Label.txt contains:**
+
+```
+output/example.jpg	[{"transcription":"Text","points":[[...]],"dt_score":1}]
+```
+
+**Image Path Flow:**
+
+- Input URL in JSON: `http://localhost:8081/example.jpg`
+- **Downloaded to**: `data/example.jpg` (task file directory)
+- **Copied to**: `output/example.jpg` (because --outDir specified)
+- Resolved path: `data/example.jpg` (relative to CWD)
+- Output dir: `output/`
+- Extracted filename: `example.jpg`
+- Output folder name: `output`
+- Output in Label.txt: `output/example.jpg`
+
+**Note**: Images are automatically copied to output directory. Use `--noCopyImages` to skip copying.
+
+</details>
+
+##### enhance-labelstudio: Label Studio → Label Studio (Enhanced)
+
+**INPUT Resolution**: Same as `toPPOCR` converter
+
+- Reads Label Studio JSON files
+- Resolves local paths relative to task file
+- Downloads remote URLs to task file directory
+
+**OUTPUT Resolution**: Same as `toLabelStudio` converter
+
+- Generates Label Studio JSON with `data.ocr` URLs
+- Applies `baseServerUrl` formatting
+- Computes relative paths from output location to images
+
+##### enhance-ppocr: PPOCRLabel → PPOCRLabel (Enhanced)
+
+**INPUT Resolution**: Same as `toLabelStudio` converter
+
+- Reads PPOCRLabel Label.txt files
+- Resolves paths with folder pattern (`folder/file.jpg`)
+- Detects folder name and resolves from parent directory
+
+**OUTPUT Resolution**: Same as `toPPOCR` converter
+
+- Generates PPOCRLabel Label.txt with `folder/filename.jpg` format
+- Uses `baseImageDir` or output directory basename as folder prefix
+- Extracts filename from resolved path, prepends folder name
+
+---
+
+**Key Concepts:**
+
+1. **Path Resolution Flow**:
+   - Input converters resolve paths to **task-relative paths** (relative to task file location)
+   - Processor receives and operates on these **task-relative paths**
+   - Output converters format these paths for the target system
+
+2. **Remote Image Handling**:
+   - URLs (`http://` or `https://`) are downloaded to **task file directory**
+   - Only filename is extracted from URL (path structure ignored)
+   - Example: `http://server.com/deep/path/example.jpg` → saved as `task-dir/example.jpg`
+
+3. **Image Organization** (toLabelStudio & toPPOCR):
+   - **No --outDir**: Output files created in task directory, images stay in place
+   - **With --outDir**: Output files go to outDir, **images automatically copied** to outDir (unless --noCopyImages)
+   - **--noCopyImages**: Skip image copying, only create task files in outDir
+   - **enhance commands**: Images always stay in original location
+
+4. **Output Path Format**:
+   - **toLabelStudio**: `${baseServerUrl}/${relativePath}` where relativePath is from output JSON to image
+   - **toPPOCR**: `${folder}/${filename}` where folder is `baseImageDir` or output directory name
+
+#### Adaptive Resize Feature
+
+For detailed algorithm documentation and tuning guide, see [ADAPTIVE_RESIZE.md](docs/ADAPTIVE_RESIZE.md).
+
+**Quick Overview:**
+
+- **Purpose**: Shrinks oversized boxes to fit actual text content (essential for Sino-Nom OCR with excessive padding)
+- **Algorithm**: Morphological operations + connected component analysis + percentile-based outlier removal
+- **Usage**: Enable with `--adaptResize` flag, tune with 7 parameters documented above
 
 #### Detailed Command Help
 
@@ -516,221 +972,101 @@ ARGUMENTS
 
 #### Examples
 
-##### Basic Conversion Examples
+##### Basic Conversion
 
 ```bash
-# Convert PPOCRLabel files to full Label Studio format
-label-studio-converter toLabelStudio ./input-ppocr --outDir ./output-label-studio
+# PPOCRLabel → Label Studio
+label-studio-converter toLabelStudio ./input-ppocr --outDir ./output
 
-# Convert Label Studio files to PPOCRLabel format
-label-studio-converter toPPOCR ./input-label-studio --outDir ./output-ppocr
+# Label Studio → PPOCRLabel
+label-studio-converter toPPOCR ./input-label-studio --outDir ./output --baseImageDir images/ch
 
-# Convert with custom output filename for PPOCR
-label-studio-converter toPPOCR ./input-label-studio --outDir ./output-ppocr --fileName MyLabels.txt
-
-# Convert with base image directory path
-label-studio-converter toPPOCR ./input-label-studio --baseImageDir images/ch
-```
-
-> [!NOTE]
-> By default, all PPOCRLabel positions are treated as **polygons** in Label Studio.
-
-##### toLabelStudio Examples
-
-```bash
-# Create separate JSON file for each image
+# File-per-image + custom server URL
 label-studio-converter toLabelStudio ./input-ppocr \
   --outDir ./output \
-  --createFilePerImage
-
-# Specify custom label name (default is "Text")
-label-studio-converter toLabelStudio ./input-ppocr \
-  --outDir ./output \
-  --defaultLabelName Handwriting
-
-# Convert to minimal format (without serving support)
-label-studio-converter toLabelStudio ./input-ppocr \
-  --outDir ./output \
-  --noToFullJson
-
-# Disable file list creation for serving
-label-studio-converter toLabelStudio ./input-ppocr \
-  --outDir ./output \
-  --noCreateFileListForServing
-
-# Custom file list name and server URL
-label-studio-converter toLabelStudio ./input-ppocr \
-  --outDir ./output \
-  --fileListName my-images.txt \
+  --createFilePerImage \
   --baseServerUrl http://192.168.1.100:8080
 
-# Convert to predictions format (pre-annotations) instead of annotations
-# Predictions are read-only and useful for pre-annotated data
-label-studio-converter toLabelStudio ./input-ppocr \
-  --outDir ./output \
-  --outputMode predictions
-
-# Convert to annotations format (default, editable ground truth)
-label-studio-converter toLabelStudio ./input-ppocr \
-  --outDir ./output \
-  --outputMode annotations
+# Predictions format (read-only pre-annotations)
+label-studio-converter toLabelStudio ./input-ppocr --outputMode predictions
 ```
 
-##### toPPOCR Examples
+##### Enhancement Pipeline
 
 ```bash
-# Basic conversion with output directory
-label-studio-converter toPPOCR ./input-label-studio \
-  --outDir ./output
-
-# Custom output filename
-label-studio-converter toPPOCR ./input-label-studio \
-  --outDir ./output \
-  --fileName CustomLabel.txt
-
-# Add base image directory to paths
-label-studio-converter toPPOCR ./input-label-studio \
-  --outDir ./output \
-  --baseImageDir dataset/images
-```
-
-##### Recursive Search and Pattern Matching Examples
-
-```bash
-# Recursively search all subdirectories for .txt files
-label-studio-converter toLabelStudio ./data --recursive
-
-# Search with custom pattern (only files starting with "Label")
-label-studio-converter toLabelStudio ./data \
-  --recursive \
-  --filePattern "Label.*\.txt$"
-
-# Convert only specific JSON files (e.g., final annotations)
-label-studio-converter toPPOCR ./annotations \
-  --recursive \
-  --filePattern ".*_final\.json$"
-
-# Enhance only specific files matching pattern
-label-studio-converter enhance-ppocr ./dataset \
-  --recursive \
-  --filePattern "train_.*\.txt$"
-```
-
-> [!NOTE]
->
-> - `--recursive`: Searches all subdirectories for matching files
-> - `--filePattern`: Regex pattern to filter files (default: `.*\.txt$` for
->   PPOCR, `.*\.json$` for Label Studio)
-> - Patterns are flexible - use any regex, but ensure they match appropriate
->   file types (.txt for PPOCR, .json for Label Studio)
-
-##### Enhancement Examples
-
-The tool provides powerful enhancement capabilities that can be used standalone
-or integrated with conversion.
-
-**Enhance PPOCRLabel files:**
-
-```bash
-# Sort annotations from top to bottom, left to right
-label-studio-converter enhance-ppocr ./data --sortVertical top-bottom --sortHorizontal ltr
-
-# Normalize diamond shapes to rectangles and resize
-label-studio-converter enhance-ppocr ./data --normalizeShape rectangle --widthIncrement 10 --heightIncrement 5
-
-# Apply all enhancements
+# Sort + normalize + resize
 label-studio-converter enhance-ppocr ./data \
   --sortVertical top-bottom \
   --sortHorizontal ltr \
   --normalizeShape rectangle \
   --widthIncrement 5 \
-  --heightIncrement 5 \
-  --precision 0
-```
+  --heightIncrement 5
 
-**Enhance Label Studio files:**
+# Adaptive resize for Sino-Nom OCR (shrinks oversized boxes)
+label-studio-converter enhance-ppocr ./sinonom-data \
+  --adaptResize \
+  --adaptResizeThreshold 128 \
+  --adaptResizeMargin 8 \
+  --adaptResizeMaxHorizontalExpansion 50 \
+  --sortHorizontal rtl
 
-```bash
-# Sort and normalize Label Studio annotations
-label-studio-converter enhance-labelstudio ./data \
-  --sortVertical top-bottom \
-  --normalizeShape rectangle \
-  --precision 2
-
-# Works with both Full and Min formats automatically
-label-studio-converter enhance-labelstudio ./label-studio-files --outDir ./enhanced
-```
-
-**Conversion with enhancements:**
-
-```bash
-# Convert with enhancements applied during conversion
+# Convert with full enhancement pipeline
 label-studio-converter toLabelStudio ./input-ppocr \
   --outDir ./output \
-  --sortVertical top-bottom \
   --normalizeShape rectangle \
-  --widthIncrement 10
-
-label-studio-converter toPPOCR ./input-label-studio \
-  --outDir ./output \
-  --sortVertical top-bottom \
-  --sortHorizontal ltr \
-  --normalizeShape rectangle
+  --adaptResize \
+  --sortVertical top-bottom
 ```
 
-##### Shape Normalization Examples
-
-Convert diamond-like or irregular quadrilateral shapes to axis-aligned
-rectangles. This is useful when your annotations have irregular shapes that you
-want to normalize to clean, horizontal/vertical bounding boxes:
+##### File Organization
 
 ```bash
-# Convert to axis-aligned rectangles
-label-studio-converter toLabelStudio ./input-ppocr --outDir ./output --normalizeShape rectangle
+# Recursive search with pattern matching
+label-studio-converter toLabelStudio ./dataset \
+  --recursive \
+  --filePattern "train_.*\.txt$"
 
-# For toPPOCR command
-label-studio-converter toPPOCR ./input-label-studio --outDir ./output --normalizeShape rectangle
+# Custom output filenames
+label-studio-converter toPPOCR ./data \
+  --outDir ./output \
+  --fileName MyLabels.txt
+```
+
+##### Shape Normalization
+
+Diamond/rotated shapes → axis-aligned rectangles:
+
+```bash
+label-studio-converter enhance-ppocr ./data \
+  --normalizeShape rectangle \
+  --outDir ./normalized
 ```
 
 <details>
-<summary>
-  <b>Before normalization</b> (diamond-like shapes):
-</summary>
+<summary>Visual comparison</summary>
+
+**Before:** Diamond-like shapes
 
 ![Before normalization](./docs/images/label-studio-original-diamond.png)
 
-</details>
-
-<details>
-<summary>
-  <b>After normalization</b> (axis-aligned rectangles):
-</summary>
-
-Command:
-
-```bash
-./dist/cli.js toPPOCR ./tmp --baseImageDir output --normalizeShape rectangle
-```
+**After:** Axis-aligned rectangles
 
 ![After normalization](./docs/images/label-studio-converted-diamond.png)
 
-</details>
+**Vertical text example:**
 
-<details>
-<summary>
-  <b>Before normalization</b> (diamond-like vertical shapes):
-</summary>
-
-![Before normalization (vert)](./docs/images/label-studio-original-diamond-vert.png)
+![Before (vertical)](./docs/images/label-studio-original-diamond-vert.png)
+![After (vertical)](./docs/images/label-studio-converted-diamond-vert.png)
 
 </details>
 
-<details>
-<summary>
-  <b>After normalization</b> (axis-aligned vertical rectangles):
-</summary>
-
-Command:
+> [!NOTE]
+> **Key Behaviors:**
+>
+> - Remote images (`http://`, `https://`) are automatically downloaded
+> - Path resolution: `${baseServerUrl}/${relativeToOutDir}/image.jpg`
+> - All PPOCRLabel positions treated as polygons in Label Studio
+> - Missing images use fallback dimensions (1920×1080) and log warning
 
 ```bash
 ./dist/cli.js toPPOCR ./tmp --baseImageDir output --normalizeShape rectangle
@@ -739,59 +1075,6 @@ Command:
 ![After normalization (vert)](./docs/images/label-studio-converted-diamond-vert.png)
 
 </details>
-
-##### Bounding Box Resizing Examples
-
-Increase or decrease bounding box dimensions while keeping them centered:
-
-```bash
-# Increase width by 10 pixels and height by 20 pixels
-label-studio-converter toLabelStudio ./input-ppocr --outDir ./output --widthIncrement 10 --heightIncrement 20
-
-# Decrease width by 5 pixels (negative increment)
-label-studio-converter toLabelStudio ./input-ppocr --outDir ./output --widthIncrement -5
-
-# Works with toPPOCR as well
-label-studio-converter toPPOCR ./input-label-studio --outDir ./output --widthIncrement 10 --heightIncrement 10
-```
-
-##### Combined Enhancement Examples
-
-Combine multiple enhancements:
-
-```bash
-# Normalize to rectangle and increase size
-label-studio-converter toLabelStudio ./input-ppocr --outDir ./output --normalizeShape rectangle --widthIncrement 5 --heightIncrement 5
-
-# Combine sorting with shape normalization
-label-studio-converter toLabelStudio ./input-ppocr --outDir ./output --normalizeShape rectangle --widthIncrement 10 --sortVertical top-bottom --sortHorizontal ltr
-```
-
-##### Special Format Examples
-
-**Convert with one file per image:**
-
-```bash
-label-studio-converter toLabelStudio ./input-ppocr \
-  --outDir ./output-label-studio \
-  --defaultLabelName Text \
-  --toFullJson \
-  --createFilePerImage
-```
-
-**Convert to minimal Label Studio format:**
-
-```bash
-label-studio-converter toLabelStudio ./input-ppocr \
-  --outDir ./output-label-studio \
-  --defaultLabelName Text \
-  --noToFullJson
-```
-
-> [!IMPORTANT]
-> Minimal Label Studio format cannot be used for serving in Label Studio, as it
-> lacks necessary fields such as `id` and `data`. You can only use minimal
-> format for conversion back to PPOCRLabelv2 format or other purposes.
 
 ### Using generated files with Label Studio
 
@@ -1159,7 +1442,7 @@ Command:
 Output:
 
 ```
-fixtures/example.jpg	[{"transcription":"ACUTE CORONARY SYNDROME","points":[[246,302],[621,302],[621,330],[246,330]],"dt_score":1},{"transcription":"MILD CORONARY ARTERY DISEASE","points":[[245,366],[681,366],[681,391],[245,391]],"dt_score":1},{"transcription":"MEDICAL MANAGEMENT","points":[[246,426],[548,420],[551,446],[251,450]],"dt_score":1}]
+data/example.jpg	[{"transcription":"ACUTE CORONARY SYNDROME","points":[[246,302],[621,302],[621,330],[246,330]],"dt_score":1},{"transcription":"MILD CORONARY ARTERY DISEASE","points":[[245,366],[681,366],[681,391],[245,391]],"dt_score":1},{"transcription":"MEDICAL MANAGEMENT","points":[[246,426],[548,420],[551,446],[251,450]],"dt_score":1}]
 ```
 
 </details>
@@ -1441,7 +1724,8 @@ commands:
   rm -rf ./output-label-studio
   ```
 
-- When you did not specify an output directory (default: files are saved in the same directory as the source files):
+- When you did not specify an output directory (default: files are saved in the
+  same directory as the source files):
 
   **For default output file names:**
 
@@ -1474,7 +1758,8 @@ commands:
   Remove-Item -Path ".\output-label-studio" -Recurse -Force
   ```
 
-- When you did not specify an output directory (default: files are saved in the same directory as the source files):
+- When you did not specify an output directory (default: files are saved in the
+  same directory as the source files):
 
   **For default output file names:**
 
