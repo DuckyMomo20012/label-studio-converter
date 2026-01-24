@@ -25,6 +25,7 @@ export const enhancePPOCRConverters = async (
     sortVertical,
     sortHorizontal,
     normalizeShape,
+    useOrientedBox,
     widthIncrement,
     heightIncrement,
     adaptResize = false,
@@ -41,6 +42,7 @@ export const enhancePPOCRConverters = async (
   const transformerParams = [
     withOptions(normalizeTransformer, {
       normalizeShape: normalizeShape as ShapeNormalizeOption,
+      useOrientedBox,
     }),
     withOptions(resizeTransformer, {
       widthIncrement,

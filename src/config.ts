@@ -12,6 +12,7 @@ import {
   DEFAULT_SHAPE_NORMALIZE,
   DEFAULT_SORT_HORIZONTAL,
   DEFAULT_SORT_VERTICAL,
+  DEFAULT_USE_ORIENTED_BOX,
   DEFAULT_WIDTH_INCREMENT,
   SHAPE_NORMALIZE_NONE,
   SHAPE_NORMALIZE_RECTANGLE,
@@ -27,6 +28,7 @@ export type BaseEnhanceOptions = {
   sortVertical?: string;
   sortHorizontal?: string;
   normalizeShape?: string;
+  useOrientedBox?: boolean;
   widthIncrement?: number;
   heightIncrement?: number;
   adaptResize?: boolean;
@@ -57,6 +59,11 @@ export const baseEnhanceFlagOptions = {
     kind: 'parsed',
     brief: `Normalize diamond-like shapes to axis-aligned rectangles. Options: "${SHAPE_NORMALIZE_NONE}", "${SHAPE_NORMALIZE_RECTANGLE}". Default: "${DEFAULT_SHAPE_NORMALIZE}"`,
     parse: String,
+    optional: true,
+  },
+  useOrientedBox: {
+    kind: 'boolean',
+    brief: `Use oriented (rotated) bounding box when normalizing shapes. Useful for skewed text. Default: ${DEFAULT_USE_ORIENTED_BOX}`,
     optional: true,
   },
   widthIncrement: {

@@ -35,6 +35,7 @@ export const ppocrToFullLabelStudioConverters = async (
     sortVertical,
     sortHorizontal,
     normalizeShape,
+    useOrientedBox,
     widthIncrement,
     heightIncrement,
     adaptResize = false,
@@ -51,6 +52,7 @@ export const ppocrToFullLabelStudioConverters = async (
   const transformerParams = [
     withOptions(normalizeTransformer, {
       normalizeShape: normalizeShape as ShapeNormalizeOption,
+      useOrientedBox,
     }),
     withOptions(resizeTransformer, {
       widthIncrement,
@@ -155,6 +157,7 @@ export const ppocrToMinLabelStudioConverters = async (
     sortVertical,
     sortHorizontal,
     normalizeShape,
+    useOrientedBox,
     widthIncrement,
     heightIncrement,
     precision,
@@ -163,6 +166,7 @@ export const ppocrToMinLabelStudioConverters = async (
   const transformerParams = [
     withOptions(normalizeTransformer, {
       normalizeShape: normalizeShape as ShapeNormalizeOption,
+      useOrientedBox,
     }),
     withOptions(resizeTransformer, {
       widthIncrement,

@@ -40,6 +40,9 @@ export type ShapeNormalizeOption =
   | typeof SHAPE_NORMALIZE_NONE
   | typeof SHAPE_NORMALIZE_RECTANGLE;
 
+// Normalize transformer options
+export const DEFAULT_USE_ORIENTED_BOX = false;
+
 // Bounding box resize options
 export const DEFAULT_WIDTH_INCREMENT = 0;
 export const DEFAULT_HEIGHT_INCREMENT = 0;
