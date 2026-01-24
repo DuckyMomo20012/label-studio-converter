@@ -24,7 +24,7 @@ export const FullOCRLabelStudioOutput = (async (
   resolveImagePath,
   options,
 ) => {
-  const imageFilePath = resolveImagePath(outputTask.imagePath);
+  const imageFilePath = await resolveImagePath(outputTask.imagePath);
 
   const {
     taskId = 1,

@@ -1,4 +1,6 @@
-import { dirname, join } from 'path';
+import { createWriteStream } from 'fs';
+import { get } from 'https';
+import { basename, dirname, join, relative } from 'path';
 import { BaseEnhanceOptions } from '@/config';
 import {
   FullOCRLabelStudioInput,
@@ -19,12 +21,19 @@ import {
   withOptions,
 } from '@/lib';
 
+export type EnhanceLabelStudioOptions = BaseEnhanceOptions & {
+  baseServerUrl?: string;
+  outDir?: string;
+};
+
 export const enhanceFullLabelStudioConverters = async (
   inputTasks: LabelStudioTask[],
   taskFilePath: string,
-  options: BaseEnhanceOptions,
+  options: EnhanceLabelStudioOptions,
 ) => {
   const {
+    baseServerUrl,
+    outDir,
     sortVertical,
     sortHorizontal,
     normalizeShape,
@@ -71,23 +80,66 @@ export const enhanceFullLabelStudioConverters = async (
     }),
   ];
 
-  const resolveInputImagePath = (
+  const resolveInputImagePath = async (
     taskImagePath: string,
     taskFilePath: string,
   ) => {
     const fileDir = dirname(taskFilePath);
-    // Remove leading slash to ensure relative path resolution
-    const normalizedImagePath = taskImagePath.replace(/^\/+/, '');
-    const resolvedImagePath = join(fileDir, normalizedImagePath);
-    return resolvedImagePath;
+
+    // Check if it's a remote URL
+    if (
+      taskImagePath.startsWith('http://') ||
+      taskImagePath.startsWith('https://')
+    ) {
+      // Extract filename from URL
+      const urlPath = new URL(taskImagePath).pathname;
+      const filename = basename(urlPath);
+      const localPath = join(fileDir, filename);
+
+      // Download the image
+      await new Promise<void>((resolve, reject) => {
+        get(taskImagePath, (response) => {
+          const fileStream = createWriteStream(localPath);
+          response.pipe(fileStream);
+          fileStream.on('finish', () => {
+            fileStream.close();
+            resolve();
+          });
+          fileStream.on('error', reject);
+        }).on('error', reject);
+      });
+
+      return localPath;
+    }
+
+    // Label Studio exports can have leading slash (/path)
+    // Strip leading slashes to get relative path
+    const cleanPath = taskImagePath.replace(/^\/+/, '');
+    return join(fileDir, cleanPath);
   };
 
   const resolveOutputImagePath = (
     taskImagePath: string,
     taskFilePath: string,
   ) => {
-    const fileDir = dirname(taskFilePath);
-    const resolvedPath = join(fileDir, taskImagePath);
+    // taskImagePath is absolute path to image file
+    let resolvedPath = taskImagePath;
+
+    // If outDir is specified, compute relative path from output location to image
+    if (outDir) {
+      const relativePath = relative(process.cwd(), taskFilePath);
+      const relativeDir = dirname(relativePath);
+      const outputSubDir = join(outDir, relativeDir);
+      resolvedPath = relative(outputSubDir, taskImagePath);
+    }
+
+    // Then prepend baseServerUrl if provided
+    const newBaseServerUrl =
+      baseServerUrl?.replace(/\/+$/, '') + (baseServerUrl === '' ? '' : '');
+    if (newBaseServerUrl) {
+      return encodeURI(`${newBaseServerUrl}/${resolvedPath}`);
+    }
+
     return resolvedPath;
   };
 
@@ -113,9 +165,11 @@ export const enhanceFullLabelStudioConverters = async (
 export const enhanceMinLabelStudioConverters = async (
   inputTasks: LabelStudioTaskMin[],
   taskFilePath: string,
-  options: BaseEnhanceOptions,
+  options: EnhanceLabelStudioOptions,
 ) => {
   const {
+    baseServerUrl,
+    outDir,
     sortVertical,
     sortHorizontal,
     normalizeShape,
@@ -162,21 +216,66 @@ export const enhanceMinLabelStudioConverters = async (
     }),
   ];
 
-  const resolveInputImagePath = (
+  const resolveInputImagePath = async (
     taskImagePath: string,
     taskFilePath: string,
   ) => {
     const fileDir = dirname(taskFilePath);
-    const resolvedPath = join(fileDir, taskImagePath);
-    return resolvedPath;
+
+    // Check if it's a remote URL
+    if (
+      taskImagePath.startsWith('http://') ||
+      taskImagePath.startsWith('https://')
+    ) {
+      // Extract filename from URL
+      const urlPath = new URL(taskImagePath).pathname;
+      const filename = basename(urlPath);
+      const localPath = join(fileDir, filename);
+
+      // Download the image
+      await new Promise<void>((resolve, reject) => {
+        get(taskImagePath, (response) => {
+          const fileStream = createWriteStream(localPath);
+          response.pipe(fileStream);
+          fileStream.on('finish', () => {
+            fileStream.close();
+            resolve();
+          });
+          fileStream.on('error', reject);
+        }).on('error', reject);
+      });
+
+      return localPath;
+    }
+
+    // Label Studio exports can have leading slash (/path)
+    // Strip leading slashes to get relative path
+    const cleanPath = taskImagePath.replace(/^\/+/, '');
+    return join(fileDir, cleanPath);
   };
 
   const resolveOutputImagePath = (
     taskImagePath: string,
     taskFilePath: string,
   ) => {
-    const fileDir = dirname(taskFilePath);
-    const resolvedPath = join(fileDir, taskImagePath);
+    // taskImagePath is absolute path to image file
+    let resolvedPath = taskImagePath;
+
+    // If outDir is specified, compute relative path from output location to image
+    if (outDir) {
+      const relativePath = relative(process.cwd(), taskFilePath);
+      const relativeDir = dirname(relativePath);
+      const outputSubDir = join(outDir, relativeDir);
+      resolvedPath = relative(outputSubDir, taskImagePath);
+    }
+
+    // Then prepend baseServerUrl if provided
+    const newBaseServerUrl =
+      baseServerUrl?.replace(/\/+$/, '') + (baseServerUrl === '' ? '' : '');
+    if (newBaseServerUrl) {
+      return encodeURI(`${newBaseServerUrl}/${resolvedPath}`);
+    }
+
     return resolvedPath;
   };
 

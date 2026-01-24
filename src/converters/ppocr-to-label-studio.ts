@@ -1,4 +1,4 @@
-import { dirname, join } from 'path';
+import { dirname, join, relative } from 'path';
 import { type BaseEnhanceOptions } from '@/config';
 import {
   FullOCRLabelStudioOutput,
@@ -20,6 +20,7 @@ import {
 export type PPOCRToLabelStudioOptions = BaseEnhanceOptions & {
   baseServerUrl?: string;
   defaultLabelName?: string;
+  outDir?: string;
 };
 
 export const ppocrToFullLabelStudioConverters = async (
@@ -30,6 +31,7 @@ export const ppocrToFullLabelStudioConverters = async (
   const {
     baseServerUrl,
     defaultLabelName,
+    outDir,
     sortVertical,
     sortHorizontal,
     normalizeShape,
@@ -96,17 +98,26 @@ export const ppocrToFullLabelStudioConverters = async (
     }
   };
 
-  const resolveOutputImagePath = (taskImagePath: string) => {
-    // NOTE: Ensure baseServerUrl ends with a single slash, but keeps empty string
-    // as is
+  const resolveOutputImagePath = (
+    taskImagePath: string,
+    taskFilePath: string,
+  ) => {
+    let resolvedPath = taskImagePath;
+
+    // If outDir is specified, compute relative path from output location to image
+    if (outDir) {
+      const relativePath = relative(process.cwd(), taskFilePath);
+      const relativeDir = dirname(relativePath);
+      const outputSubDir = join(outDir, relativeDir);
+      resolvedPath = relative(outputSubDir, taskImagePath);
+    }
+
+    // Then prepend baseServerUrl if provided
     const newBaseServerUrl =
       baseServerUrl?.replace(/\/+$/, '') + (baseServerUrl === '' ? '' : '');
-
-    // taskImagePath is already resolved to absolute path by resolveInputImagePath
-    // Just prepend baseServerUrl if provided
-    const resolvedPath = newBaseServerUrl
-      ? encodeURI(`${newBaseServerUrl}${taskImagePath}`)
-      : taskImagePath;
+    if (newBaseServerUrl) {
+      return encodeURI(`${newBaseServerUrl}/${resolvedPath}`);
+    }
 
     return resolvedPath;
   };
@@ -140,6 +151,7 @@ export const ppocrToMinLabelStudioConverters = async (
   const {
     baseServerUrl,
     defaultLabelName,
+    outDir,
     sortVertical,
     sortHorizontal,
     normalizeShape,
@@ -183,17 +195,26 @@ export const ppocrToMinLabelStudioConverters = async (
     }
   };
 
-  const resolveOutputImagePath = (taskImagePath: string) => {
-    // NOTE: Ensure baseServerUrl ends with a single slash, but keeps empty string
-    // as is
+  const resolveOutputImagePath = (
+    taskImagePath: string,
+    taskFilePath: string,
+  ) => {
+    let resolvedPath = taskImagePath;
+
+    // If outDir is specified, compute relative path from output location to image
+    if (outDir) {
+      const relativePath = relative(process.cwd(), taskFilePath);
+      const relativeDir = dirname(relativePath);
+      const outputSubDir = join(outDir, relativeDir);
+      resolvedPath = relative(outputSubDir, taskImagePath);
+    }
+
+    // Then prepend baseServerUrl if provided
     const newBaseServerUrl =
       baseServerUrl?.replace(/\/+$/, '') + (baseServerUrl === '' ? '' : '');
-
-    // taskImagePath is already resolved to absolute path by resolveInputImagePath
-    // Just prepend baseServerUrl if provided
-    const resolvedPath = newBaseServerUrl
-      ? encodeURI(`${newBaseServerUrl}${taskImagePath}`)
-      : taskImagePath;
+    if (newBaseServerUrl) {
+      return encodeURI(`${newBaseServerUrl}/${resolvedPath}`);
+    }
 
     return resolvedPath;
   };

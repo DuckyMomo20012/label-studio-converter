@@ -201,6 +201,7 @@ export async function convertToLabelStudio(
       const convertParams = {
         defaultLabelName,
         baseServerUrl,
+        outDir: resolvedOutDir,
       };
 
       const enhanceParams = {

@@ -1,4 +1,6 @@
-import { dirname, join } from 'path';
+import { createWriteStream } from 'fs';
+import { get } from 'https';
+import { basename, dirname, join } from 'path';
 import { type BaseEnhanceOptions } from '@/config';
 import {
   FullOCRLabelStudioInput,
@@ -75,12 +77,40 @@ export const fullLabelStudioToPPOCRConverters = async (
     }),
   ];
 
-  const resolveInputImagePath = (
+  const resolveInputImagePath = async (
     taskImagePath: string,
     taskFilePath: string,
   ) => {
     const fileDir = dirname(taskFilePath);
-    // Remove leading slash to ensure relative path resolution
+
+    // Check if it's a remote URL
+    if (
+      taskImagePath.startsWith('http://') ||
+      taskImagePath.startsWith('https://')
+    ) {
+      // Extract filename from URL
+      const urlPath = new URL(taskImagePath).pathname;
+      const filename = basename(urlPath);
+      const localPath = join(fileDir, filename);
+
+      // Download the image
+      await new Promise<void>((resolve, reject) => {
+        get(taskImagePath, (response) => {
+          const fileStream = createWriteStream(localPath);
+          response.pipe(fileStream);
+          fileStream.on('finish', () => {
+            fileStream.close();
+            resolve();
+          });
+          fileStream.on('error', reject);
+        }).on('error', reject);
+      });
+
+      return localPath;
+    }
+
+    // Label Studio exports can have leading slash (/path)
+    // Strip leading slashes to get relative path
     const normalizedImagePath = taskImagePath.replace(/^\/+/, '');
     const resolvedImagePath = join(fileDir, normalizedImagePath);
     return resolvedImagePath;
@@ -174,12 +204,40 @@ export const minLabelStudioToPPOCRConverters = async (
     }),
   ];
 
-  const resolveInputImagePath = (
+  const resolveInputImagePath = async (
     taskImagePath: string,
     taskFilePath: string,
   ) => {
     const fileDir = dirname(taskFilePath);
-    // Remove leading slash to ensure relative path resolution
+
+    // Check if it's a remote URL
+    if (
+      taskImagePath.startsWith('http://') ||
+      taskImagePath.startsWith('https://')
+    ) {
+      // Extract filename from URL
+      const urlPath = new URL(taskImagePath).pathname;
+      const filename = basename(urlPath);
+      const localPath = join(fileDir, filename);
+
+      // Download the image
+      await new Promise<void>((resolve, reject) => {
+        get(taskImagePath, (response) => {
+          const fileStream = createWriteStream(localPath);
+          response.pipe(fileStream);
+          fileStream.on('finish', () => {
+            fileStream.close();
+            resolve();
+          });
+          fileStream.on('error', reject);
+        }).on('error', reject);
+      });
+
+      return localPath;
+    }
+
+    // Label Studio exports can have leading slash (/path)
+    // Strip leading slashes to get relative path
     const normalizedImagePath = taskImagePath.replace(/^\/+/, '');
     const resolvedImagePath = join(fileDir, normalizedImagePath);
     return resolvedImagePath;

@@ -3,7 +3,7 @@ import { type ProcessorOutput } from '@/lib/processor';
 import { type PPOCRLabelTask } from '@/modules/ppocrlabel/schema';
 
 export const PPOCROutput = (async (outputTask, resolveImagePath) => {
-  const imageFilePath = resolveImagePath(outputTask.imagePath);
+  const imageFilePath = await resolveImagePath(outputTask.imagePath);
 
   return {
     imagePath: imageFilePath,

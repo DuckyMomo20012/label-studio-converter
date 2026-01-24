@@ -104,6 +104,7 @@ export async function enhanceLabelStudio(
       let outputTasks: LabelStudioTask[] | LabelStudioTaskMin[];
 
       const enhanceParams = {
+        outDir,
         sortVertical,
         sortHorizontal,
         normalizeShape,

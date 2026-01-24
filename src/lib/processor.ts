@@ -12,11 +12,11 @@ export type TransformerEntry = Transformer<any> | [Transformer<any>, any];
 export type ResolveImagePathFn = (
   taskImagePath: string,
   taskFilePath: string,
-) => string;
+) => string | Promise<string>;
 
 export type ProcessorInput<TInput, TOptions = undefined> = (
   inputTask: TInput,
-  resolveImagePath: (taskImagePath: string) => string,
+  resolveImagePath: (taskImagePath: string) => string | Promise<string>,
   options: TOptions,
 ) => Promise<UnifiedOCRTask>;
 
@@ -26,7 +26,7 @@ export type ProcessorInputEntry<TInput> =
 
 export type ProcessorOutput<TOutput, TOptions = undefined> = (
   outputTask: UnifiedOCRTask,
-  resolveImagePath: (taskImagePath: string) => string,
+  resolveImagePath: (taskImagePath: string) => string | Promise<string>,
   options: TOptions,
 ) => Promise<TOutput>;
 

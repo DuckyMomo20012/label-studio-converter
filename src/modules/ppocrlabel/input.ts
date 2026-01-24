@@ -5,7 +5,7 @@ import { type ProcessorInput } from '@/lib/processor';
 import { type PPOCRLabelTask } from '@/modules/ppocrlabel/schema';
 
 export const PPOCRInput = (async (inputTask, resolveImagePath) => {
-  const imageFilePath = resolveImagePath(inputTask.imagePath);
+  const imageFilePath = await resolveImagePath(inputTask.imagePath);
 
   let imgWidth = 0;
   let imgHeight = 0;

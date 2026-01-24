@@ -11,11 +11,11 @@ describe('Processor', () => {
   // Simple mock input processor
   const mockInput = async (
     data: { text: string; x: number; y: number },
-    resolvePath: (path: string) => string,
+    resolvePath: (path: string) => string | Promise<string>,
   ): Promise<UnifiedOCRTask> => {
     return {
       id: 'test-1',
-      imagePath: resolvePath('test.jpg'),
+      imagePath: await resolvePath('test.jpg'),
       width: 100,
       height: 100,
       boxes: [
@@ -35,10 +35,10 @@ describe('Processor', () => {
   // Simple mock output processor
   const mockOutput = async (
     task: UnifiedOCRTask,
-    resolvePath: (path: string) => string,
+    resolvePath: (path: string) => string | Promise<string>,
   ) => {
     return {
-      image: resolvePath(task.imagePath),
+      image: await resolvePath(task.imagePath),
       annotations: task.boxes.map((b) => ({
         text: b.text,
         points: b.points,

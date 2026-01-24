@@ -21,7 +21,7 @@ export const FullOCRLabelStudioInput = (async (
 ) => {
   const { autoDetectImageSize = DEFAULT_DETECT_IMAGE_SIZE } = options || {};
 
-  const imageFilePath = resolveImagePath(inputTask.data.ocr);
+  const imageFilePath = await resolveImagePath(inputTask.data.ocr);
 
   const { id, annotations, predictions, ...metadata } = inputTask;
 

@@ -10,7 +10,7 @@ import {
 import { LabelStudioTaskMin } from '@/modules/label-studio-min/schema';
 
 export const MinOCRLabelStudioInput = (async (inputTask, resolveImagePath) => {
-  const imageFilePath = resolveImagePath(inputTask.ocr);
+  const imageFilePath = await resolveImagePath(inputTask.ocr);
 
   let imgWidth = 0;
   let imgHeight = 0;

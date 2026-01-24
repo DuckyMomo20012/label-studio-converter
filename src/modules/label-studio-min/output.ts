@@ -13,7 +13,7 @@ export const MinOCRLabelStudioOutput = (async (
   resolveImagePath,
   options,
 ) => {
-  const imageFilePath = resolveImagePath(outputTask.imagePath);
+  const imageFilePath = await resolveImagePath(outputTask.imagePath);
 
   const { taskId = 1, defaultLabelName = DEFAULT_LABEL_NAME } = options || {};
 
