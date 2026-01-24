@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.3.1](https://github.com/DuckyMomo20012/label-studio-converter/compare/v1.3.1...v1.3.1) (2026-01-24)
+
+
+### Features
+
+* setup adapt resize transformer ([7c22037](https://github.com/DuckyMomo20012/label-studio-converter/commit/7c220371856ecb83776e0041bc2ae1a59c450a70))
+* setup use oriented box for normalizer ([366ab97](https://github.com/DuckyMomo20012/label-studio-converter/commit/366ab970f8dd61aa097f8db3f23eea8cddd1c8e0))
+
+
+### Bug Fixes
+
+* cleanup base enhance configs ([64f9429](https://github.com/DuckyMomo20012/label-studio-converter/commit/64f9429e4ef9c6c9cb3ddfba59749cba3a49472d))
+* incorrect image path resolve logics ([445eb4c](https://github.com/DuckyMomo20012/label-studio-converter/commit/445eb4c98602f94576c78cfb27652260990826ad))
+* move base config file ([afdec50](https://github.com/DuckyMomo20012/label-studio-converter/commit/afdec503de44e6203155cdab456a371dbacfb9c7))
+* package mismatch ([fefadc7](https://github.com/DuckyMomo20012/label-studio-converter/commit/fefadc7f97386f13b79d00c803622cfe691fc40e))
+* package mismatch ([f11f8b4](https://github.com/DuckyMomo20012/label-studio-converter/commit/f11f8b4f7f97c83aed4797d652622c1c7d29ec21))
+* refactor all features to unified structure ([4d0f58d](https://github.com/DuckyMomo20012/label-studio-converter/commit/4d0f58dd70ae53665993fc79e2914418896cdbd6))
+* update input/output logics ([d66b837](https://github.com/DuckyMomo20012/label-studio-converter/commit/d66b83797606a39e824f55b2a4a6541e7937783e))
+
 ## [1.3.1](https://github.com/DuckyMomo20012/label-studio-converter/compare/v1.3.1...v1.3.1) (2026-01-20)
 
 
