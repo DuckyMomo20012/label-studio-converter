@@ -1,6 +1,5 @@
 import { buildCommand } from '@stricli/core';
 import {
-  DEFAULT_BACKUP,
   DEFAULT_BASE_SERVER_URL,
   DEFAULT_CREATE_FILE_LIST_FOR_SERVING,
   DEFAULT_CREATE_FILE_PER_IMAGE,
@@ -9,11 +8,10 @@ import {
   DEFAULT_LABEL_STUDIO_FULL_JSON,
   DEFAULT_OUTPUT_MODE,
   DEFAULT_PPOCR_FILE_PATTERN,
-  DEFAULT_RECURSIVE,
   OUTPUT_MODE_ANNOTATIONS,
   OUTPUT_MODE_PREDICTIONS,
 } from '@/constants';
-import { baseEnhanceFlagOptions } from '@/lib';
+import { baseEnhanceFlagOptions, baseFileIOFlagOptions } from '@/lib';
 
 export const toLabelStudioCommand = buildCommand({
   loader: async () => {
@@ -30,23 +28,13 @@ export const toLabelStudioCommand = buildCommand({
       minimum: 1,
     },
     flags: {
-      outDir: {
-        kind: 'parsed',
-        brief:
-          'Output directory. If not specified, files are saved in the same directory as the source files',
-        parse: String,
-        optional: true,
-      },
+      ...baseFileIOFlagOptions,
+      ...baseEnhanceFlagOptions,
       fileName: {
         kind: 'parsed',
         brief:
           'Custom output filename (without extension). If not specified, uses source filename with format suffix',
         parse: String,
-        optional: true,
-      },
-      backup: {
-        kind: 'boolean',
-        brief: `Create backup of existing files before overwriting. Default: ${DEFAULT_BACKUP}`,
         optional: true,
       },
       defaultLabelName: {
@@ -82,11 +70,6 @@ export const toLabelStudioCommand = buildCommand({
         parse: String,
         optional: true,
       },
-      recursive: {
-        kind: 'boolean',
-        brief: `Recursively search directories for files. Default: ${DEFAULT_RECURSIVE}`,
-        optional: true,
-      },
       filePattern: {
         kind: 'parsed',
         brief: `Regex pattern to match PPOCRLabel files (should match .txt files). Default: "${DEFAULT_PPOCR_FILE_PATTERN}"`,
@@ -99,7 +82,6 @@ export const toLabelStudioCommand = buildCommand({
         parse: String,
         optional: true,
       },
-      ...baseEnhanceFlagOptions,
     },
   },
   docs: {

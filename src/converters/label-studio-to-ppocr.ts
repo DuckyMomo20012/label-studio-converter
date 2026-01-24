@@ -27,6 +27,7 @@ export type LabelStudioToPPOCRConverterOptions = BaseEnhanceOptions & {
 export const fullLabelStudioToPPOCRConverters = async (
   inputTasks: LabelStudioTask[],
   taskFilePath: string,
+  outputDir: string,
   options: LabelStudioToPPOCRConverterOptions,
 ) => {
   const {
@@ -83,16 +84,16 @@ export const fullLabelStudioToPPOCRConverters = async (
     taskImagePath: string,
     taskFilePath: string,
   ) => {
-    const fileDir = dirname(taskFilePath);
-
     // Check if it's a remote URL
     if (
       taskImagePath.startsWith('http://') ||
       taskImagePath.startsWith('https://')
     ) {
-      // Extract filename from URL
+      // Extract just the filename from URL (ignore URL path structure)
       const urlPath = new URL(taskImagePath).pathname;
       const filename = basename(urlPath);
+      // Download to task file location (where the JSON is)
+      const fileDir = dirname(taskFilePath);
       const localPath = join(fileDir, filename);
 
       // Download the image
@@ -113,25 +114,26 @@ export const fullLabelStudioToPPOCRConverters = async (
 
     // Label Studio exports can have leading slash (/path)
     // Strip leading slashes to get relative path
+    const fileDir = dirname(taskFilePath);
     const normalizedImagePath = taskImagePath.replace(/^\/+/, '');
     const resolvedImagePath = join(fileDir, normalizedImagePath);
     return resolvedImagePath;
   };
 
-  const resolveOutputImagePath = (
-    taskImagePath: string,
-    taskFilePath: string,
-  ) => {
-    const fileDir = dirname(taskFilePath);
-    // taskImagePath is the full resolved path, extract just the filename
-    const filename = taskImagePath.split('/').pop() || '';
-    // For PPOCR output, we keep only the folder of the task file
-    const resolvedPath = join(
-      baseImageDir || '',
-      fileDir.split('/').pop() || '',
-      filename,
-    );
-    return resolvedPath;
+  const resolveOutputImagePath = (resolvedImagePath: string) => {
+    // resolvedImagePath is the absolute path to the actual image file
+    // Extract just the filename for PPOCR format
+    const filename = basename(resolvedImagePath);
+
+    // Construct output path for PPOCR Label.txt
+    if (baseImageDir) {
+      // Use specified baseImageDir prefix (like "images/ch")
+      return join(baseImageDir, filename);
+    } else {
+      // Use output folder name (PPOCRLabel expects "folder/filename.jpg" format)
+      const outputFolderName = basename(outputDir);
+      return join(outputFolderName, filename);
+    }
   };
 
   const processor = new Processor({
@@ -156,6 +158,7 @@ export const fullLabelStudioToPPOCRConverters = async (
 export const minLabelStudioToPPOCRConverters = async (
   inputTasks: LabelStudioTaskMin[],
   taskFilePath: string,
+  outputDir: string,
   options: LabelStudioToPPOCRConverterOptions,
 ) => {
   const {
@@ -212,16 +215,16 @@ export const minLabelStudioToPPOCRConverters = async (
     taskImagePath: string,
     taskFilePath: string,
   ) => {
-    const fileDir = dirname(taskFilePath);
-
     // Check if it's a remote URL
     if (
       taskImagePath.startsWith('http://') ||
       taskImagePath.startsWith('https://')
     ) {
-      // Extract filename from URL
+      // Extract just the filename from URL (ignore URL path structure)
       const urlPath = new URL(taskImagePath).pathname;
       const filename = basename(urlPath);
+      // Download to task file location (where the JSON is)
+      const fileDir = dirname(taskFilePath);
       const localPath = join(fileDir, filename);
 
       // Download the image
@@ -242,25 +245,26 @@ export const minLabelStudioToPPOCRConverters = async (
 
     // Label Studio exports can have leading slash (/path)
     // Strip leading slashes to get relative path
+    const fileDir = dirname(taskFilePath);
     const normalizedImagePath = taskImagePath.replace(/^\/+/, '');
     const resolvedImagePath = join(fileDir, normalizedImagePath);
     return resolvedImagePath;
   };
 
-  const resolveOutputImagePath = (
-    taskImagePath: string,
-    taskFilePath: string,
-  ) => {
-    const fileDir = dirname(taskFilePath);
-    // taskImagePath is the full resolved path, extract just the filename
-    const filename = taskImagePath.split('/').pop() || '';
-    // For PPOCR output, we keep only the folder of the task file
-    const resolvedPath = join(
-      baseImageDir || '',
-      fileDir.split('/').pop() || '',
-      filename,
-    );
-    return resolvedPath;
+  const resolveOutputImagePath = (resolvedImagePath: string) => {
+    // resolvedImagePath is the absolute path to the actual image file
+    // Extract just the filename for PPOCR format
+    const filename = basename(resolvedImagePath);
+
+    // Construct output path for PPOCR Label.txt
+    if (baseImageDir) {
+      // Use specified baseImageDir prefix (like "images/ch")
+      return join(baseImageDir, filename);
+    } else {
+      // Use output folder name (PPOCRLabel expects "folder/filename.jpg" format)
+      const outputFolderName = basename(outputDir);
+      return join(outputFolderName, filename);
+    }
   };
 
   const processor = new Processor({

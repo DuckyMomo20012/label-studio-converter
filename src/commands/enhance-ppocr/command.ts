@@ -1,10 +1,6 @@
 import { buildCommand } from '@stricli/core';
-import {
-  DEFAULT_BACKUP,
-  DEFAULT_PPOCR_FILE_PATTERN,
-  DEFAULT_RECURSIVE,
-} from '@/constants';
-import { baseEnhanceFlagOptions } from '@/lib';
+import { DEFAULT_PPOCR_FILE_PATTERN } from '@/constants';
+import { baseEnhanceFlagOptions, baseFileIOFlagOptions } from '@/lib';
 
 export const enhancePPOCRCommand = buildCommand({
   loader: async () => {
@@ -21,28 +17,13 @@ export const enhancePPOCRCommand = buildCommand({
       minimum: 1,
     },
     flags: {
-      outDir: {
-        kind: 'parsed',
-        brief:
-          'Output directory. If not specified, files are saved in the same directory as the source files',
-        parse: String,
-        optional: true,
-      },
+      ...baseFileIOFlagOptions,
+      ...baseEnhanceFlagOptions,
       fileName: {
         kind: 'parsed',
         brief:
           'Custom output filename. If not specified, uses the same name as the source file',
         parse: String,
-        optional: true,
-      },
-      backup: {
-        kind: 'boolean',
-        brief: `Create backup of existing files before overwriting. Default: ${DEFAULT_BACKUP}`,
-        optional: true,
-      },
-      recursive: {
-        kind: 'boolean',
-        brief: `Recursively search directories for files. Default: ${DEFAULT_RECURSIVE}`,
         optional: true,
       },
       filePattern: {
@@ -51,7 +32,6 @@ export const enhancePPOCRCommand = buildCommand({
         parse: String,
         optional: true,
       },
-      ...baseEnhanceFlagOptions,
     },
   },
   docs: {

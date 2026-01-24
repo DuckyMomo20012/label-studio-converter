@@ -1,13 +1,11 @@
 import { buildCommand } from '@stricli/core';
 import {
-  DEFAULT_BACKUP,
   DEFAULT_LABEL_STUDIO_FILE_PATTERN,
   DEFAULT_OUTPUT_MODE,
-  DEFAULT_RECURSIVE,
   OUTPUT_MODE_ANNOTATIONS,
   OUTPUT_MODE_PREDICTIONS,
 } from '@/constants';
-import { baseEnhanceFlagOptions } from '@/lib';
+import { baseEnhanceFlagOptions, baseFileIOFlagOptions } from '@/lib';
 
 export const enhanceLabelStudioCommand = buildCommand({
   loader: async () => {
@@ -24,28 +22,13 @@ export const enhanceLabelStudioCommand = buildCommand({
       minimum: 1,
     },
     flags: {
-      outDir: {
-        kind: 'parsed',
-        brief:
-          'Output directory. If not specified, files are saved in the same directory as the source files',
-        parse: String,
-        optional: true,
-      },
+      ...baseFileIOFlagOptions,
+      ...baseEnhanceFlagOptions,
       fileName: {
         kind: 'parsed',
         brief:
           'Custom output filename. If not specified, uses the same name as the source file',
         parse: String,
-        optional: true,
-      },
-      backup: {
-        kind: 'boolean',
-        brief: `Create backup of existing files before overwriting. Default: ${DEFAULT_BACKUP}`,
-        optional: true,
-      },
-      recursive: {
-        kind: 'boolean',
-        brief: `Recursively search directories for files. Default: ${DEFAULT_RECURSIVE}`,
         optional: true,
       },
       filePattern: {
@@ -60,7 +43,6 @@ export const enhanceLabelStudioCommand = buildCommand({
         parse: String,
         optional: true,
       },
-      ...baseEnhanceFlagOptions,
     },
   },
   docs: {

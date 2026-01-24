@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'fs/promises';
+import { copyFile, mkdir, readFile, writeFile } from 'fs/promises';
 import { basename, dirname, join, relative, resolve } from 'path';
 import chalk from 'chalk';
 import {
@@ -11,6 +11,7 @@ import {
   DEFAULT_ADAPT_RESIZE_THRESHOLD,
   DEFAULT_BACKUP,
   DEFAULT_BASE_SERVER_URL,
+  DEFAULT_COPY_IMAGES,
   DEFAULT_CREATE_FILE_LIST_FOR_SERVING,
   DEFAULT_CREATE_FILE_PER_IMAGE,
   DEFAULT_FILE_LIST_NAME,
@@ -43,6 +44,7 @@ type CommandFlags = {
   outDir?: string;
   fileName?: string;
   backup?: boolean;
+  copyImages?: boolean;
   defaultLabelName?: string;
   toFullJson?: boolean;
   createFilePerImage?: boolean;
@@ -63,6 +65,7 @@ export async function convertToLabelStudio(
     outDir,
     fileName,
     backup = DEFAULT_BACKUP,
+    copyImages = DEFAULT_COPY_IMAGES,
     defaultLabelName = DEFAULT_LABEL_NAME,
     toFullJson = DEFAULT_LABEL_STUDIO_FULL_JSON,
     createFilePerImage = DEFAULT_CREATE_FILE_PER_IMAGE,
@@ -198,10 +201,16 @@ export async function convertToLabelStudio(
       // Convert each image's annotations to Label Studio format
       let outputTasks: (LabelStudioTask | LabelStudioTaskMin)[] = [];
 
+      // Determine output directory for converter (where JSON will be written)
+      const converterOutputDir = resolvedOutDir
+        ? join(resolvedOutDir, relativeDir)
+        : dirname(filePath);
+
       const convertParams = {
         defaultLabelName,
         baseServerUrl,
-        outDir: resolvedOutDir,
+        outDir: converterOutputDir,
+        copyImages: resolvedOutDir ? copyImages : false,
       };
 
       const enhanceParams = {
@@ -239,6 +248,42 @@ export async function convertToLabelStudio(
             ...enhanceParams,
           },
         );
+      }
+
+      // Copy images to output directory if requested
+      if (resolvedOutDir && copyImages) {
+        const taskFileDir = dirname(filePath);
+        const outputSubDir = join(resolvedOutDir, relativeDir);
+
+        for (const task of inputTasks) {
+          try {
+            // Resolve imagePath from PPOCR Label.txt
+            // The path is like "folder/file.jpg" where folder is the opened directory name
+            const parts = task.imagePath.split('/');
+            const folderName = parts.length > 1 ? parts[0] : '';
+            const fileName =
+              parts.length > 1 ? parts.slice(1).join('/') : task.imagePath;
+
+            // Resolve from parent directory of task file
+            const sourceImagePath = folderName
+              ? resolve(dirname(taskFileDir), folderName, fileName)
+              : resolve(taskFileDir, fileName);
+
+            const destImagePath = join(outputSubDir, basename(sourceImagePath));
+
+            await mkdir(dirname(destImagePath), { recursive: true });
+            await copyFile(sourceImagePath, destImagePath);
+            console.log(
+              chalk.gray(`  ✓ Copied image: ${basename(sourceImagePath)}`),
+            );
+          } catch (error) {
+            console.warn(
+              chalk.yellow(
+                `  ⚠ Failed to copy image ${task.imagePath}: ${error instanceof Error ? error.message : error}`,
+              ),
+            );
+          }
+        }
       }
 
       // Create individual file per image if requested

@@ -1,4 +1,4 @@
-import { dirname, join, relative } from 'path';
+import { basename, dirname, join, relative, resolve } from 'path';
 import { type BaseEnhanceOptions } from '@/config';
 import {
   FullOCRLabelStudioOutput,
@@ -21,6 +21,7 @@ export type PPOCRToLabelStudioOptions = BaseEnhanceOptions & {
   baseServerUrl?: string;
   defaultLabelName?: string;
   outDir?: string;
+  copyImages?: boolean;
 };
 
 export const ppocrToFullLabelStudioConverters = async (
@@ -32,6 +33,7 @@ export const ppocrToFullLabelStudioConverters = async (
     baseServerUrl,
     defaultLabelName,
     outDir,
+    copyImages = false,
     sortVertical,
     sortHorizontal,
     normalizeShape,
@@ -104,23 +106,46 @@ export const ppocrToFullLabelStudioConverters = async (
     taskImagePath: string,
     taskFilePath: string,
   ) => {
-    let resolvedPath = taskImagePath;
+    let resolvedPath: string;
 
-    // If outDir is specified, compute relative path from output location to image
+    // Compute relative path from output JSON location to image
     if (outDir) {
-      const relativePath = relative(process.cwd(), taskFilePath);
-      const relativeDir = dirname(relativePath);
-      const outputSubDir = join(outDir, relativeDir);
-      resolvedPath = relative(outputSubDir, taskImagePath);
+      // Output JSON will be in outDir (already includes full path with subdirectories)
+      const outputJsonDir = resolve(outDir);
+
+      if (copyImages) {
+        // Images were copied to the same directory as the JSON
+        // So just use the filename
+        const fileName = basename(taskImagePath);
+        resolvedPath = fileName;
+      } else {
+        // Images are in their original location
+        // Compute relative path from JSON location to image
+        const absoluteImagePath = resolve(process.cwd(), taskImagePath);
+        resolvedPath = relative(outputJsonDir, absoluteImagePath);
+      }
+    } else {
+      // Output JSON will be in same directory as task file
+      const taskDir = dirname(taskFilePath);
+      resolvedPath = relative(taskDir, taskImagePath);
     }
 
-    // Then prepend baseServerUrl if provided
-    const newBaseServerUrl =
-      baseServerUrl?.replace(/\/+$/, '') + (baseServerUrl === '' ? '' : '');
-    if (newBaseServerUrl) {
-      return encodeURI(`${newBaseServerUrl}/${resolvedPath}`);
+    // Handle baseServerUrl:
+    // - If baseServerUrl is provided and non-empty: prepend it (e.g., "http://localhost:8081/path/to/image.jpg")
+    // - If baseServerUrl is empty string: output absolute path with leading slash (e.g., "/path/to/image.jpg") for Docker mount
+    // - If baseServerUrl is undefined: use relative path as-is
+    if (baseServerUrl !== undefined) {
+      if (baseServerUrl === '') {
+        // Empty baseServerUrl means Docker mount - output absolute path with leading slash
+        return encodeURI(`/${resolvedPath}`);
+      } else {
+        // Non-empty baseServerUrl - prepend it
+        const normalizedBaseUrl = baseServerUrl.replace(/\/+$/, '');
+        return encodeURI(`${normalizedBaseUrl}/${resolvedPath}`);
+      }
     }
 
+    // No baseServerUrl provided - return relative path
     return resolvedPath;
   };
 
@@ -154,6 +179,7 @@ export const ppocrToMinLabelStudioConverters = async (
     baseServerUrl,
     defaultLabelName,
     outDir,
+    copyImages = false,
     sortVertical,
     sortHorizontal,
     normalizeShape,
@@ -203,23 +229,46 @@ export const ppocrToMinLabelStudioConverters = async (
     taskImagePath: string,
     taskFilePath: string,
   ) => {
-    let resolvedPath = taskImagePath;
+    let resolvedPath: string;
 
-    // If outDir is specified, compute relative path from output location to image
+    // Compute relative path from output JSON location to image
     if (outDir) {
-      const relativePath = relative(process.cwd(), taskFilePath);
-      const relativeDir = dirname(relativePath);
-      const outputSubDir = join(outDir, relativeDir);
-      resolvedPath = relative(outputSubDir, taskImagePath);
+      // Output JSON will be in outDir (already includes full path with subdirectories)
+      const outputJsonDir = resolve(outDir);
+
+      if (copyImages) {
+        // Images were copied to the same directory as the JSON
+        // So just use the filename
+        const fileName = basename(taskImagePath);
+        resolvedPath = fileName;
+      } else {
+        // Images are in their original location
+        // Compute relative path from JSON location to image
+        const absoluteImagePath = resolve(process.cwd(), taskImagePath);
+        resolvedPath = relative(outputJsonDir, absoluteImagePath);
+      }
+    } else {
+      // Output JSON will be in same directory as task file
+      const taskDir = dirname(taskFilePath);
+      resolvedPath = relative(taskDir, taskImagePath);
     }
 
-    // Then prepend baseServerUrl if provided
-    const newBaseServerUrl =
-      baseServerUrl?.replace(/\/+$/, '') + (baseServerUrl === '' ? '' : '');
-    if (newBaseServerUrl) {
-      return encodeURI(`${newBaseServerUrl}/${resolvedPath}`);
+    // Handle baseServerUrl:
+    // - If baseServerUrl is provided and non-empty: prepend it (e.g., "http://localhost:8081/path/to/image.jpg")
+    // - If baseServerUrl is empty string: output absolute path with leading slash (e.g., "/path/to/image.jpg") for Docker mount
+    // - If baseServerUrl is undefined: use relative path as-is
+    if (baseServerUrl !== undefined) {
+      if (baseServerUrl === '') {
+        // Empty baseServerUrl means Docker mount - output absolute path with leading slash
+        return encodeURI(`/${resolvedPath}`);
+      } else {
+        // Non-empty baseServerUrl - prepend it
+        const normalizedBaseUrl = baseServerUrl.replace(/\/+$/, '');
+        return encodeURI(`${normalizedBaseUrl}/${resolvedPath}`);
+      }
     }
 
+    // No baseServerUrl provided - return relative path
     return resolvedPath;
   };
 

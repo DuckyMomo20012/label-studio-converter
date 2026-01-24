@@ -35,6 +35,7 @@ describe('Full Label Studio Format - Fixtures', () => {
     const result = await fullLabelStudioToPPOCRConverters(
       input,
       'test/fixtures/test.json',
+      'test/fixtures',
       defaultOptions,
     );
 
@@ -57,6 +58,7 @@ describe('Full Label Studio Format - Fixtures', () => {
     const result = await fullLabelStudioToPPOCRConverters(
       input,
       'test/fixtures/test.json',
+      'test/fixtures',
       defaultOptions,
     );
 
@@ -79,6 +81,7 @@ describe('Full Label Studio Format - Fixtures', () => {
     const result = await fullLabelStudioToPPOCRConverters(
       input,
       'test/fixtures/test.json',
+      'test/fixtures',
       defaultOptions,
     );
 
@@ -101,6 +104,7 @@ describe('Full Label Studio Format - Fixtures', () => {
     const result = await fullLabelStudioToPPOCRConverters(
       input,
       'test/fixtures/test.json',
+      'test/fixtures',
       defaultOptions,
     );
 
@@ -124,6 +128,7 @@ describe('Full Label Studio Format - Fixtures', () => {
     const result = await fullLabelStudioToPPOCRConverters(
       input,
       'test/fixtures/test.json',
+      'test/fixtures',
       defaultOptions,
     );
 
@@ -148,6 +153,7 @@ describe('Full Label Studio Format - Fixtures', () => {
     const result = await fullLabelStudioToPPOCRConverters(
       input,
       'test/fixtures/test.json',
+      'test/fixtures',
       defaultOptions,
     );
 
@@ -169,6 +175,7 @@ describe('Full Label Studio Format - Fixtures', () => {
     const result = await fullLabelStudioToPPOCRConverters(
       input,
       'test/fixtures/test.json',
+      'test/fixtures',
       defaultOptions,
     );
 
@@ -191,6 +198,7 @@ describe('Full Label Studio Format - Fixtures', () => {
     const result = await fullLabelStudioToPPOCRConverters(
       input,
       'test/fixtures/test.json',
+      'test/fixtures',
       defaultOptions,
     );
 
@@ -224,6 +232,7 @@ describe('Min Label Studio Format - Fixtures', () => {
     const result = await minLabelStudioToPPOCRConverters(
       input,
       'test/fixtures/test.json',
+      'test/fixtures',
       defaultOptions,
     );
 
@@ -245,6 +254,7 @@ describe('Min Label Studio Format - Fixtures', () => {
     const result = await minLabelStudioToPPOCRConverters(
       input,
       'test/fixtures/test.json',
+      'test/fixtures',
       defaultOptions,
     );
 

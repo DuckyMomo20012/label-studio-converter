@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'fs/promises';
+import { copyFile, mkdir, readFile, writeFile } from 'fs/promises';
 import { basename, dirname, join, relative } from 'path';
 import chalk from 'chalk';
 import {
@@ -10,6 +10,7 @@ import {
   DEFAULT_ADAPT_RESIZE_OUTLIER_PERCENTILE,
   DEFAULT_ADAPT_RESIZE_THRESHOLD,
   DEFAULT_BACKUP,
+  DEFAULT_COPY_IMAGES,
   DEFAULT_HEIGHT_INCREMENT,
   DEFAULT_LABEL_STUDIO_FILE_PATTERN,
   DEFAULT_PPOCR_FILE_NAME,
@@ -43,6 +44,7 @@ type CommandFlags = {
   outDir?: string;
   fileName?: string;
   backup?: boolean;
+  copyImages?: boolean;
   baseImageDir?: string;
   recursive?: boolean;
   filePattern?: string;
@@ -87,6 +89,7 @@ export async function convertToPPOCR(
     outDir,
     fileName = DEFAULT_PPOCR_FILE_NAME,
     backup = DEFAULT_BACKUP,
+    copyImages = DEFAULT_COPY_IMAGES,
     baseImageDir,
     sortVertical = DEFAULT_SORT_VERTICAL,
     sortHorizontal = DEFAULT_SORT_HORIZONTAL,
@@ -155,10 +158,16 @@ export async function convertToPPOCR(
         precision,
       };
 
+      // Determine output directory before calling converters
+      const outputSubDir = outDir
+        ? join(outDir, relativeDir)
+        : dirname(filePath);
+
       if (isFull) {
         outputTasks = await fullLabelStudioToPPOCRConverters(
           inputTasks,
           filePath,
+          outputSubDir,
           {
             ...convertParams,
             ...enhanceParams,
@@ -168,11 +177,58 @@ export async function convertToPPOCR(
         outputTasks = await minLabelStudioToPPOCRConverters(
           inputTasks,
           filePath,
+          outputSubDir,
           {
             ...convertParams,
             ...enhanceParams,
           },
         );
+      }
+
+      // Copy images to output directory if requested
+      if (outDir && copyImages) {
+        const taskFileDir = dirname(filePath);
+
+        for (const task of inputTasks) {
+          try {
+            // Extract image path from Label Studio task
+            const imageUrl = isFull
+              ? (task as LabelStudioTask).data.ocr
+              : (task as LabelStudioTaskMin).ocr;
+
+            // Handle URLs vs local paths
+            let sourceImagePath: string;
+            if (
+              imageUrl.startsWith('http://') ||
+              imageUrl.startsWith('https://')
+            ) {
+              // For URLs, the image should have been downloaded to task directory
+              // Extract filename from URL
+              const urlFileName = basename(new URL(imageUrl).pathname);
+              sourceImagePath = join(taskFileDir, urlFileName);
+            } else {
+              // Local path - strip leading slash and resolve from task directory
+              const cleanPath = imageUrl.startsWith('/')
+                ? imageUrl.slice(1)
+                : imageUrl;
+              sourceImagePath = join(taskFileDir, cleanPath);
+            }
+
+            const destImagePath = join(outputSubDir, basename(sourceImagePath));
+
+            await mkdir(dirname(destImagePath), { recursive: true });
+            await copyFile(sourceImagePath, destImagePath);
+            console.log(
+              chalk.gray(`  ✓ Copied image: ${basename(sourceImagePath)}`),
+            );
+          } catch (error) {
+            console.warn(
+              chalk.yellow(
+                `  ⚠ Failed to copy image: ${error instanceof Error ? error.message : error}`,
+              ),
+            );
+          }
+        }
       }
 
       // Format output as PPOCR label format: image_path<tab>[{JSON array}]
@@ -189,10 +245,7 @@ export async function convertToPPOCR(
       // Write to output file
       const baseName = file.replace('.json', '');
 
-      // Use outDir if specified, otherwise use source file directory
-      const outputSubDir = outDir
-        ? join(outDir, relativeDir)
-        : dirname(filePath);
+      // Ensure output directory exists
       await mkdir(outputSubDir, { recursive: true });
 
       const outputPath = join(outputSubDir, `${baseName}_${fileName}`);

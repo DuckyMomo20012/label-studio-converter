@@ -83,3 +83,6 @@ export type OutputMode =
 export const DEFAULT_BACKUP = false;
 export const BACKUP_SUFFIX_PREFIX = 'backup-';
 export const BACKUP_TIMESTAMP_FORMAT = 'YYYY-MM-DDTHH-MM-SS'; // ISO format with colons replaced by hyphens
+
+// Image copying options
+export const DEFAULT_COPY_IMAGES = true;

@@ -28,6 +28,7 @@ describe('Converters', () => {
       const results = await fullLabelStudioToPPOCRConverters(
         input,
         'test/fixtures/test.json',
+        'test/fixtures',
         {
           sortVertical: 'none',
           sortHorizontal: 'none',
@@ -59,6 +60,7 @@ describe('Converters', () => {
       const results = await minLabelStudioToPPOCRConverters(
         input,
         'test/fixtures/label_studio_min_one_rect.json',
+        'test/fixtures',
         {
           sortVertical: 'none',
           sortHorizontal: 'none',
@@ -86,6 +88,7 @@ describe('Converters', () => {
       const results = await fullLabelStudioToPPOCRConverters(
         input,
         'test/fixtures/label_studio_full_diamond.json',
+        'test/fixtures',
         {
           sortVertical: 'none',
           sortHorizontal: 'none',
@@ -123,6 +126,7 @@ describe('Converters', () => {
       const results = await fullLabelStudioToPPOCRConverters(
         input,
         'test/fixtures/label_studio_full_no_anno.json',
+        'test/fixtures',
         {
           sortVertical: 'none',
           sortHorizontal: 'none',
@@ -256,6 +260,7 @@ describe('Converters', () => {
       const ppocrResults = await fullLabelStudioToPPOCRConverters(
         originalInput,
         'test/fixtures/label_studio_full_one_rect.json',
+        'test/fixtures',
         {
           sortVertical: 'none',
           sortHorizontal: 'none',

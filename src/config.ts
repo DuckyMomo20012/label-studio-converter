@@ -7,8 +7,11 @@ import {
   DEFAULT_ADAPT_RESIZE_MORPHOLOGY_SIZE,
   DEFAULT_ADAPT_RESIZE_OUTLIER_PERCENTILE,
   DEFAULT_ADAPT_RESIZE_THRESHOLD,
+  DEFAULT_BACKUP,
+  DEFAULT_COPY_IMAGES,
   DEFAULT_HEIGHT_INCREMENT,
   DEFAULT_PPOCR_PRECISION,
+  DEFAULT_RECURSIVE,
   DEFAULT_SHAPE_NORMALIZE,
   DEFAULT_SORT_HORIZONTAL,
   DEFAULT_SORT_VERTICAL,
@@ -23,6 +26,15 @@ import {
   SORT_VERTICAL_NONE,
   SORT_VERTICAL_TOP_BOTTOM,
 } from '@/constants';
+
+export type BaseFileIOOptions = {
+  outDir?: string;
+  fileName?: string;
+  backup?: boolean;
+  recursive?: boolean;
+  filePattern?: string;
+  copyImages?: boolean;
+};
 
 export type BaseEnhanceOptions = {
   sortVertical?: string;
@@ -41,6 +53,47 @@ export type BaseEnhanceOptions = {
   adaptResizeMaxHorizontalExpansion?: number;
   precision?: number;
 };
+
+export const baseFileIOFlagOptions = {
+  outDir: {
+    kind: 'parsed',
+    brief:
+      'Output directory. If not specified, files are saved in the same directory as the source files',
+    parse: String,
+    optional: true,
+  },
+  fileName: {
+    kind: 'parsed',
+    brief:
+      'Custom output filename. If not specified, uses default naming convention',
+    parse: String,
+    optional: true,
+  },
+  backup: {
+    kind: 'boolean',
+    brief: `Create backup of existing files before overwriting. Default: ${DEFAULT_BACKUP}`,
+    optional: true,
+  },
+  recursive: {
+    kind: 'boolean',
+    brief: `Recursively search directories for files. Default: ${DEFAULT_RECURSIVE}`,
+    optional: true,
+  },
+  filePattern: {
+    kind: 'parsed',
+    brief: 'Regex pattern to match input files',
+    parse: String,
+    optional: true,
+  },
+  copyImages: {
+    kind: 'boolean',
+    brief: `Copy images to output directory when --outDir is specified. Only applies to toLabelStudio and toPPOCR commands. Default: ${DEFAULT_COPY_IMAGES}`,
+    optional: true,
+  },
+} satisfies TypedCommandFlagParameters<
+  BaseFileIOOptions,
+  CommandContext
+>['flags'];
 
 export const baseEnhanceFlagOptions = {
   sortVertical: {
