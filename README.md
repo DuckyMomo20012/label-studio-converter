@@ -310,6 +310,14 @@ COMMANDS
   - **Example**: `--noCopyImages` keeps images in original location, only copies task files
   - **Note**: Only applies to toLabelStudio and toPPOCR converters when --outDir is used
 
+- `--imageBaseDir <dir>`: Controls output directory structure when copying images
+  - **Behavior**: Determines how the directory structure is preserved when copying images to output directory
+  - **Options**: `task-file` (relative to task file), `input-dir` (relative to input directory)
+  - **Default**: `task-file`
+  - **Example**: `--imageBaseDir input-dir --copyImages` preserves full path structure from input directory
+  - **Use case**: Control whether copied images maintain full path from input directory or relative to task file
+  - **Note**: Only affects output when --copyImages is used with --outDir
+
 **Enhancement Flags:**
 
 - `--sortVertical <order>`: Vertical sorting order
@@ -447,6 +455,8 @@ COMMANDS
 
 Understanding how image paths are resolved is critical for organizing your files before conversion. The key is knowing **where you run the command** and **what input parameter you provide**.
 
+> **New in v1.5.0**: The `--imageBaseDir` flag controls the output directory structure when copying images. It determines whether copied images maintain their path relative to the task file (`task-file`, default) or the input directory (`input-dir`).
+
 ##### toLabelStudio: PPOCRLabel → Label Studio
 
 **INPUT Resolution (Reading PPOCRLabel files):**
@@ -459,7 +469,7 @@ Understanding how image paths are resolved is critical for organizing your files
 - Converter finds: `project/data/Label.txt` (and other Label.txt files in subdirectories if --recursive)
 - Task file being processed: `project/data/Label.txt`
 
-**How Resolvers Work:**
+**How Image Paths Are Read:**
 
 1. **What's in the Label.txt file**:
    - Path format: `data/example.jpg` (PPOCRLabel standard: folder/filename)
@@ -473,22 +483,30 @@ Understanding how image paths are resolved is critical for organizing your files
      - YES → resolve from parent: `dirname(project/data/) + data/example.jpg` = `project/data/example.jpg`
      - NO → resolve from task dir: `project/data/ + example.jpg` = `project/data/example.jpg`
 
-3. **What the processor receives**:
-   - Path relative to CWD: `data/example.jpg`
-   - (This is `relative(project/, project/data/example.jpg)` = `data/example.jpg`)
+**OUTPUT Resolution (Copying images with --copyImages --outDir):**
 
-**OUTPUT Resolution (Writing Label Studio JSON):**
+**With `--imageBaseDir task-file` (default):**
 
-**Command Execution Context:**
+When copying images to output directory, paths are maintained **relative to the task file location**:
 
-- Output location: Same as task file location (no --outDir specified)
-- Output file: `project/data/Label_full.json`
+- Input directory: `project/data/` (provided to command)
+- Source image: `project/data/foo/bar/baz/example.jpg`
+- Task file: `project/data/Label.txt`
+- Output dir: `project/output/`
+- Relative from task: `relative(project/data/, project/data/foo/bar/baz/example.jpg)` = `foo/bar/baz/example.jpg`
+- Destination: `project/output/data/foo/bar/baz/example.jpg` (maintains structure relative to task file)
 
-**How Resolvers Work:**
+**With `--imageBaseDir input-dir`:**
 
-1. **What the processor has**:
-   - Path relative to CWD: `data/example.jpg`
-   - (From input resolution step)
+When copying images to output directory, paths are maintained **relative to input directory**:
+
+- Input directory: `project/data/` (provided to command)
+- Source image: `project/data/foo/bar/baz/example.jpg`
+- Output dir: `project/output/`
+- Relative from input: `relative(project/data/, project/data/foo/bar/baz/example.jpg)` = `foo/bar/baz/example.jpg`
+- Destination: `project/output/foo/bar/baz/example.jpg` (maintains path from input directory)
+  - Path relative to CWD: `data/example.jpg`
+  - (From input resolution step)
 
 2. **How output resolver formats paths**:
    - No --outDir: Compute relative path from output JSON to image
@@ -619,7 +637,7 @@ project/
 - Converter finds: `project/data/export.json` (and other JSON files in subdirectories if --recursive)
 - Task file being processed: `project/data/export.json`
 
-**How Resolvers Work:**
+**How Image Paths Are Read:**
 
 1. **What's in the JSON file**:
    - Local path: `"ocr": "/example.jpg"` or `"ocr": "example.jpg"`
@@ -634,16 +652,28 @@ project/
      - Extract filename: `basename(URL)` = `example.jpg`
      - Download to task directory: `project/data/example.jpg`
 
-3. **What the processor receives**:
-   - Path relative to CWD: `data/example.jpg`
-   - (This is `relative(project/, project/data/example.jpg)` = `data/example.jpg`)
+**OUTPUT Resolution (Copying images with --copyImages --outDir):**
 
-**OUTPUT Resolution (Writing PPOCRLabel Label.txt):**
+**With `--imageBaseDir task-file` (default):**
 
-**Command Execution Context:**
+When copying images to output directory, paths are maintained **relative to the task file location**:
 
-- No --outDir specified: Output at task file location
-- Output file: `project/data/Label.txt`
+- Input directory: `project/data/` (provided to command)
+- Source image: `project/data/foo/bar/baz/example.jpg`
+- Task file: `project/data/export.json`
+- Output dir: `project/output/`
+- Relative from task: `relative(project/data/, project/data/foo/bar/baz/example.jpg)` = `foo/bar/baz/example.jpg`
+- Destination: `project/output/data/foo/bar/baz/example.jpg` (maintains structure relative to task file)
+
+**With `--imageBaseDir input-dir`:**
+
+When copying images to output directory, paths are maintained **relative to input directory**:
+
+- Input directory: `project/data/` (provided to command)
+- Source image: `project/data/foo/bar/baz/example.jpg`
+- Output dir: `project/output/`
+- Relative from input: `relative(project/data/, project/data/foo/bar/baz/example.jpg)` = `foo/bar/baz/example.jpg`
+- Destination: `project/output/foo/bar/baz/example.jpg` (maintains path from input directory)
 
 **How Resolvers Work:**
 
@@ -1030,6 +1060,16 @@ label-studio-converter toLabelStudio ./dataset \
 label-studio-converter toPPOCR ./data \
   --outDir ./output \
   --fileName MyLabels.txt
+
+# Using imageBaseDir for flexible path resolution
+# Default: resolve from task file location
+label-studio-converter toLabelStudio ./annotations/
+
+# Copy images maintaining full directory structure from execution directory
+label-studio-converter toLabelStudio ./annotations/ \
+  --copyImages \
+  --imageBaseDir input-dir \
+  --outDir ./output
 ```
 
 ##### Shape Normalization

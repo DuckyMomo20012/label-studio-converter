@@ -87,7 +87,7 @@
     - `DEFAULT_RECURSIVE = false` - Default for --recursive flag
     - `DEFAULT_PPOCR_FILE_NAME = 'Label.txt'` - Default output filename
     - `DEFAULT_USE_ORIENTED_BOX = false` - Default for normalize transformer
-    - `DEFAULT_ADAPT_RESIZE_TIMEOUT_MS = 30000` - Timeout for adaptive resize
+    - `DEFAULT_ADAPT_RESIZE_TIMEOUT_MS = 15000` - Timeout for adaptive resize
     - `DEFAULT_ADAPT_RESIZE_MAX_BOX_SIZE = 3000` - Max box size for adaptive resize
 
 - **Transformer Options**: Follow constants-first approach
