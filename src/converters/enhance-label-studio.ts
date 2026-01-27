@@ -24,6 +24,7 @@ import {
 export type EnhanceLabelStudioOptions = BaseEnhanceOptions & {
   baseServerUrl?: string;
   outDir?: string;
+  imageBaseDir?: string;
 };
 
 export const enhanceFullLabelStudioConverters = async (
@@ -34,6 +35,7 @@ export const enhanceFullLabelStudioConverters = async (
   const {
     baseServerUrl,
     outDir,
+    imageBaseDir: _imageBaseDir,
     sortVertical,
     sortHorizontal,
     normalizeShape,
@@ -172,6 +174,7 @@ export const enhanceMinLabelStudioConverters = async (
   const {
     baseServerUrl,
     outDir,
+    imageBaseDir: _imageBaseDir,
     sortVertical,
     sortHorizontal,
     normalizeShape,

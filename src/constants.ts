@@ -86,3 +86,12 @@ export const BACKUP_TIMESTAMP_FORMAT = 'YYYY-MM-DDTHH-MM-SS'; // ISO format with
 
 // Image copying options
 export const DEFAULT_COPY_IMAGES = true;
+
+// Image base directory options
+export const IMAGE_BASE_DIR_TASK_FILE = 'task-file';
+export const IMAGE_BASE_DIR_INPUT_DIR = 'input-dir';
+export const DEFAULT_IMAGE_BASE_DIR = IMAGE_BASE_DIR_TASK_FILE;
+
+export type ImageBaseDir =
+  | typeof IMAGE_BASE_DIR_TASK_FILE
+  | typeof IMAGE_BASE_DIR_INPUT_DIR;

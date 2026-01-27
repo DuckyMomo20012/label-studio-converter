@@ -12,6 +12,7 @@ import {
   DEFAULT_ADAPT_RESIZE_THRESHOLD,
   DEFAULT_BACKUP,
   DEFAULT_HEIGHT_INCREMENT,
+  DEFAULT_IMAGE_BASE_DIR,
   DEFAULT_LABEL_STUDIO_FILE_PATTERN,
   DEFAULT_LABEL_STUDIO_PRECISION,
   DEFAULT_OUTPUT_MODE,
@@ -39,6 +40,7 @@ type CommandFlags = {
   recursive?: boolean;
   filePattern?: string;
   outputMode?: string;
+  imageBaseDir?: string;
 } & BaseEnhanceOptions;
 
 export async function enhanceLabelStudio(
@@ -50,6 +52,7 @@ export async function enhanceLabelStudio(
     outDir,
     fileName,
     backup = DEFAULT_BACKUP,
+    imageBaseDir = DEFAULT_IMAGE_BASE_DIR,
     sortVertical = DEFAULT_SORT_VERTICAL,
     sortHorizontal = DEFAULT_SORT_HORIZONTAL,
     normalizeShape = DEFAULT_SHAPE_NORMALIZE,
@@ -119,6 +122,7 @@ export async function enhanceLabelStudio(
         adaptResizeMorphologySize,
         adaptResizeMaxHorizontalExpansion,
         precision,
+        imageBaseDir,
       };
 
       if (isFull) {

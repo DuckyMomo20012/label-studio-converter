@@ -1,5 +1,6 @@
 import { basename, dirname, join, relative, resolve } from 'path';
 import { type BaseEnhanceOptions } from '@/config';
+import { IMAGE_BASE_DIR_INPUT_DIR } from '@/constants';
 import {
   FullOCRLabelStudioOutput,
   type HorizontalSortOrder,
@@ -22,6 +23,9 @@ export type PPOCRToLabelStudioOptions = BaseEnhanceOptions & {
   defaultLabelName?: string;
   outDir?: string;
   copyImages?: boolean;
+  imageBaseDir?: string;
+  inputBaseDir?: string;
+  outputRootDir?: string;
 };
 
 export const ppocrToFullLabelStudioConverters = async (
@@ -34,6 +38,8 @@ export const ppocrToFullLabelStudioConverters = async (
     defaultLabelName,
     outDir,
     copyImages = false,
+    imageBaseDir,
+    inputBaseDir,
     sortVertical,
     sortHorizontal,
     normalizeShape,
@@ -114,10 +120,21 @@ export const ppocrToFullLabelStudioConverters = async (
       const outputJsonDir = resolve(outDir);
 
       if (copyImages) {
-        // Images were copied to the same directory as the JSON
-        // So just use the filename
-        const fileName = basename(taskImagePath);
-        resolvedPath = fileName;
+        // Images were copied - use path structure based on imageBaseDir setting
+        // NOTE: taskImagePath is ALREADY the absolute resolved path from resolveInputImagePath!
+        const sourceImagePath = taskImagePath;
+
+        // Extract just the filename for task-file mode
+        const fileName = basename(sourceImagePath);
+
+        // Use the same path structure as where images were copied
+        if (imageBaseDir === IMAGE_BASE_DIR_INPUT_DIR && inputBaseDir) {
+          // input-dir mode: path from input directory to image
+          resolvedPath = relative(inputBaseDir, sourceImagePath);
+        } else {
+          // task-file mode: just use filename
+          resolvedPath = fileName;
+        }
       } else {
         // Images are in their original location
         // Compute relative path from JSON location to image
@@ -180,6 +197,8 @@ export const ppocrToMinLabelStudioConverters = async (
     defaultLabelName,
     outDir,
     copyImages = false,
+    imageBaseDir,
+    inputBaseDir,
     sortVertical,
     sortHorizontal,
     normalizeShape,
@@ -237,10 +256,21 @@ export const ppocrToMinLabelStudioConverters = async (
       const outputJsonDir = resolve(outDir);
 
       if (copyImages) {
-        // Images were copied to the same directory as the JSON
-        // So just use the filename
-        const fileName = basename(taskImagePath);
-        resolvedPath = fileName;
+        // Images were copied - use path structure based on imageBaseDir setting
+        // NOTE: taskImagePath is ALREADY the absolute resolved path from resolveInputImagePath!
+        const sourceImagePath = taskImagePath;
+
+        // Extract just the filename for task-file mode
+        const fileName = basename(sourceImagePath);
+
+        // Use the same path structure as where images were copied
+        if (imageBaseDir === IMAGE_BASE_DIR_INPUT_DIR && inputBaseDir) {
+          // input-dir mode: path from input directory to image
+          resolvedPath = relative(inputBaseDir, sourceImagePath);
+        } else {
+          // task-file mode: just use filename
+          resolvedPath = fileName;
+        }
       } else {
         // Images are in their original location
         // Compute relative path from JSON location to image

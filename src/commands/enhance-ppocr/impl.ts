@@ -11,6 +11,7 @@ import {
   DEFAULT_ADAPT_RESIZE_THRESHOLD,
   DEFAULT_BACKUP,
   DEFAULT_HEIGHT_INCREMENT,
+  DEFAULT_IMAGE_BASE_DIR,
   DEFAULT_PPOCR_FILE_PATTERN,
   DEFAULT_PPOCR_PRECISION,
   DEFAULT_RECURSIVE,
@@ -35,6 +36,7 @@ type CommandFlags = {
   backup?: boolean;
   recursive?: boolean;
   filePattern?: string;
+  imageBaseDir?: string;
 } & BaseEnhanceOptions;
 
 export async function enhancePPOCR(
@@ -46,6 +48,7 @@ export async function enhancePPOCR(
     outDir,
     fileName,
     backup = DEFAULT_BACKUP,
+    imageBaseDir = DEFAULT_IMAGE_BASE_DIR,
     sortVertical = DEFAULT_SORT_VERTICAL,
     sortHorizontal = DEFAULT_SORT_HORIZONTAL,
     normalizeShape = DEFAULT_SHAPE_NORMALIZE,
@@ -142,6 +145,7 @@ export async function enhancePPOCR(
         adaptResizeMorphologySize,
         adaptResizeMaxHorizontalExpansion,
         precision,
+        imageBaseDir,
       };
 
       const outputTasks = await enhancePPOCRConverters(

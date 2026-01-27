@@ -16,6 +16,7 @@ import {
   DEFAULT_CREATE_FILE_PER_IMAGE,
   DEFAULT_FILE_LIST_NAME,
   DEFAULT_HEIGHT_INCREMENT,
+  DEFAULT_IMAGE_BASE_DIR,
   DEFAULT_LABEL_NAME,
   DEFAULT_LABEL_STUDIO_FULL_JSON,
   DEFAULT_LABEL_STUDIO_PRECISION,
@@ -26,6 +27,7 @@ import {
   DEFAULT_SORT_HORIZONTAL,
   DEFAULT_SORT_VERTICAL,
   DEFAULT_WIDTH_INCREMENT,
+  IMAGE_BASE_DIR_INPUT_DIR,
 } from '@/constants';
 import type { LocalContext } from '@/context';
 import {
@@ -54,6 +56,7 @@ type CommandFlags = {
   recursive?: boolean;
   filePattern?: string;
   outputMode?: string;
+  imageBaseDir?: string;
 } & BaseEnhanceOptions;
 
 export async function convertToLabelStudio(
@@ -66,6 +69,7 @@ export async function convertToLabelStudio(
     fileName,
     backup = DEFAULT_BACKUP,
     copyImages = DEFAULT_COPY_IMAGES,
+    imageBaseDir = DEFAULT_IMAGE_BASE_DIR,
     defaultLabelName = DEFAULT_LABEL_NAME,
     toFullJson = DEFAULT_LABEL_STUDIO_FULL_JSON,
     createFilePerImage = DEFAULT_CREATE_FILE_PER_IMAGE,
@@ -211,6 +215,8 @@ export async function convertToLabelStudio(
         baseServerUrl,
         outDir: converterOutputDir,
         copyImages: resolvedOutDir ? copyImages : false,
+        inputBaseDir: baseDir,
+        outputRootDir: resolvedOutDir,
       };
 
       const enhanceParams = {
@@ -228,6 +234,7 @@ export async function convertToLabelStudio(
         adaptResizeMorphologySize,
         adaptResizeMaxHorizontalExpansion,
         precision,
+        imageBaseDir,
       };
 
       if (toFullJson) {
@@ -269,7 +276,17 @@ export async function convertToLabelStudio(
               ? resolve(dirname(taskFileDir), folderName, fileName)
               : resolve(taskFileDir, fileName);
 
-            const destImagePath = join(outputSubDir, basename(sourceImagePath));
+            // Calculate destination path based on imageBaseDir flag
+            let destImagePath: string;
+            if (imageBaseDir === IMAGE_BASE_DIR_INPUT_DIR) {
+              // Keep full path structure from input directory
+              const relativeFromInput = relative(baseDir, sourceImagePath);
+              destImagePath = join(resolvedOutDir, relativeFromInput);
+            } else {
+              // Default: task-file - relative to task file location
+              const relativeFromTask = relative(taskFileDir, sourceImagePath);
+              destImagePath = join(outputSubDir, relativeFromTask);
+            }
 
             await mkdir(dirname(destImagePath), { recursive: true });
             await copyFile(sourceImagePath, destImagePath);

@@ -1,5 +1,5 @@
 import { copyFile, mkdir, readFile, writeFile } from 'fs/promises';
-import { basename, dirname, join, relative } from 'path';
+import { basename, dirname, join, relative, resolve } from 'path';
 import chalk from 'chalk';
 import {
   DEFAULT_ADAPT_RESIZE_MARGIN,
@@ -12,6 +12,7 @@ import {
   DEFAULT_BACKUP,
   DEFAULT_COPY_IMAGES,
   DEFAULT_HEIGHT_INCREMENT,
+  DEFAULT_IMAGE_BASE_DIR,
   DEFAULT_LABEL_STUDIO_FILE_PATTERN,
   DEFAULT_PPOCR_FILE_NAME,
   DEFAULT_PPOCR_PRECISION,
@@ -20,6 +21,7 @@ import {
   DEFAULT_SORT_HORIZONTAL,
   DEFAULT_SORT_VERTICAL,
   DEFAULT_WIDTH_INCREMENT,
+  IMAGE_BASE_DIR_INPUT_DIR,
 } from '@/constants';
 import type { LocalContext } from '@/context';
 import {
@@ -48,6 +50,7 @@ type CommandFlags = {
   baseImageDir?: string;
   recursive?: boolean;
   filePattern?: string;
+  imageBaseDir?: string;
 } & BaseEnhanceOptions;
 
 export const isLabelStudioFullJSON = (
@@ -91,6 +94,7 @@ export async function convertToPPOCR(
     backup = DEFAULT_BACKUP,
     copyImages = DEFAULT_COPY_IMAGES,
     baseImageDir,
+    imageBaseDir = DEFAULT_IMAGE_BASE_DIR,
     sortVertical = DEFAULT_SORT_VERTICAL,
     sortHorizontal = DEFAULT_SORT_HORIZONTAL,
     normalizeShape = DEFAULT_SHAPE_NORMALIZE,
@@ -119,6 +123,10 @@ export async function convertToPPOCR(
   }
 
   console.log(chalk.blue(`Found ${filePaths.length} files to process\n`));
+
+  // Use first input directory as base for relative paths (resolve to absolute)
+  // If no input dirs, use current working directory
+  const baseDir = inputDirs.length > 0 ? resolve(inputDirs[0]!) : process.cwd();
 
   for (const filePath of filePaths) {
     const file = basename(filePath);
@@ -156,6 +164,7 @@ export async function convertToPPOCR(
         adaptResizeMorphologySize,
         adaptResizeMaxHorizontalExpansion,
         precision,
+        imageBaseDir,
       };
 
       // Determine output directory before calling converters
@@ -214,7 +223,17 @@ export async function convertToPPOCR(
               sourceImagePath = join(taskFileDir, cleanPath);
             }
 
-            const destImagePath = join(outputSubDir, basename(sourceImagePath));
+            // Calculate destination path based on imageBaseDir flag
+            let destImagePath: string;
+            if (imageBaseDir === IMAGE_BASE_DIR_INPUT_DIR) {
+              // Keep full path structure from input directory
+              const relativeFromInput = relative(baseDir, sourceImagePath);
+              destImagePath = join(outDir, relativeFromInput);
+            } else {
+              // Default: task-file - relative to task file location
+              const relativeFromTask = relative(taskFileDir, sourceImagePath);
+              destImagePath = join(outputSubDir, relativeFromTask);
+            }
 
             await mkdir(dirname(destImagePath), { recursive: true });
             await copyFile(sourceImagePath, destImagePath);

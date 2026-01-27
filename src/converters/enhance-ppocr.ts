@@ -16,12 +16,17 @@ import {
   withOptions,
 } from '@/lib';
 
+export type EnhancePPOCROptions = BaseEnhanceOptions & {
+  imageBaseDir?: string;
+};
+
 export const enhancePPOCRConverters = async (
   inputTasks: PPOCRLabelTask[],
   taskFilePath: string,
-  options: BaseEnhanceOptions,
+  options: EnhancePPOCROptions,
 ) => {
   const {
+    imageBaseDir: _imageBaseDir,
     sortVertical,
     sortHorizontal,
     normalizeShape,

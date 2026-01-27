@@ -10,6 +10,7 @@ import {
   DEFAULT_BACKUP,
   DEFAULT_COPY_IMAGES,
   DEFAULT_HEIGHT_INCREMENT,
+  DEFAULT_IMAGE_BASE_DIR,
   DEFAULT_PPOCR_PRECISION,
   DEFAULT_RECURSIVE,
   DEFAULT_SHAPE_NORMALIZE,
@@ -17,6 +18,8 @@ import {
   DEFAULT_SORT_VERTICAL,
   DEFAULT_USE_ORIENTED_BOX,
   DEFAULT_WIDTH_INCREMENT,
+  IMAGE_BASE_DIR_INPUT_DIR,
+  IMAGE_BASE_DIR_TASK_FILE,
   SHAPE_NORMALIZE_NONE,
   SHAPE_NORMALIZE_RECTANGLE,
   SORT_HORIZONTAL_LTR,
@@ -34,6 +37,7 @@ export type BaseFileIOOptions = {
   recursive?: boolean;
   filePattern?: string;
   copyImages?: boolean;
+  imageBaseDir?: string;
 };
 
 export type BaseEnhanceOptions = {
@@ -88,6 +92,12 @@ export const baseFileIOFlagOptions = {
   copyImages: {
     kind: 'boolean',
     brief: `Copy images to output directory when --outDir is specified. Only applies to toLabelStudio and toPPOCR commands. Default: ${DEFAULT_COPY_IMAGES}`,
+    optional: true,
+  },
+  imageBaseDir: {
+    kind: 'parsed',
+    brief: `Base directory for resolving image paths. Options: "${IMAGE_BASE_DIR_TASK_FILE}" (relative to task file location), "${IMAGE_BASE_DIR_INPUT_DIR}" (relative to command execution directory). Default: "${DEFAULT_IMAGE_BASE_DIR}"`,
+    parse: String,
     optional: true,
   },
 } satisfies TypedCommandFlagParameters<
