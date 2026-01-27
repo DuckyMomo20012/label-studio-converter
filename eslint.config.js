@@ -41,6 +41,14 @@ export default defineConfig([
     rules: {
       ...tseslint.configs.recommended.rules,
       ...prettier.configs.recommended.rules,
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          argsIgnorePattern: '^_',
+          varsIgnorePattern: '^_',
+          caughtErrorsIgnorePattern: '^_',
+        },
+      ],
       'import/extensions': [
         'warn',
         'ignorePackages',
