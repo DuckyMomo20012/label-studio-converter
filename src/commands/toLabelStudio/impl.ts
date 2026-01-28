@@ -213,6 +213,7 @@ export async function convertToLabelStudio(
       const convertParams = {
         defaultLabelName,
         baseServerUrl,
+        outputMode,
         outDir: converterOutputDir,
         copyImages: resolvedOutDir ? copyImages : false,
         inputBaseDir: baseDir,

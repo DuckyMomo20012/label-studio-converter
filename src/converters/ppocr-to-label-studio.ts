@@ -21,6 +21,7 @@ import {
 export type PPOCRToLabelStudioOptions = BaseEnhanceOptions & {
   baseServerUrl?: string;
   defaultLabelName?: string;
+  outputMode?: string;
   outDir?: string;
   copyImages?: boolean;
   imageBaseDir?: string;
@@ -36,6 +37,7 @@ export const ppocrToFullLabelStudioConverters = async (
   const {
     baseServerUrl,
     defaultLabelName,
+    outputMode,
     outDir,
     copyImages = false,
     imageBaseDir,
@@ -170,6 +172,7 @@ export const ppocrToFullLabelStudioConverters = async (
     input: PPOCRInput,
     output: withOptions(FullOCRLabelStudioOutput, {
       defaultLabelName,
+      outputMode,
     }),
     transformers: transformerParams,
   });
