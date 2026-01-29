@@ -56,6 +56,11 @@ export const ppocrToFullLabelStudioConverters = async (
     adaptResizeOutlierPercentile,
     adaptResizeMorphologySize,
     adaptResizeMaxHorizontalExpansion,
+    adaptResizePaddingCheckWidth,
+    adaptResizeMinPaddingBrightness,
+    adaptResizeMinPaddingRatio,
+    adaptResizeUseAdaptiveThreshold,
+    adaptResizeAdaptiveBlockSize,
     precision,
   } = options;
 
@@ -78,6 +83,11 @@ export const ppocrToFullLabelStudioConverters = async (
             outlierPercentile: adaptResizeOutlierPercentile,
             morphologySize: adaptResizeMorphologySize,
             maxHorizontalExpansion: adaptResizeMaxHorizontalExpansion,
+            paddingCheckWidth: adaptResizePaddingCheckWidth,
+            minPaddingBrightness: adaptResizeMinPaddingBrightness,
+            minPaddingRatio: adaptResizeMinPaddingRatio,
+            useAdaptiveThreshold: adaptResizeUseAdaptiveThreshold,
+            adaptiveBlockSize: adaptResizeAdaptiveBlockSize,
           }),
         ]
       : []),
