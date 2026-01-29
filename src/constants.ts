@@ -57,6 +57,13 @@ export const DEFAULT_ADAPT_RESIZE_MORPHOLOGY_SIZE = 2;
 export const DEFAULT_ADAPT_RESIZE_MAX_HORIZONTAL_EXPANSION = 50;
 export const DEFAULT_ADAPT_RESIZE_TIMEOUT_MS = 15000;
 export const DEFAULT_ADAPT_RESIZE_MAX_BOX_SIZE = 3000;
+// New: Padding validation options
+export const DEFAULT_ADAPT_RESIZE_PADDING_CHECK_WIDTH = 3; // Width of strip to check for white space
+export const DEFAULT_ADAPT_RESIZE_MIN_PADDING_BRIGHTNESS = 200; // Min brightness for "white" padding (0-255)
+export const DEFAULT_ADAPT_RESIZE_MIN_PADDING_RATIO = 0.85; // Min % of white pixels in padding strip (85%)
+// New: Adaptive threshold options
+export const DEFAULT_ADAPT_RESIZE_USE_ADAPTIVE_THRESHOLD = true; // Auto-detect threshold from image
+export const DEFAULT_ADAPT_RESIZE_ADAPTIVE_BLOCK_SIZE = 50; // Block size for local thresholding
 
 // Number precision options
 // For Label Studio: keep full precision (no rounding) by default

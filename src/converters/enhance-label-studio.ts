@@ -50,6 +50,11 @@ export const enhanceFullLabelStudioConverters = async (
     adaptResizeOutlierPercentile,
     adaptResizeMorphologySize,
     adaptResizeMaxHorizontalExpansion,
+    adaptResizePaddingCheckWidth,
+    adaptResizeMinPaddingBrightness,
+    adaptResizeMinPaddingRatio,
+    adaptResizeUseAdaptiveThreshold,
+    adaptResizeAdaptiveBlockSize,
     precision,
   } = options;
 
@@ -72,6 +77,11 @@ export const enhanceFullLabelStudioConverters = async (
             outlierPercentile: adaptResizeOutlierPercentile,
             morphologySize: adaptResizeMorphologySize,
             maxHorizontalExpansion: adaptResizeMaxHorizontalExpansion,
+            paddingCheckWidth: adaptResizePaddingCheckWidth,
+            minPaddingBrightness: adaptResizeMinPaddingBrightness,
+            minPaddingRatio: adaptResizeMinPaddingRatio,
+            useAdaptiveThreshold: adaptResizeUseAdaptiveThreshold,
+            adaptiveBlockSize: adaptResizeAdaptiveBlockSize,
           }),
         ]
       : []),
@@ -189,6 +199,11 @@ export const enhanceMinLabelStudioConverters = async (
     adaptResizeOutlierPercentile,
     adaptResizeMorphologySize,
     adaptResizeMaxHorizontalExpansion,
+    adaptResizePaddingCheckWidth,
+    adaptResizeMinPaddingBrightness,
+    adaptResizeMinPaddingRatio,
+    adaptResizeUseAdaptiveThreshold,
+    adaptResizeAdaptiveBlockSize,
     precision,
   } = options;
 
@@ -211,6 +226,11 @@ export const enhanceMinLabelStudioConverters = async (
             outlierPercentile: adaptResizeOutlierPercentile,
             morphologySize: adaptResizeMorphologySize,
             maxHorizontalExpansion: adaptResizeMaxHorizontalExpansion,
+            paddingCheckWidth: adaptResizePaddingCheckWidth,
+            minPaddingBrightness: adaptResizeMinPaddingBrightness,
+            minPaddingRatio: adaptResizeMinPaddingRatio,
+            useAdaptiveThreshold: adaptResizeUseAdaptiveThreshold,
+            adaptiveBlockSize: adaptResizeAdaptiveBlockSize,
           }),
         ]
       : []),
