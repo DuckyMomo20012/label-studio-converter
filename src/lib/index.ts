@@ -7,6 +7,7 @@ export * from '../transformers/adapt-resize';
 export * from '../transformers/normalize';
 export * from '../transformers/resize';
 export * from '../transformers/round';
+export * from '../transformers/sino-nom-adjust';
 export * from '../transformers/sort';
 
 // Schema exports

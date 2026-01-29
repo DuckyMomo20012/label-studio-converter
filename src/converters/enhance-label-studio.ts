@@ -17,6 +17,7 @@ import {
   normalizeTransformer,
   resizeTransformer,
   roundTransformer,
+  sinoNomAdjustTransformer,
   sortTransformer,
   withOptions,
 } from '@/lib';
@@ -50,6 +51,12 @@ export const enhanceFullLabelStudioConverters = async (
     adaptResizeOutlierPercentile,
     adaptResizeMorphologySize,
     adaptResizeMaxHorizontalExpansion,
+    sinoNomAdjust = false,
+    sinoNomThreshold,
+    sinoNomMinLineLength,
+    sinoNomLineDetectionMargin,
+    sinoNomBoxPadding,
+    sinoNomTimeoutMs,
     precision,
   } = options;
 
@@ -72,6 +79,17 @@ export const enhanceFullLabelStudioConverters = async (
             outlierPercentile: adaptResizeOutlierPercentile,
             morphologySize: adaptResizeMorphologySize,
             maxHorizontalExpansion: adaptResizeMaxHorizontalExpansion,
+          }),
+        ]
+      : []),
+    ...(sinoNomAdjust
+      ? [
+          withOptions(sinoNomAdjustTransformer, {
+            threshold: sinoNomThreshold,
+            minLineLength: sinoNomMinLineLength,
+            lineDetectionMargin: sinoNomLineDetectionMargin,
+            boxPadding: sinoNomBoxPadding,
+            timeoutMs: sinoNomTimeoutMs,
           }),
         ]
       : []),
@@ -189,6 +207,12 @@ export const enhanceMinLabelStudioConverters = async (
     adaptResizeOutlierPercentile,
     adaptResizeMorphologySize,
     adaptResizeMaxHorizontalExpansion,
+    sinoNomAdjust = false,
+    sinoNomThreshold,
+    sinoNomMinLineLength,
+    sinoNomLineDetectionMargin,
+    sinoNomBoxPadding,
+    sinoNomTimeoutMs,
     precision,
   } = options;
 
@@ -211,6 +235,17 @@ export const enhanceMinLabelStudioConverters = async (
             outlierPercentile: adaptResizeOutlierPercentile,
             morphologySize: adaptResizeMorphologySize,
             maxHorizontalExpansion: adaptResizeMaxHorizontalExpansion,
+          }),
+        ]
+      : []),
+    ...(sinoNomAdjust
+      ? [
+          withOptions(sinoNomAdjustTransformer, {
+            threshold: sinoNomThreshold,
+            minLineLength: sinoNomMinLineLength,
+            lineDetectionMargin: sinoNomLineDetectionMargin,
+            boxPadding: sinoNomBoxPadding,
+            timeoutMs: sinoNomTimeoutMs,
           }),
         ]
       : []),

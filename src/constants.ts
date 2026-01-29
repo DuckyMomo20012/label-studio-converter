@@ -58,6 +58,14 @@ export const DEFAULT_ADAPT_RESIZE_MAX_HORIZONTAL_EXPANSION = 50;
 export const DEFAULT_ADAPT_RESIZE_TIMEOUT_MS = 15000;
 export const DEFAULT_ADAPT_RESIZE_MAX_BOX_SIZE = 3000;
 
+// Sino Nom box adjustment options
+export const DEFAULT_SINO_NOM_THRESHOLD = 128;
+export const DEFAULT_SINO_NOM_MIN_LINE_LENGTH = 100;
+export const DEFAULT_SINO_NOM_LINE_DETECTION_MARGIN = 2;
+export const DEFAULT_SINO_NOM_BOX_PADDING = 5;
+export const DEFAULT_SINO_NOM_TIMEOUT_MS = 10000;
+export const DEFAULT_SINO_NOM_ROTATION_BACKUP = false;
+
 // Number precision options
 // For Label Studio: keep full precision (no rounding) by default
 export const DEFAULT_LABEL_STUDIO_PRECISION = -1; // -1 means no rounding

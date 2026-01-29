@@ -14,6 +14,11 @@ import {
   DEFAULT_PPOCR_PRECISION,
   DEFAULT_RECURSIVE,
   DEFAULT_SHAPE_NORMALIZE,
+  DEFAULT_SINO_NOM_BOX_PADDING,
+  DEFAULT_SINO_NOM_LINE_DETECTION_MARGIN,
+  DEFAULT_SINO_NOM_MIN_LINE_LENGTH,
+  DEFAULT_SINO_NOM_THRESHOLD,
+  DEFAULT_SINO_NOM_TIMEOUT_MS,
   DEFAULT_SORT_HORIZONTAL,
   DEFAULT_SORT_VERTICAL,
   DEFAULT_USE_ORIENTED_BOX,
@@ -55,6 +60,12 @@ export type BaseEnhanceOptions = {
   adaptResizeOutlierPercentile?: number;
   adaptResizeMorphologySize?: number;
   adaptResizeMaxHorizontalExpansion?: number;
+  sinoNomAdjust?: boolean;
+  sinoNomThreshold?: number;
+  sinoNomMinLineLength?: number;
+  sinoNomLineDetectionMargin?: number;
+  sinoNomBoxPadding?: number;
+  sinoNomTimeoutMs?: number;
   precision?: number;
 };
 
@@ -185,6 +196,42 @@ export const baseEnhanceFlagOptions = {
   adaptResizeMaxHorizontalExpansion: {
     kind: 'parsed',
     brief: `Maximum horizontal expansion in pixels (prevents column overlap). Default: ${DEFAULT_ADAPT_RESIZE_MAX_HORIZONTAL_EXPANSION}`,
+    parse: Number,
+    optional: true,
+  },
+  sinoNomAdjust: {
+    kind: 'boolean',
+    brief:
+      'Enable Sino Nom box adjustment (detects vertical separators for Chinese/Sino Nom text)',
+    optional: true,
+  },
+  sinoNomThreshold: {
+    kind: 'parsed',
+    brief: `Grayscale threshold for Sino Nom separator detection (0-255). Default: ${DEFAULT_SINO_NOM_THRESHOLD}`,
+    parse: Number,
+    optional: true,
+  },
+  sinoNomMinLineLength: {
+    kind: 'parsed',
+    brief: `Minimum vertical separator line length in pixels. Default: ${DEFAULT_SINO_NOM_MIN_LINE_LENGTH}`,
+    parse: Number,
+    optional: true,
+  },
+  sinoNomLineDetectionMargin: {
+    kind: 'parsed',
+    brief: `Horizontal margin for separator line detection. Default: ${DEFAULT_SINO_NOM_LINE_DETECTION_MARGIN}`,
+    parse: Number,
+    optional: true,
+  },
+  sinoNomBoxPadding: {
+    kind: 'parsed',
+    brief: `Padding between box edge and separator line. Default: ${DEFAULT_SINO_NOM_BOX_PADDING}`,
+    parse: Number,
+    optional: true,
+  },
+  sinoNomTimeoutMs: {
+    kind: 'parsed',
+    brief: `Maximum processing time per box in milliseconds. Default: ${DEFAULT_SINO_NOM_TIMEOUT_MS}`,
     parse: Number,
     optional: true,
   },

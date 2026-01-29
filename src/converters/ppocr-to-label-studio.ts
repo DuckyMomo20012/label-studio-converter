@@ -14,6 +14,7 @@ import {
   normalizeTransformer,
   resizeTransformer,
   roundTransformer,
+  sinoNomAdjustTransformer,
   sortTransformer,
   withOptions,
 } from '@/lib';
@@ -56,6 +57,12 @@ export const ppocrToFullLabelStudioConverters = async (
     adaptResizeOutlierPercentile,
     adaptResizeMorphologySize,
     adaptResizeMaxHorizontalExpansion,
+    sinoNomAdjust = false,
+    sinoNomThreshold,
+    sinoNomMinLineLength,
+    sinoNomLineDetectionMargin,
+    sinoNomBoxPadding,
+    sinoNomTimeoutMs,
     precision,
   } = options;
 
@@ -78,6 +85,17 @@ export const ppocrToFullLabelStudioConverters = async (
             outlierPercentile: adaptResizeOutlierPercentile,
             morphologySize: adaptResizeMorphologySize,
             maxHorizontalExpansion: adaptResizeMaxHorizontalExpansion,
+          }),
+        ]
+      : []),
+    ...(sinoNomAdjust
+      ? [
+          withOptions(sinoNomAdjustTransformer, {
+            threshold: sinoNomThreshold,
+            minLineLength: sinoNomMinLineLength,
+            lineDetectionMargin: sinoNomLineDetectionMargin,
+            boxPadding: sinoNomBoxPadding,
+            timeoutMs: sinoNomTimeoutMs,
           }),
         ]
       : []),
