@@ -2,6 +2,7 @@ import { createWriteStream } from 'fs';
 import { get } from 'https';
 import { basename, dirname, join, relative } from 'path';
 import { BaseEnhanceOptions } from '@/config';
+import { IMAGE_BASE_DIR_INPUT_DIR } from '@/constants';
 import {
   FullOCRLabelStudioInput,
   FullOCRLabelStudioOutput,
@@ -25,6 +26,8 @@ export type EnhanceLabelStudioOptions = BaseEnhanceOptions & {
   baseServerUrl?: string;
   outDir?: string;
   imageBaseDir?: string;
+  copyImages?: boolean;
+  inputBaseDir?: string;
 };
 
 export const enhanceFullLabelStudioConverters = async (
@@ -34,8 +37,10 @@ export const enhanceFullLabelStudioConverters = async (
 ) => {
   const {
     baseServerUrl,
-    outDir,
-    imageBaseDir: _imageBaseDir,
+    outDir: _outDir, // Keep for potential future use
+    imageBaseDir,
+    copyImages: _copyImages,
+    inputBaseDir,
     sortVertical,
     sortHorizontal,
     normalizeShape,
@@ -134,27 +139,24 @@ export const enhanceFullLabelStudioConverters = async (
 
   const resolveOutputImagePath = (
     taskImagePath: string,
-    taskFilePath: string,
+    _taskFilePath: string,
   ) => {
-    // taskImagePath is absolute path to image file
-    let resolvedPath = taskImagePath;
+    // Simple logic: if imageBaseDir is 'input-dir' and inputBaseDir is provided,
+    // return path relative to inputBaseDir; otherwise return just the filename
+    const relativePath =
+      imageBaseDir === IMAGE_BASE_DIR_INPUT_DIR && inputBaseDir
+        ? relative(inputBaseDir, taskImagePath)
+        : basename(taskImagePath);
 
-    // If outDir is specified, compute relative path from output location to image
-    if (outDir) {
-      const relativePath = relative(process.cwd(), taskFilePath);
-      const relativeDir = dirname(relativePath);
-      const outputSubDir = join(outDir, relativeDir);
-      resolvedPath = relative(outputSubDir, taskImagePath);
+    if (baseServerUrl === undefined) {
+      return relativePath;
     }
 
-    // Then prepend baseServerUrl if provided
-    const newBaseServerUrl =
-      baseServerUrl?.replace(/\/+$/, '') + (baseServerUrl === '' ? '' : '');
-    if (newBaseServerUrl) {
-      return encodeURI(`${newBaseServerUrl}/${resolvedPath}`);
+    if (baseServerUrl === '') {
+      return '/' + relativePath;
     }
 
-    return resolvedPath;
+    return new URL(relativePath, baseServerUrl).href;
   };
 
   const processor = new Processor({
@@ -183,8 +185,10 @@ export const enhanceMinLabelStudioConverters = async (
 ) => {
   const {
     baseServerUrl,
-    outDir,
-    imageBaseDir: _imageBaseDir,
+    outDir: _outDir, // Keep for potential future use
+    imageBaseDir,
+    copyImages: _copyImages,
+    inputBaseDir,
     sortVertical,
     sortHorizontal,
     normalizeShape,
@@ -283,27 +287,24 @@ export const enhanceMinLabelStudioConverters = async (
 
   const resolveOutputImagePath = (
     taskImagePath: string,
-    taskFilePath: string,
+    _taskFilePath: string,
   ) => {
-    // taskImagePath is absolute path to image file
-    let resolvedPath = taskImagePath;
+    // Simple logic: if imageBaseDir is 'input-dir' and inputBaseDir is provided,
+    // return path relative to inputBaseDir; otherwise return just the filename
+    const relativePath =
+      imageBaseDir === IMAGE_BASE_DIR_INPUT_DIR && inputBaseDir
+        ? relative(inputBaseDir, taskImagePath)
+        : basename(taskImagePath);
 
-    // If outDir is specified, compute relative path from output location to image
-    if (outDir) {
-      const relativePath = relative(process.cwd(), taskFilePath);
-      const relativeDir = dirname(relativePath);
-      const outputSubDir = join(outDir, relativeDir);
-      resolvedPath = relative(outputSubDir, taskImagePath);
+    if (baseServerUrl === undefined) {
+      return relativePath;
     }
 
-    // Then prepend baseServerUrl if provided
-    const newBaseServerUrl =
-      baseServerUrl?.replace(/\/+$/, '') + (baseServerUrl === '' ? '' : '');
-    if (newBaseServerUrl) {
-      return encodeURI(`${newBaseServerUrl}/${resolvedPath}`);
+    if (baseServerUrl === '') {
+      return '/' + relativePath;
     }
 
-    return resolvedPath;
+    return new URL(relativePath, baseServerUrl).href;
   };
 
   const processor = new Processor({
