@@ -80,7 +80,7 @@ export async function enhancePPOCR(
 
   for (const filePath of filePaths) {
     const file = basename(filePath);
-    console.log(chalk.gray(`Processing file: ${filePath}`));
+    console.log(chalk.gray(`Processing file: \"${filePath}\"`));
 
     try {
       const fileData = await readFile(filePath, 'utf-8');
@@ -125,7 +125,7 @@ export async function enhancePPOCR(
       // If no valid lines were found, skip this file
       if (inputTasks.length === 0) {
         console.log(
-          chalk.yellow(`  Skipping file with no valid data: ${filePath}`),
+          chalk.yellow(`  Skipping file with no valid data: \"${filePath}\"`),
         );
         continue;
       }
@@ -172,15 +172,15 @@ export async function enhancePPOCR(
       if (backup) {
         const backupPath = await backupFileIfExists(outputFilePath);
         if (backupPath) {
-          console.log(chalk.gray(`  Backed up to: ${backupPath}`));
+          console.log(chalk.gray(`  Backed up to: \"${backupPath}\"`));
         }
       }
 
       await writeFile(outputFilePath, outputTasks.join('\n'), 'utf-8');
-      console.log(chalk.green(`✓ Enhanced file saved: ${outputFilePath}`));
+      console.log(chalk.green(`✓ Enhanced file saved: \"${outputFilePath}\"`));
     } catch (error) {
       console.error(
-        chalk.red(`Error processing file ${file}:`),
+        chalk.red(`Error processing file \"${file}\":`),
         error instanceof Error ? error.message : String(error),
       );
     }

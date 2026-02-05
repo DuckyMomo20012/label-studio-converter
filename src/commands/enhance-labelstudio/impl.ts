@@ -85,7 +85,7 @@ export async function enhanceLabelStudio(
 
   for await (const filePath of filePaths) {
     const file = basename(filePath);
-    console.log(chalk.gray(`Processing file: ${filePath}`));
+    console.log(chalk.gray(`Processing file: \"${filePath}\"`));
 
     try {
       const fileData = await readFile(filePath, 'utf-8');
@@ -98,7 +98,7 @@ export async function enhanceLabelStudio(
       if (outputMode !== DEFAULT_OUTPUT_MODE && !isFull) {
         console.log(
           chalk.red(
-            `  Skipping file: ${filePath}\n  Error: --outputMode can only be used with Full JSON format. This file is in Min JSON format which does not support annotations/predictions distinction.`,
+            `  Skipping file: \"${filePath}\"\n  Error: --outputMode can only be used with Full JSON format. This file is in Min JSON format which does not support annotations/predictions distinction.`,
           ),
         );
         continue;
@@ -157,7 +157,7 @@ export async function enhanceLabelStudio(
       if (backup) {
         const backupPath = await backupFileIfExists(outputFilePath);
         if (backupPath) {
-          console.log(chalk.gray(`  Backed up to: ${backupPath}`));
+          console.log(chalk.gray(`  Backed up to: \"${backupPath}\"`));
         }
       }
 
@@ -166,10 +166,10 @@ export async function enhanceLabelStudio(
         JSON.stringify(outputTasks, null, 2),
         'utf-8',
       );
-      console.log(chalk.green(`✓ Enhanced file saved: ${outputFilePath}`));
+      console.log(chalk.green(`✓ Enhanced file saved: \"${outputFilePath}\"`));
     } catch (error) {
       console.error(
-        chalk.red(`Error processing file ${file}:`),
+        chalk.red(`Error processing file \"${file}\":`),
         error instanceof Error ? error.message : String(error),
       );
     }

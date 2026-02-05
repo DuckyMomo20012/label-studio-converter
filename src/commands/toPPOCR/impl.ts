@@ -134,7 +134,7 @@ export async function convertToPPOCR(
     const relativePath = relative(process.cwd(), filePath);
     const relativeDir = dirname(relativePath);
 
-    console.log(chalk.gray(`Processing file: ${filePath}`));
+    console.log(chalk.gray(`Processing file: \"${filePath}\"`));
 
     try {
       const fileData = await readFile(filePath, 'utf-8');
@@ -238,7 +238,7 @@ export async function convertToPPOCR(
             await mkdir(dirname(destImagePath), { recursive: true });
             await copyFile(sourceImagePath, destImagePath);
             console.log(
-              chalk.gray(`  ✓ Copied image: ${basename(sourceImagePath)}`),
+              chalk.gray(`  ✓ Copied image: \"${basename(sourceImagePath)}\"`),
             );
           } catch (error) {
             console.warn(
@@ -273,16 +273,16 @@ export async function convertToPPOCR(
       if (backup) {
         const backupPath = await backupFileIfExists(outputPath);
         if (backupPath) {
-          console.log(chalk.gray(`  Backed up to: ${backupPath}`));
+          console.log(chalk.gray(`  Backed up to: \"${backupPath}\"`));
         }
       }
 
       await writeFile(outputPath, outputLines.join('\n'), 'utf-8');
 
-      console.log(chalk.green(`✓ Converted ${file} -> ${outputPath}`));
+      console.log(chalk.green(`✓ Converted \"${file}\" -> \"${outputPath}\"`));
     } catch (error) {
       console.error(
-        chalk.red(`✗ Failed to process ${file}:`),
+        chalk.red(`✗ Failed to process \"${file}\":`),
         error instanceof Error ? error.message : error,
       );
     }

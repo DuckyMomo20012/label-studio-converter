@@ -139,7 +139,7 @@ export async function convertToLabelStudio(
     const relativePath = relative(baseDir, filePath);
     const relativeDir = dirname(relativePath);
 
-    console.log(chalk.gray(`Processing file: ${filePath}`));
+    console.log(chalk.gray(`Processing file: \"${filePath}\"`));
 
     try {
       const fileData = await readFile(filePath, 'utf-8');
@@ -147,7 +147,7 @@ export async function convertToLabelStudio(
 
       // Handle empty files
       if (trimmedData === '') {
-        console.log(chalk.yellow(`  Skipping empty file: ${filePath}`));
+        console.log(chalk.yellow(`  Skipping empty file: \"${filePath}\"`));
         continue;
       }
 
@@ -197,7 +197,7 @@ export async function convertToLabelStudio(
       // If no valid lines were found, skip this file
       if (inputTasks.length === 0) {
         console.log(
-          chalk.yellow(`  Skipping file with no valid data: ${filePath}`),
+          chalk.yellow(`  Skipping file with no valid data: \"${filePath}\"`),
         );
         continue;
       }
@@ -292,12 +292,12 @@ export async function convertToLabelStudio(
             await mkdir(dirname(destImagePath), { recursive: true });
             await copyFile(sourceImagePath, destImagePath);
             console.log(
-              chalk.gray(`  ✓ Copied image: ${basename(sourceImagePath)}`),
+              chalk.gray(`  ✓ Copied image: \"${basename(sourceImagePath)}\"`),
             );
           } catch (error) {
             console.warn(
               chalk.yellow(
-                `  ⚠ Failed to copy image ${task.imagePath}: ${error instanceof Error ? error.message : error}`,
+                `  ⚠ Failed to copy image \"${task.imagePath}\": ${error instanceof Error ? error.message : error}`,
               ),
             );
           }
@@ -333,7 +333,9 @@ export async function convertToLabelStudio(
             'utf-8',
           );
           console.log(
-            chalk.gray(`  ✓ Created individual file: ${individualOutputPath}`),
+            chalk.gray(
+              `  ✓ Created individual file: \"${individualOutputPath}\"`,
+            ),
           );
 
           // Add to file list for serving (write incrementally)
@@ -375,10 +377,10 @@ export async function convertToLabelStudio(
         'utf-8',
       );
 
-      console.log(chalk.green(`✓ Converted ${file} -> ${outputPath}`));
+      console.log(chalk.green(`✓ Converted \"${file}\" -> \"${outputPath}\"`));
     } catch (error) {
       console.error(
-        chalk.red(`✗ Failed to process ${file}:`),
+        chalk.red(`✗ Failed to process \"${file}\":`),
         error instanceof Error ? error.message : error,
       );
     }
