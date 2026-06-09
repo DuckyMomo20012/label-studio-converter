@@ -50,7 +50,7 @@ const PolygonResultSchema = z.union([
   }),
 ]);
 
-const ResultItemSchema = z.object({
+export const ResultItemSchema = z.object({
   original_width: z.number(),
   original_height: z.number(),
   image_rotation: z.number(),
@@ -66,7 +66,7 @@ const ResultItemSchema = z.object({
 });
 
 // Reusable annotation schema (for annotations field)
-const AnnotationSchema = z.object({
+export const AnnotationSchema = z.object({
   id: z.number(),
   completed_by: z.number(),
   result: z.array(ResultItemSchema),

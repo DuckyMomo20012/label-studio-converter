@@ -13,6 +13,7 @@ export * from '../transformers/sort';
 export * from '../modules/label-studio-full/schema';
 export * from '../modules/label-studio-min/schema';
 export * from '../modules/ppocrlabel/schema';
+export * from '../modules/label-studio-output/schema';
 
 // Module inputs/outputs
 export * from '../modules/label-studio-full/input';
@@ -21,6 +22,8 @@ export * from '../modules/label-studio-min/input';
 export * from '../modules/label-studio-min/output';
 export * from '../modules/ppocrlabel/input';
 export * from '../modules/ppocrlabel/output';
+export * from '../modules/label-studio-output/input';
+export * from '../modules/label-studio-output/output';
 
 // Converters
 export * from '../config';
@@ -28,6 +31,7 @@ export * from '../converters/label-studio-to-ppocr';
 export * from '../converters/ppocr-to-label-studio';
 export * from '../converters/enhance-label-studio';
 export * from '../converters/enhance-ppocr';
+export * from '../converters/label-studio-output-to-ppocr';
 
 // Constants
 export * from '../constants';

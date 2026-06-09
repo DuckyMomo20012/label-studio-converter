@@ -103,3 +103,6 @@ export const DEFAULT_IMAGE_BASE_DIR = IMAGE_BASE_DIR_TASK_FILE;
 export type ImageBaseDir =
   | typeof IMAGE_BASE_DIR_TASK_FILE
   | typeof IMAGE_BASE_DIR_INPUT_DIR;
+
+export const DEFAULT_LABEL_STUDIO_OUTPUT_IMAGE_BASE_DIR =
+  '/data/local-files/?d=';
