@@ -1,5 +1,6 @@
-import { basename, dirname, join, relative, resolve } from 'path';
+import { basename, dirname, join, relative } from 'path';
 import { type BaseEnhanceOptions } from '@/config';
+import { IMAGE_BASE_DIR_INPUT_DIR } from '@/constants';
 import {
   FullOCRLabelStudioOutput,
   type HorizontalSortOrder,
@@ -20,8 +21,12 @@ import {
 export type PPOCRToLabelStudioOptions = BaseEnhanceOptions & {
   baseServerUrl?: string;
   defaultLabelName?: string;
+  outputMode?: string;
   outDir?: string;
   copyImages?: boolean;
+  imageBaseDir?: string;
+  inputBaseDir?: string;
+  outputRootDir?: string;
 };
 
 export const ppocrToFullLabelStudioConverters = async (
@@ -32,15 +37,18 @@ export const ppocrToFullLabelStudioConverters = async (
   const {
     baseServerUrl,
     defaultLabelName,
-    outDir,
-    copyImages = false,
+    outputMode,
+    outDir: _outDir, // Keep for potential future use
+    copyImages: _copyImages = false, // Keep for potential future use
+    imageBaseDir,
+    inputBaseDir,
     sortVertical,
     sortHorizontal,
     normalizeShape,
     useOrientedBox,
     widthIncrement,
     heightIncrement,
-    adaptResize = false,
+    adaptResize,
     adaptResizeThreshold,
     adaptResizeMargin,
     adaptResizeMinComponentSize,
@@ -48,6 +56,11 @@ export const ppocrToFullLabelStudioConverters = async (
     adaptResizeOutlierPercentile,
     adaptResizeMorphologySize,
     adaptResizeMaxHorizontalExpansion,
+    adaptResizePaddingCheckWidth,
+    adaptResizeMinPaddingBrightness,
+    adaptResizeMinPaddingRatio,
+    adaptResizeUseAdaptiveThreshold,
+    adaptResizeAdaptiveBlockSize,
     precision,
   } = options;
 
@@ -70,6 +83,11 @@ export const ppocrToFullLabelStudioConverters = async (
             outlierPercentile: adaptResizeOutlierPercentile,
             morphologySize: adaptResizeMorphologySize,
             maxHorizontalExpansion: adaptResizeMaxHorizontalExpansion,
+            paddingCheckWidth: adaptResizePaddingCheckWidth,
+            minPaddingBrightness: adaptResizeMinPaddingBrightness,
+            minPaddingRatio: adaptResizeMinPaddingRatio,
+            useAdaptiveThreshold: adaptResizeUseAdaptiveThreshold,
+            adaptiveBlockSize: adaptResizeAdaptiveBlockSize,
           }),
         ]
       : []),
@@ -104,48 +122,31 @@ export const ppocrToFullLabelStudioConverters = async (
 
   const resolveOutputImagePath = (
     taskImagePath: string,
-    taskFilePath: string,
+    _taskFilePath: string,
   ) => {
-    let resolvedPath: string;
+    // Determine the relative path based on imageBaseDir mode
+    // This is the path that will be written in the JSON file
+    const relativePath =
+      imageBaseDir === IMAGE_BASE_DIR_INPUT_DIR && inputBaseDir
+        ? relative(inputBaseDir, taskImagePath) // input-dir: path from inputBaseDir
+        : basename(taskImagePath); // task-file: filename only
 
-    // Compute relative path from output JSON location to image
-    if (outDir) {
-      // Output JSON will be in outDir (already includes full path with subdirectories)
-      const outputJsonDir = resolve(outDir);
-
-      if (copyImages) {
-        // Images were copied to the same directory as the JSON
-        // So just use the filename
-        const fileName = basename(taskImagePath);
-        resolvedPath = fileName;
-      } else {
-        // Images are in their original location
-        // Compute relative path from JSON location to image
-        const absoluteImagePath = resolve(process.cwd(), taskImagePath);
-        resolvedPath = relative(outputJsonDir, absoluteImagePath);
-      }
-    } else {
-      // Output JSON will be in same directory as task file
-      const taskDir = dirname(taskFilePath);
-      resolvedPath = relative(taskDir, taskImagePath);
-    }
+    // The path in JSON is always just relativePath (not prepended with outDir)
+    // because outDir affects where the JSON+images are written, not the path IN the JSON
+    const resolvedPath = relativePath;
 
     // Handle baseServerUrl:
-    // - If baseServerUrl is provided and non-empty: prepend it (e.g., "http://localhost:8081/path/to/image.jpg")
-    // - If baseServerUrl is empty string: output absolute path with leading slash (e.g., "/path/to/image.jpg") for Docker mount
-    // - If baseServerUrl is undefined: use relative path as-is
+    // - Empty string: absolute path with leading slash for Docker mount
+    // - Non-empty: prepend base URL
+    // - Undefined: return path as-is
     if (baseServerUrl !== undefined) {
       if (baseServerUrl === '') {
-        // Empty baseServerUrl means Docker mount - output absolute path with leading slash
         return encodeURI(`/${resolvedPath}`);
-      } else {
-        // Non-empty baseServerUrl - prepend it
-        const normalizedBaseUrl = baseServerUrl.replace(/\/+$/, '');
-        return encodeURI(`${normalizedBaseUrl}/${resolvedPath}`);
       }
+      const normalizedBaseUrl = baseServerUrl.replace(/\/+$/, '');
+      return encodeURI(`${normalizedBaseUrl}/${resolvedPath}`);
     }
 
-    // No baseServerUrl provided - return relative path
     return resolvedPath;
   };
 
@@ -153,6 +154,7 @@ export const ppocrToFullLabelStudioConverters = async (
     input: PPOCRInput,
     output: withOptions(FullOCRLabelStudioOutput, {
       defaultLabelName,
+      outputMode,
     }),
     transformers: transformerParams,
   });
@@ -178,8 +180,10 @@ export const ppocrToMinLabelStudioConverters = async (
   const {
     baseServerUrl,
     defaultLabelName,
-    outDir,
-    copyImages = false,
+    outDir: _outDir, // Keep for potential future use
+    copyImages: _copyImages = false, // Keep for potential future use
+    imageBaseDir,
+    inputBaseDir,
     sortVertical,
     sortHorizontal,
     normalizeShape,
@@ -227,48 +231,31 @@ export const ppocrToMinLabelStudioConverters = async (
 
   const resolveOutputImagePath = (
     taskImagePath: string,
-    taskFilePath: string,
+    _taskFilePath: string,
   ) => {
-    let resolvedPath: string;
+    // Determine the relative path based on imageBaseDir mode
+    // This is the path that will be written in the JSON file
+    const relativePath =
+      imageBaseDir === IMAGE_BASE_DIR_INPUT_DIR && inputBaseDir
+        ? relative(inputBaseDir, taskImagePath) // input-dir: path from inputBaseDir
+        : basename(taskImagePath); // task-file: filename only
 
-    // Compute relative path from output JSON location to image
-    if (outDir) {
-      // Output JSON will be in outDir (already includes full path with subdirectories)
-      const outputJsonDir = resolve(outDir);
-
-      if (copyImages) {
-        // Images were copied to the same directory as the JSON
-        // So just use the filename
-        const fileName = basename(taskImagePath);
-        resolvedPath = fileName;
-      } else {
-        // Images are in their original location
-        // Compute relative path from JSON location to image
-        const absoluteImagePath = resolve(process.cwd(), taskImagePath);
-        resolvedPath = relative(outputJsonDir, absoluteImagePath);
-      }
-    } else {
-      // Output JSON will be in same directory as task file
-      const taskDir = dirname(taskFilePath);
-      resolvedPath = relative(taskDir, taskImagePath);
-    }
+    // The path in JSON is always just relativePath (not prepended with outDir)
+    // because outDir affects where the JSON+images are written, not the path IN the JSON
+    const resolvedPath = relativePath;
 
     // Handle baseServerUrl:
-    // - If baseServerUrl is provided and non-empty: prepend it (e.g., "http://localhost:8081/path/to/image.jpg")
-    // - If baseServerUrl is empty string: output absolute path with leading slash (e.g., "/path/to/image.jpg") for Docker mount
-    // - If baseServerUrl is undefined: use relative path as-is
+    // - Empty string: absolute path with leading slash for Docker mount
+    // - Non-empty: prepend base URL
+    // - Undefined: return path as-is
     if (baseServerUrl !== undefined) {
       if (baseServerUrl === '') {
-        // Empty baseServerUrl means Docker mount - output absolute path with leading slash
         return encodeURI(`/${resolvedPath}`);
-      } else {
-        // Non-empty baseServerUrl - prepend it
-        const normalizedBaseUrl = baseServerUrl.replace(/\/+$/, '');
-        return encodeURI(`${normalizedBaseUrl}/${resolvedPath}`);
       }
+      const normalizedBaseUrl = baseServerUrl.replace(/\/+$/, '');
+      return encodeURI(`${normalizedBaseUrl}/${resolvedPath}`);
     }
 
-    // No baseServerUrl provided - return relative path
     return resolvedPath;
   };
 

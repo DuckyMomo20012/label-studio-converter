@@ -48,6 +48,14 @@ export function withOptions<
   return [fn, options];
 }
 
+const defaultResolveInputImagePath: ResolveImagePathFn = (taskImagePath) => {
+  return taskImagePath;
+};
+
+const defaultResolveOutputImagePath: ResolveImagePathFn = (taskImagePath) => {
+  return taskImagePath;
+};
+
 class Processor<TInput, TOutput> {
   input: ProcessorInputEntry<TInput>;
   output: ProcessorOutputEntry<TOutput>;
@@ -66,13 +74,13 @@ class Processor<TInput, TOutput> {
   async process({
     inputData,
     taskFilePath,
-    resolveInputImagePath,
-    resolveOutputImagePath,
+    resolveInputImagePath = defaultResolveInputImagePath,
+    resolveOutputImagePath = defaultResolveOutputImagePath,
   }: {
     inputData: TInput;
     taskFilePath: string;
-    resolveInputImagePath: ResolveImagePathFn;
-    resolveOutputImagePath: ResolveImagePathFn;
+    resolveInputImagePath?: ResolveImagePathFn;
+    resolveOutputImagePath?: ResolveImagePathFn;
   }): Promise<TOutput> {
     const [inputFn, inputOptions] = Array.isArray(this.input)
       ? this.input

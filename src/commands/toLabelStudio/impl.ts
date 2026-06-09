@@ -2,6 +2,7 @@ import { copyFile, mkdir, readFile, writeFile } from 'fs/promises';
 import { basename, dirname, join, relative, resolve } from 'path';
 import chalk from 'chalk';
 import {
+  DEFAULT_ADAPT_RESIZE,
   DEFAULT_ADAPT_RESIZE_MARGIN,
   DEFAULT_ADAPT_RESIZE_MAX_COMPONENT_SIZE,
   DEFAULT_ADAPT_RESIZE_MAX_HORIZONTAL_EXPANSION,
@@ -16,6 +17,7 @@ import {
   DEFAULT_CREATE_FILE_PER_IMAGE,
   DEFAULT_FILE_LIST_NAME,
   DEFAULT_HEIGHT_INCREMENT,
+  DEFAULT_IMAGE_BASE_DIR,
   DEFAULT_LABEL_NAME,
   DEFAULT_LABEL_STUDIO_FULL_JSON,
   DEFAULT_LABEL_STUDIO_PRECISION,
@@ -26,6 +28,7 @@ import {
   DEFAULT_SORT_HORIZONTAL,
   DEFAULT_SORT_VERTICAL,
   DEFAULT_WIDTH_INCREMENT,
+  IMAGE_BASE_DIR_INPUT_DIR,
 } from '@/constants';
 import type { LocalContext } from '@/context';
 import {
@@ -54,6 +57,7 @@ type CommandFlags = {
   recursive?: boolean;
   filePattern?: string;
   outputMode?: string;
+  imageBaseDir?: string;
 } & BaseEnhanceOptions;
 
 export async function convertToLabelStudio(
@@ -66,6 +70,7 @@ export async function convertToLabelStudio(
     fileName,
     backup = DEFAULT_BACKUP,
     copyImages = DEFAULT_COPY_IMAGES,
+    imageBaseDir = DEFAULT_IMAGE_BASE_DIR,
     defaultLabelName = DEFAULT_LABEL_NAME,
     toFullJson = DEFAULT_LABEL_STUDIO_FULL_JSON,
     createFilePerImage = DEFAULT_CREATE_FILE_PER_IMAGE,
@@ -77,7 +82,7 @@ export async function convertToLabelStudio(
     normalizeShape = DEFAULT_SHAPE_NORMALIZE,
     widthIncrement = DEFAULT_WIDTH_INCREMENT,
     heightIncrement = DEFAULT_HEIGHT_INCREMENT,
-    adaptResize = false,
+    adaptResize = DEFAULT_ADAPT_RESIZE,
     adaptResizeThreshold = DEFAULT_ADAPT_RESIZE_THRESHOLD,
     adaptResizeMargin = DEFAULT_ADAPT_RESIZE_MARGIN,
     adaptResizeMinComponentSize = DEFAULT_ADAPT_RESIZE_MIN_COMPONENT_SIZE,
@@ -135,7 +140,7 @@ export async function convertToLabelStudio(
     const relativePath = relative(baseDir, filePath);
     const relativeDir = dirname(relativePath);
 
-    console.log(chalk.gray(`Processing file: ${filePath}`));
+    console.log(chalk.gray(`Processing file: \"${filePath}\"`));
 
     try {
       const fileData = await readFile(filePath, 'utf-8');
@@ -143,7 +148,7 @@ export async function convertToLabelStudio(
 
       // Handle empty files
       if (trimmedData === '') {
-        console.log(chalk.yellow(`  Skipping empty file: ${filePath}`));
+        console.log(chalk.yellow(`  Skipping empty file: \"${filePath}\"`));
         continue;
       }
 
@@ -193,7 +198,7 @@ export async function convertToLabelStudio(
       // If no valid lines were found, skip this file
       if (inputTasks.length === 0) {
         console.log(
-          chalk.yellow(`  Skipping file with no valid data: ${filePath}`),
+          chalk.yellow(`  Skipping file with no valid data: \"${filePath}\"`),
         );
         continue;
       }
@@ -209,8 +214,11 @@ export async function convertToLabelStudio(
       const convertParams = {
         defaultLabelName,
         baseServerUrl,
+        outputMode,
         outDir: converterOutputDir,
         copyImages: resolvedOutDir ? copyImages : false,
+        inputBaseDir: baseDir,
+        outputRootDir: resolvedOutDir,
       };
 
       const enhanceParams = {
@@ -228,6 +236,7 @@ export async function convertToLabelStudio(
         adaptResizeMorphologySize,
         adaptResizeMaxHorizontalExpansion,
         precision,
+        imageBaseDir,
       };
 
       if (toFullJson) {
@@ -269,17 +278,27 @@ export async function convertToLabelStudio(
               ? resolve(dirname(taskFileDir), folderName, fileName)
               : resolve(taskFileDir, fileName);
 
-            const destImagePath = join(outputSubDir, basename(sourceImagePath));
+            // Calculate destination path based on imageBaseDir flag
+            let destImagePath: string;
+            if (imageBaseDir === IMAGE_BASE_DIR_INPUT_DIR) {
+              // Keep full path structure from input directory
+              const relativeFromInput = relative(baseDir, sourceImagePath);
+              destImagePath = join(resolvedOutDir, relativeFromInput);
+            } else {
+              // Default: task-file - relative to task file location
+              const relativeFromTask = relative(taskFileDir, sourceImagePath);
+              destImagePath = join(outputSubDir, relativeFromTask);
+            }
 
             await mkdir(dirname(destImagePath), { recursive: true });
             await copyFile(sourceImagePath, destImagePath);
             console.log(
-              chalk.gray(`  ✓ Copied image: ${basename(sourceImagePath)}`),
+              chalk.gray(`  ✓ Copied image: \"${basename(sourceImagePath)}\"`),
             );
           } catch (error) {
             console.warn(
               chalk.yellow(
-                `  ⚠ Failed to copy image ${task.imagePath}: ${error instanceof Error ? error.message : error}`,
+                `  ⚠ Failed to copy image \"${task.imagePath}\": ${error instanceof Error ? error.message : error}`,
               ),
             );
           }
@@ -315,7 +334,9 @@ export async function convertToLabelStudio(
             'utf-8',
           );
           console.log(
-            chalk.gray(`  ✓ Created individual file: ${individualOutputPath}`),
+            chalk.gray(
+              `  ✓ Created individual file: \"${individualOutputPath}\"`,
+            ),
           );
 
           // Add to file list for serving (write incrementally)
@@ -357,10 +378,10 @@ export async function convertToLabelStudio(
         'utf-8',
       );
 
-      console.log(chalk.green(`✓ Converted ${file} -> ${outputPath}`));
+      console.log(chalk.green(`✓ Converted \"${file}\" -> \"${outputPath}\"`));
     } catch (error) {
       console.error(
-        chalk.red(`✗ Failed to process ${file}:`),
+        chalk.red(`✗ Failed to process \"${file}\":`),
         error instanceof Error ? error.message : error,
       );
     }

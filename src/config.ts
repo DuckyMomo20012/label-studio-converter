@@ -1,15 +1,22 @@
 import type { CommandContext, TypedCommandFlagParameters } from '@stricli/core';
 import {
+  DEFAULT_ADAPT_RESIZE,
+  DEFAULT_ADAPT_RESIZE_ADAPTIVE_BLOCK_SIZE,
   DEFAULT_ADAPT_RESIZE_MARGIN,
   DEFAULT_ADAPT_RESIZE_MAX_COMPONENT_SIZE,
   DEFAULT_ADAPT_RESIZE_MAX_HORIZONTAL_EXPANSION,
   DEFAULT_ADAPT_RESIZE_MIN_COMPONENT_SIZE,
+  DEFAULT_ADAPT_RESIZE_MIN_PADDING_BRIGHTNESS,
+  DEFAULT_ADAPT_RESIZE_MIN_PADDING_RATIO,
   DEFAULT_ADAPT_RESIZE_MORPHOLOGY_SIZE,
   DEFAULT_ADAPT_RESIZE_OUTLIER_PERCENTILE,
+  DEFAULT_ADAPT_RESIZE_PADDING_CHECK_WIDTH,
   DEFAULT_ADAPT_RESIZE_THRESHOLD,
+  DEFAULT_ADAPT_RESIZE_USE_ADAPTIVE_THRESHOLD,
   DEFAULT_BACKUP,
   DEFAULT_COPY_IMAGES,
   DEFAULT_HEIGHT_INCREMENT,
+  DEFAULT_IMAGE_BASE_DIR,
   DEFAULT_PPOCR_PRECISION,
   DEFAULT_RECURSIVE,
   DEFAULT_SHAPE_NORMALIZE,
@@ -17,6 +24,8 @@ import {
   DEFAULT_SORT_VERTICAL,
   DEFAULT_USE_ORIENTED_BOX,
   DEFAULT_WIDTH_INCREMENT,
+  IMAGE_BASE_DIR_INPUT_DIR,
+  IMAGE_BASE_DIR_TASK_FILE,
   SHAPE_NORMALIZE_NONE,
   SHAPE_NORMALIZE_RECTANGLE,
   SORT_HORIZONTAL_LTR,
@@ -34,6 +43,7 @@ export type BaseFileIOOptions = {
   recursive?: boolean;
   filePattern?: string;
   copyImages?: boolean;
+  imageBaseDir?: string;
 };
 
 export type BaseEnhanceOptions = {
@@ -51,6 +61,11 @@ export type BaseEnhanceOptions = {
   adaptResizeOutlierPercentile?: number;
   adaptResizeMorphologySize?: number;
   adaptResizeMaxHorizontalExpansion?: number;
+  adaptResizePaddingCheckWidth?: number;
+  adaptResizeMinPaddingBrightness?: number;
+  adaptResizeMinPaddingRatio?: number;
+  adaptResizeUseAdaptiveThreshold?: boolean;
+  adaptResizeAdaptiveBlockSize?: number;
   precision?: number;
 };
 
@@ -88,6 +103,12 @@ export const baseFileIOFlagOptions = {
   copyImages: {
     kind: 'boolean',
     brief: `Copy images to output directory when --outDir is specified. Only applies to toLabelStudio and toPPOCR commands. Default: ${DEFAULT_COPY_IMAGES}`,
+    optional: true,
+  },
+  imageBaseDir: {
+    kind: 'parsed',
+    brief: `Base directory for resolving image paths. Options: "${IMAGE_BASE_DIR_TASK_FILE}" (relative to task file location), "${IMAGE_BASE_DIR_INPUT_DIR}" (relative to command execution directory). Default: "${DEFAULT_IMAGE_BASE_DIR}"`,
+    parse: String,
     optional: true,
   },
 } satisfies TypedCommandFlagParameters<
@@ -133,7 +154,7 @@ export const baseEnhanceFlagOptions = {
   },
   adaptResize: {
     kind: 'boolean',
-    brief: `Apply adaptive resize to automatically adjust bounding boxes based on image content. Default: false`,
+    brief: `Apply adaptive resize to automatically adjust bounding boxes based on image content. Default: ${DEFAULT_ADAPT_RESIZE}`,
     optional: true,
   },
   adaptResizeThreshold: {
@@ -175,6 +196,35 @@ export const baseEnhanceFlagOptions = {
   adaptResizeMaxHorizontalExpansion: {
     kind: 'parsed',
     brief: `Maximum horizontal expansion in pixels (prevents column overlap). Default: ${DEFAULT_ADAPT_RESIZE_MAX_HORIZONTAL_EXPANSION}`,
+    parse: Number,
+    optional: true,
+  },
+  adaptResizePaddingCheckWidth: {
+    kind: 'parsed',
+    brief: `Width of padding strip to validate (in pixels). Default: ${DEFAULT_ADAPT_RESIZE_PADDING_CHECK_WIDTH}`,
+    parse: Number,
+    optional: true,
+  },
+  adaptResizeMinPaddingBrightness: {
+    kind: 'parsed',
+    brief: `Minimum brightness for white padding pixels (0-255). Default: ${DEFAULT_ADAPT_RESIZE_MIN_PADDING_BRIGHTNESS}`,
+    parse: Number,
+    optional: true,
+  },
+  adaptResizeMinPaddingRatio: {
+    kind: 'parsed',
+    brief: `Minimum ratio of white pixels in padding strip (0-1). Default: ${DEFAULT_ADAPT_RESIZE_MIN_PADDING_RATIO}`,
+    parse: Number,
+    optional: true,
+  },
+  adaptResizeUseAdaptiveThreshold: {
+    kind: 'boolean',
+    brief: `Use adaptive thresholding based on image histogram (recommended). Default: ${DEFAULT_ADAPT_RESIZE_USE_ADAPTIVE_THRESHOLD}`,
+    optional: true,
+  },
+  adaptResizeAdaptiveBlockSize: {
+    kind: 'parsed',
+    brief: `Block size for adaptive thresholding. Default: ${DEFAULT_ADAPT_RESIZE_ADAPTIVE_BLOCK_SIZE}`,
     parse: Number,
     optional: true,
   },

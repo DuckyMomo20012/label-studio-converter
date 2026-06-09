@@ -2,6 +2,7 @@ import { mkdir, readFile, writeFile } from 'fs/promises';
 import { basename, dirname, join, relative } from 'path';
 import chalk from 'chalk';
 import {
+  DEFAULT_ADAPT_RESIZE,
   DEFAULT_ADAPT_RESIZE_MARGIN,
   DEFAULT_ADAPT_RESIZE_MAX_COMPONENT_SIZE,
   DEFAULT_ADAPT_RESIZE_MAX_HORIZONTAL_EXPANSION,
@@ -11,6 +12,7 @@ import {
   DEFAULT_ADAPT_RESIZE_THRESHOLD,
   DEFAULT_BACKUP,
   DEFAULT_HEIGHT_INCREMENT,
+  DEFAULT_IMAGE_BASE_DIR,
   DEFAULT_PPOCR_FILE_PATTERN,
   DEFAULT_PPOCR_PRECISION,
   DEFAULT_RECURSIVE,
@@ -35,6 +37,7 @@ type CommandFlags = {
   backup?: boolean;
   recursive?: boolean;
   filePattern?: string;
+  imageBaseDir?: string;
 } & BaseEnhanceOptions;
 
 export async function enhancePPOCR(
@@ -46,12 +49,13 @@ export async function enhancePPOCR(
     outDir,
     fileName,
     backup = DEFAULT_BACKUP,
+    imageBaseDir = DEFAULT_IMAGE_BASE_DIR,
     sortVertical = DEFAULT_SORT_VERTICAL,
     sortHorizontal = DEFAULT_SORT_HORIZONTAL,
     normalizeShape = DEFAULT_SHAPE_NORMALIZE,
     widthIncrement = DEFAULT_WIDTH_INCREMENT,
     heightIncrement = DEFAULT_HEIGHT_INCREMENT,
-    adaptResize = false,
+    adaptResize = DEFAULT_ADAPT_RESIZE,
     adaptResizeThreshold = DEFAULT_ADAPT_RESIZE_THRESHOLD,
     adaptResizeMargin = DEFAULT_ADAPT_RESIZE_MARGIN,
     adaptResizeMinComponentSize = DEFAULT_ADAPT_RESIZE_MIN_COMPONENT_SIZE,
@@ -77,7 +81,7 @@ export async function enhancePPOCR(
 
   for (const filePath of filePaths) {
     const file = basename(filePath);
-    console.log(chalk.gray(`Processing file: ${filePath}`));
+    console.log(chalk.gray(`Processing file: \"${filePath}\"`));
 
     try {
       const fileData = await readFile(filePath, 'utf-8');
@@ -122,7 +126,7 @@ export async function enhancePPOCR(
       // If no valid lines were found, skip this file
       if (inputTasks.length === 0) {
         console.log(
-          chalk.yellow(`  Skipping file with no valid data: ${filePath}`),
+          chalk.yellow(`  Skipping file with no valid data: \"${filePath}\"`),
         );
         continue;
       }
@@ -142,6 +146,7 @@ export async function enhancePPOCR(
         adaptResizeMorphologySize,
         adaptResizeMaxHorizontalExpansion,
         precision,
+        imageBaseDir,
       };
 
       const outputTasks = await enhancePPOCRConverters(
@@ -168,15 +173,15 @@ export async function enhancePPOCR(
       if (backup) {
         const backupPath = await backupFileIfExists(outputFilePath);
         if (backupPath) {
-          console.log(chalk.gray(`  Backed up to: ${backupPath}`));
+          console.log(chalk.gray(`  Backed up to: \"${backupPath}\"`));
         }
       }
 
       await writeFile(outputFilePath, outputTasks.join('\n'), 'utf-8');
-      console.log(chalk.green(`✓ Enhanced file saved: ${outputFilePath}`));
+      console.log(chalk.green(`✓ Enhanced file saved: \"${outputFilePath}\"`));
     } catch (error) {
       console.error(
-        chalk.red(`Error processing file ${file}:`),
+        chalk.red(`Error processing file \"${file}\":`),
         error instanceof Error ? error.message : String(error),
       );
     }

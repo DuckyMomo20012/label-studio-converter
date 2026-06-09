@@ -48,6 +48,7 @@ export const DEFAULT_WIDTH_INCREMENT = 0;
 export const DEFAULT_HEIGHT_INCREMENT = 0;
 
 // Adaptive resize options
+export const DEFAULT_ADAPT_RESIZE = false;
 export const DEFAULT_ADAPT_RESIZE_THRESHOLD = 128;
 export const DEFAULT_ADAPT_RESIZE_MARGIN = 5;
 export const DEFAULT_ADAPT_RESIZE_MIN_COMPONENT_SIZE = 10;
@@ -55,8 +56,15 @@ export const DEFAULT_ADAPT_RESIZE_MAX_COMPONENT_SIZE = 100000;
 export const DEFAULT_ADAPT_RESIZE_OUTLIER_PERCENTILE = 2;
 export const DEFAULT_ADAPT_RESIZE_MORPHOLOGY_SIZE = 2;
 export const DEFAULT_ADAPT_RESIZE_MAX_HORIZONTAL_EXPANSION = 50;
-export const DEFAULT_ADAPT_RESIZE_TIMEOUT_MS = 30000;
+export const DEFAULT_ADAPT_RESIZE_TIMEOUT_MS = 15000;
 export const DEFAULT_ADAPT_RESIZE_MAX_BOX_SIZE = 3000;
+// New: Padding validation options
+export const DEFAULT_ADAPT_RESIZE_PADDING_CHECK_WIDTH = 3; // Width of strip to check for white space
+export const DEFAULT_ADAPT_RESIZE_MIN_PADDING_BRIGHTNESS = 200; // Min brightness for "white" padding (0-255)
+export const DEFAULT_ADAPT_RESIZE_MIN_PADDING_RATIO = 0.85; // Min % of white pixels in padding strip (85%)
+// New: Adaptive threshold options
+export const DEFAULT_ADAPT_RESIZE_USE_ADAPTIVE_THRESHOLD = true; // Auto-detect threshold from image
+export const DEFAULT_ADAPT_RESIZE_ADAPTIVE_BLOCK_SIZE = 50; // Block size for local thresholding
 
 // Number precision options
 // For Label Studio: keep full precision (no rounding) by default
@@ -86,3 +94,15 @@ export const BACKUP_TIMESTAMP_FORMAT = 'YYYY-MM-DDTHH-MM-SS'; // ISO format with
 
 // Image copying options
 export const DEFAULT_COPY_IMAGES = true;
+
+// Image base directory options
+export const IMAGE_BASE_DIR_TASK_FILE = 'task-file';
+export const IMAGE_BASE_DIR_INPUT_DIR = 'input-dir';
+export const DEFAULT_IMAGE_BASE_DIR = IMAGE_BASE_DIR_TASK_FILE;
+
+export type ImageBaseDir =
+  | typeof IMAGE_BASE_DIR_TASK_FILE
+  | typeof IMAGE_BASE_DIR_INPUT_DIR;
+
+export const DEFAULT_LABEL_STUDIO_OUTPUT_IMAGE_BASE_DIR =
+  '/data/local-files/?d=';

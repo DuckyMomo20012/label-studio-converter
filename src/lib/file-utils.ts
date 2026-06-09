@@ -10,12 +10,12 @@ import { join } from 'path';
  */
 export async function findFiles(
   dirs: string[],
-  pattern: string,
-  recursive: boolean,
+  pattern?: string,
+  recursive?: boolean,
 ): Promise<string[]> {
   const allFiles: string[] = [];
 
-  const regex = new RegExp(pattern);
+  const regex = pattern ? new RegExp(pattern) : null;
 
   async function scanDirectory(dirPath: string): Promise<void> {
     const entries = await readdir(dirPath, { withFileTypes: true });
@@ -29,7 +29,10 @@ export async function findFiles(
         }
       } else if (entry.isFile()) {
         // Check if file matches pattern
-        if (regex.test(entry.name)) {
+        if (regex && regex.test(entry.name)) {
+          allFiles.push(fullPath);
+        } else if (!regex) {
+          // If no pattern provided, include all files
           allFiles.push(fullPath);
         }
       }
@@ -42,7 +45,9 @@ export async function findFiles(
       await scanDirectory(dir);
     } else if (dirStat.isFile()) {
       // If a file path is provided directly, check if it matches
-      if (regex.test(dir)) {
+      if (regex && regex.test(dir)) {
+        allFiles.push(dir);
+      } else if (!regex) {
         allFiles.push(dir);
       }
     }

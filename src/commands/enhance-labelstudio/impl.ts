@@ -3,6 +3,7 @@ import { basename, dirname, join, relative } from 'path';
 import chalk from 'chalk';
 import { isLabelStudioFullJSON } from '@/commands/toPPOCR/impl';
 import {
+  DEFAULT_ADAPT_RESIZE,
   DEFAULT_ADAPT_RESIZE_MARGIN,
   DEFAULT_ADAPT_RESIZE_MAX_COMPONENT_SIZE,
   DEFAULT_ADAPT_RESIZE_MAX_HORIZONTAL_EXPANSION,
@@ -12,6 +13,7 @@ import {
   DEFAULT_ADAPT_RESIZE_THRESHOLD,
   DEFAULT_BACKUP,
   DEFAULT_HEIGHT_INCREMENT,
+  DEFAULT_IMAGE_BASE_DIR,
   DEFAULT_LABEL_STUDIO_FILE_PATTERN,
   DEFAULT_LABEL_STUDIO_PRECISION,
   DEFAULT_OUTPUT_MODE,
@@ -39,6 +41,7 @@ type CommandFlags = {
   recursive?: boolean;
   filePattern?: string;
   outputMode?: string;
+  imageBaseDir?: string;
 } & BaseEnhanceOptions;
 
 export async function enhanceLabelStudio(
@@ -50,12 +53,13 @@ export async function enhanceLabelStudio(
     outDir,
     fileName,
     backup = DEFAULT_BACKUP,
+    imageBaseDir = DEFAULT_IMAGE_BASE_DIR,
     sortVertical = DEFAULT_SORT_VERTICAL,
     sortHorizontal = DEFAULT_SORT_HORIZONTAL,
     normalizeShape = DEFAULT_SHAPE_NORMALIZE,
     widthIncrement = DEFAULT_WIDTH_INCREMENT,
     heightIncrement = DEFAULT_HEIGHT_INCREMENT,
-    adaptResize = false,
+    adaptResize = DEFAULT_ADAPT_RESIZE,
     adaptResizeThreshold = DEFAULT_ADAPT_RESIZE_THRESHOLD,
     adaptResizeMargin = DEFAULT_ADAPT_RESIZE_MARGIN,
     adaptResizeMinComponentSize = DEFAULT_ADAPT_RESIZE_MIN_COMPONENT_SIZE,
@@ -82,7 +86,7 @@ export async function enhanceLabelStudio(
 
   for await (const filePath of filePaths) {
     const file = basename(filePath);
-    console.log(chalk.gray(`Processing file: ${filePath}`));
+    console.log(chalk.gray(`Processing file: \"${filePath}\"`));
 
     try {
       const fileData = await readFile(filePath, 'utf-8');
@@ -95,7 +99,7 @@ export async function enhanceLabelStudio(
       if (outputMode !== DEFAULT_OUTPUT_MODE && !isFull) {
         console.log(
           chalk.red(
-            `  Skipping file: ${filePath}\n  Error: --outputMode can only be used with Full JSON format. This file is in Min JSON format which does not support annotations/predictions distinction.`,
+            `  Skipping file: \"${filePath}\"\n  Error: --outputMode can only be used with Full JSON format. This file is in Min JSON format which does not support annotations/predictions distinction.`,
           ),
         );
         continue;
@@ -119,6 +123,7 @@ export async function enhanceLabelStudio(
         adaptResizeMorphologySize,
         adaptResizeMaxHorizontalExpansion,
         precision,
+        imageBaseDir,
       };
 
       if (isFull) {
@@ -153,7 +158,7 @@ export async function enhanceLabelStudio(
       if (backup) {
         const backupPath = await backupFileIfExists(outputFilePath);
         if (backupPath) {
-          console.log(chalk.gray(`  Backed up to: ${backupPath}`));
+          console.log(chalk.gray(`  Backed up to: \"${backupPath}\"`));
         }
       }
 
@@ -162,10 +167,10 @@ export async function enhanceLabelStudio(
         JSON.stringify(outputTasks, null, 2),
         'utf-8',
       );
-      console.log(chalk.green(`✓ Enhanced file saved: ${outputFilePath}`));
+      console.log(chalk.green(`✓ Enhanced file saved: \"${outputFilePath}\"`));
     } catch (error) {
       console.error(
-        chalk.red(`Error processing file ${file}:`),
+        chalk.red(`Error processing file \"${file}\":`),
         error instanceof Error ? error.message : String(error),
       );
     }

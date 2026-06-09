@@ -22,6 +22,7 @@ import {
 
 export type LabelStudioToPPOCRConverterOptions = BaseEnhanceOptions & {
   baseImageDir?: string;
+  imageBaseDir?: string;
 };
 
 export const fullLabelStudioToPPOCRConverters = async (
@@ -32,13 +33,14 @@ export const fullLabelStudioToPPOCRConverters = async (
 ) => {
   const {
     baseImageDir,
+    imageBaseDir: _imageBaseDir,
     sortVertical,
     sortHorizontal,
     normalizeShape,
     useOrientedBox,
     widthIncrement,
     heightIncrement,
-    adaptResize = false,
+    adaptResize,
     adaptResizeThreshold,
     adaptResizeMargin,
     adaptResizeMinComponentSize,
@@ -163,13 +165,14 @@ export const minLabelStudioToPPOCRConverters = async (
 ) => {
   const {
     baseImageDir,
+    imageBaseDir: _imageBaseDir,
     sortVertical,
     sortHorizontal,
     normalizeShape,
     useOrientedBox,
     widthIncrement,
     heightIncrement,
-    adaptResize = false,
+    adaptResize,
     adaptResizeThreshold,
     adaptResizeMargin,
     adaptResizeMinComponentSize,

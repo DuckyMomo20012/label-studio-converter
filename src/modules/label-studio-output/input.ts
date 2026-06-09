@@ -1,0 +1,79 @@
+import { groupBy } from 'es-toolkit';
+import { type UnionToIntersection } from 'type-fest';
+import { rectangleToPoints, tupleToPoints } from '@/lib/geometry';
+import { type ProcessorInput } from '@/lib/processor';
+import {
+  type PolygonResult,
+  type RectangleResult,
+} from '@/modules/label-studio-full/schema';
+import { type OutputLabelStudioTask } from '@/modules/label-studio-output/schema';
+
+export const OutputLabelStudioInput = (async (inputTask, resolveImagePath) => {
+  const imageFilePath = await resolveImagePath(inputTask.task.data.ocr);
+
+  const { id, result, ...metadata } = inputTask;
+
+  const annoData = result;
+
+  const imageMeta = annoData?.find(
+    (item) =>
+      item.original_height !== undefined && item.original_width !== undefined,
+  );
+
+  let { original_height: imgHeight, original_width: imgWidth } =
+    imageMeta ?? {};
+
+  // NOTE: By default, one bounding box per annotation will have 3 annotations
+  // data: base, label, text
+  const groupByAnnoId = groupBy(annoData || [], (item) => item.id);
+
+  return {
+    id: id.toString(),
+    height: imgHeight!,
+    width: imgWidth!,
+    imagePath: imageFilePath,
+    metadata,
+    boxes: Object.entries(groupByAnnoId).map(([annoId, items]) => {
+      // Merge multiple annotation items into one box
+      let baseAnno = {} as UnionToIntersection<RectangleResult | PolygonResult>;
+
+      for (const item of items) {
+        baseAnno = { ...baseAnno, ...item.value };
+      }
+
+      let newPoints =
+        'points' in baseAnno ? tupleToPoints(baseAnno.points) : [];
+
+      if (
+        newPoints.length === 0 &&
+        'x' in baseAnno &&
+        'y' in baseAnno &&
+        'width' in baseAnno &&
+        'height' in baseAnno
+      ) {
+        // Convert rectangle to 4 corner points
+        newPoints = rectangleToPoints(
+          baseAnno.x,
+          baseAnno.y,
+          baseAnno.width,
+          baseAnno.height,
+          imgWidth,
+          imgHeight,
+        );
+      }
+
+      return {
+        id: annoId,
+        points: newPoints,
+        metadata: baseAnno,
+        score: imageMeta?.score,
+        text:
+          'text' in baseAnno
+            ? Array.isArray(baseAnno.text)
+              ? baseAnno.text.join(' ')
+              : baseAnno.text
+            : undefined,
+      };
+    }),
+  };
+}) satisfies ProcessorInput<OutputLabelStudioTask>;

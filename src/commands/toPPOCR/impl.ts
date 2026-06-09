@@ -1,7 +1,8 @@
 import { copyFile, mkdir, readFile, writeFile } from 'fs/promises';
-import { basename, dirname, join, relative } from 'path';
+import { basename, dirname, join, relative, resolve } from 'path';
 import chalk from 'chalk';
 import {
+  DEFAULT_ADAPT_RESIZE,
   DEFAULT_ADAPT_RESIZE_MARGIN,
   DEFAULT_ADAPT_RESIZE_MAX_COMPONENT_SIZE,
   DEFAULT_ADAPT_RESIZE_MAX_HORIZONTAL_EXPANSION,
@@ -12,6 +13,7 @@ import {
   DEFAULT_BACKUP,
   DEFAULT_COPY_IMAGES,
   DEFAULT_HEIGHT_INCREMENT,
+  DEFAULT_IMAGE_BASE_DIR,
   DEFAULT_LABEL_STUDIO_FILE_PATTERN,
   DEFAULT_PPOCR_FILE_NAME,
   DEFAULT_PPOCR_PRECISION,
@@ -20,6 +22,7 @@ import {
   DEFAULT_SORT_HORIZONTAL,
   DEFAULT_SORT_VERTICAL,
   DEFAULT_WIDTH_INCREMENT,
+  IMAGE_BASE_DIR_INPUT_DIR,
 } from '@/constants';
 import type { LocalContext } from '@/context';
 import {
@@ -48,6 +51,7 @@ type CommandFlags = {
   baseImageDir?: string;
   recursive?: boolean;
   filePattern?: string;
+  imageBaseDir?: string;
 } & BaseEnhanceOptions;
 
 export const isLabelStudioFullJSON = (
@@ -91,12 +95,13 @@ export async function convertToPPOCR(
     backup = DEFAULT_BACKUP,
     copyImages = DEFAULT_COPY_IMAGES,
     baseImageDir,
+    imageBaseDir = DEFAULT_IMAGE_BASE_DIR,
     sortVertical = DEFAULT_SORT_VERTICAL,
     sortHorizontal = DEFAULT_SORT_HORIZONTAL,
     normalizeShape = DEFAULT_SHAPE_NORMALIZE,
     widthIncrement = DEFAULT_WIDTH_INCREMENT,
     heightIncrement = DEFAULT_HEIGHT_INCREMENT,
-    adaptResize = false,
+    adaptResize = DEFAULT_ADAPT_RESIZE,
     adaptResizeThreshold = DEFAULT_ADAPT_RESIZE_THRESHOLD,
     adaptResizeMargin = DEFAULT_ADAPT_RESIZE_MARGIN,
     adaptResizeMinComponentSize = DEFAULT_ADAPT_RESIZE_MIN_COMPONENT_SIZE,
@@ -120,13 +125,17 @@ export async function convertToPPOCR(
 
   console.log(chalk.blue(`Found ${filePaths.length} files to process\n`));
 
+  // Use first input directory as base for relative paths (resolve to absolute)
+  // If no input dirs, use current working directory
+  const baseDir = inputDirs.length > 0 ? resolve(inputDirs[0]!) : process.cwd();
+
   for (const filePath of filePaths) {
     const file = basename(filePath);
     // Get relative path to preserve directory structure
     const relativePath = relative(process.cwd(), filePath);
     const relativeDir = dirname(relativePath);
 
-    console.log(chalk.gray(`Processing file: ${filePath}`));
+    console.log(chalk.gray(`Processing file: \"${filePath}\"`));
 
     try {
       const fileData = await readFile(filePath, 'utf-8');
@@ -156,6 +165,7 @@ export async function convertToPPOCR(
         adaptResizeMorphologySize,
         adaptResizeMaxHorizontalExpansion,
         precision,
+        imageBaseDir,
       };
 
       // Determine output directory before calling converters
@@ -214,12 +224,22 @@ export async function convertToPPOCR(
               sourceImagePath = join(taskFileDir, cleanPath);
             }
 
-            const destImagePath = join(outputSubDir, basename(sourceImagePath));
+            // Calculate destination path based on imageBaseDir flag
+            let destImagePath: string;
+            if (imageBaseDir === IMAGE_BASE_DIR_INPUT_DIR) {
+              // Keep full path structure from input directory
+              const relativeFromInput = relative(baseDir, sourceImagePath);
+              destImagePath = join(outDir, relativeFromInput);
+            } else {
+              // Default: task-file - relative to task file location
+              const relativeFromTask = relative(taskFileDir, sourceImagePath);
+              destImagePath = join(outputSubDir, relativeFromTask);
+            }
 
             await mkdir(dirname(destImagePath), { recursive: true });
             await copyFile(sourceImagePath, destImagePath);
             console.log(
-              chalk.gray(`  ✓ Copied image: ${basename(sourceImagePath)}`),
+              chalk.gray(`  ✓ Copied image: \"${basename(sourceImagePath)}\"`),
             );
           } catch (error) {
             console.warn(
@@ -254,16 +274,16 @@ export async function convertToPPOCR(
       if (backup) {
         const backupPath = await backupFileIfExists(outputPath);
         if (backupPath) {
-          console.log(chalk.gray(`  Backed up to: ${backupPath}`));
+          console.log(chalk.gray(`  Backed up to: \"${backupPath}\"`));
         }
       }
 
       await writeFile(outputPath, outputLines.join('\n'), 'utf-8');
 
-      console.log(chalk.green(`✓ Converted ${file} -> ${outputPath}`));
+      console.log(chalk.green(`✓ Converted \"${file}\" -> \"${outputPath}\"`));
     } catch (error) {
       console.error(
-        chalk.red(`✗ Failed to process ${file}:`),
+        chalk.red(`✗ Failed to process \"${file}\":`),
         error instanceof Error ? error.message : error,
       );
     }

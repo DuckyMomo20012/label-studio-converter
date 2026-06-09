@@ -16,19 +16,24 @@ import {
   withOptions,
 } from '@/lib';
 
+export type EnhancePPOCROptions = BaseEnhanceOptions & {
+  imageBaseDir?: string;
+};
+
 export const enhancePPOCRConverters = async (
   inputTasks: PPOCRLabelTask[],
   taskFilePath: string,
-  options: BaseEnhanceOptions,
+  options: EnhancePPOCROptions,
 ) => {
   const {
+    imageBaseDir: _imageBaseDir,
     sortVertical,
     sortHorizontal,
     normalizeShape,
     useOrientedBox,
     widthIncrement,
     heightIncrement,
-    adaptResize = false,
+    adaptResize,
     adaptResizeThreshold,
     adaptResizeMargin,
     adaptResizeMinComponentSize,
@@ -36,6 +41,11 @@ export const enhancePPOCRConverters = async (
     adaptResizeOutlierPercentile,
     adaptResizeMorphologySize,
     adaptResizeMaxHorizontalExpansion,
+    adaptResizePaddingCheckWidth,
+    adaptResizeMinPaddingBrightness,
+    adaptResizeMinPaddingRatio,
+    adaptResizeUseAdaptiveThreshold,
+    adaptResizeAdaptiveBlockSize,
     precision,
   } = options;
 
@@ -58,6 +68,11 @@ export const enhancePPOCRConverters = async (
             outlierPercentile: adaptResizeOutlierPercentile,
             morphologySize: adaptResizeMorphologySize,
             maxHorizontalExpansion: adaptResizeMaxHorizontalExpansion,
+            paddingCheckWidth: adaptResizePaddingCheckWidth,
+            minPaddingBrightness: adaptResizeMinPaddingBrightness,
+            minPaddingRatio: adaptResizeMinPaddingRatio,
+            useAdaptiveThreshold: adaptResizeUseAdaptiveThreshold,
+            adaptiveBlockSize: adaptResizeAdaptiveBlockSize,
           }),
         ]
       : []),
