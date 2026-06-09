@@ -248,10 +248,11 @@ label-studio-converter --help
 
 ```
 USAGE
-  label-studio-converter toLabelStudio [--outDir value] [--fileName value] [--backup] [--defaultLabelName value] [--toFullJson] [--createFilePerImage] [--createFileListForServing] [--fileListName value] [--baseServerUrl value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] [--recursive] [--filePattern value] [--outputMode value] <args>...
-  label-studio-converter toPPOCR [--outDir value] [--fileName value] [--backup] [--baseImageDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] [--recursive] [--filePattern value] <args>...
-  label-studio-converter enhance-labelstudio [--outDir value] [--fileName value] [--backup] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] [--recursive] [--filePattern value] [--outputMode value] <args>...
-  label-studio-converter enhance-ppocr [--outDir value] [--fileName value] [--backup] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] [--recursive] [--filePattern value] <args>...
+  label-studio-converter toLabelStudio [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] [--defaultLabelName value] [--toFullJson] [--createFilePerImage] [--createFileListForServing] [--fileListName value] [--baseServerUrl value] [--outputMode value] <args>...
+  label-studio-converter toPPOCR [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] [--baseImageDir value] <args>...
+  label-studio-converter enhance-labelstudio [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] [--outputMode value] <args>...
+  label-studio-converter enhance-ppocr [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] <args>...
+  label-studio-converter label-studio-output-to-ppocr [--recursive] (--outDir value) [--fileName value] [--removeBaseImageDir value] <args>...
   label-studio-converter --help
   label-studio-converter --version
 
@@ -262,10 +263,11 @@ FLAGS
   -v --version  Print version information and exit
 
 COMMANDS
-  toLabelStudio        Convert PPOCRLabel files to Label Studio format
-  toPPOCR              Convert Label Studio files to PPOCRLabel format
-  enhance-labelstudio  Enhance Label Studio files with sorting, normalization, and resizing
-  enhance-ppocr        Enhance PPOCRLabel files with sorting, normalization, and resizing
+  toLabelStudio                 Convert PPOCRLabel files to Label Studio format
+  toPPOCR                       Convert Label Studio files to PPOCRLabel format
+  enhance-labelstudio           Enhance Label Studio files with sorting, normalization, and resizing
+  enhance-ppocr                 Enhance PPOCRLabel files with sorting, normalization, and resizing
+  label-studio-output-to-ppocr  Convert Label Studio output files to PPOCRLabel format     Enhance PPOCRLabel files with sorting, normalization, and resizing
 ```
 
 #### Command Flags Reference
@@ -280,12 +282,14 @@ COMMANDS
   - **Example**: `--outDir ./output` saves all files to `./output/`
 
 - `--fileName <name>`: Custom output filename
-  - **Behavior**: Renames output file (without extension for JSON, with extension for txt)
+  - **Behavior**: Renames output file (without extension for JSON, with
+    extension for txt)
   - **Default**:
     - toLabelStudio: `{source}_full.json` or `{source}_min.json`
     - toPPOCR: `Label.txt`
     - enhance commands: Same as input filename
-  - **Example**: `--fileName MyLabels.txt` creates `MyLabels.txt` instead of `Label.txt`
+  - **Example**: `--fileName MyLabels.txt` creates `MyLabels.txt` instead of
+    `Label.txt`
 
 - `--backup` / `--noBackup`: Create backup before overwriting
   - **Behavior**: Copies existing file to `{filename}.backup` before overwriting
@@ -295,28 +299,41 @@ COMMANDS
 - `--recursive` / `--noRecursive`: Search subdirectories
   - **Behavior**: Processes files in all subdirectories recursively
   - **Default**: `false` (current directory only)
-  - **Example**: `--recursive` processes `./data/train/Label.txt` and `./data/test/Label.txt`
+  - **Example**: `--recursive` processes `./data/train/Label.txt` and
+    `./data/test/Label.txt`
 
 - `--filePattern <regex>`: Pattern to match input files
   - **Behavior**: Only processes files matching regex pattern
   - **Default**:
     - PPOCRLabel commands: `.*\.txt$` (all .txt files)
     - Label Studio commands: `.*\.json$` (all .json files)
-  - **Example**: `--filePattern "train_.*\.txt$"` only processes files starting with `train_`
+  - **Example**: `--filePattern "train_.*\.txt$"` only processes files starting
+    with `train_`
 
 - `--copyImages` / `--noCopyImages`: Copy images when using --outDir
-  - **Behavior**: When --outDir is specified, automatically copies/moves images to output directory alongside converted files
+  - **Behavior**: When --outDir is specified, automatically copies/moves images
+    to output directory alongside converted files
   - **Default**: `true` (copy images)
-  - **Example**: `--noCopyImages` keeps images in original location, only copies task files
-  - **Note**: Only applies to toLabelStudio and toPPOCR converters when --outDir is used
+  - **Example**: `--noCopyImages` keeps images in original location, only copies
+    task files
+  - **Note**: Only applies to toLabelStudio and toPPOCR converters when --outDir
+    is used
+  - **Note**: Not available for `label-studio-output-to-ppocr` command since it
+    only processes Label Studio output files which have no image paths
 
 - `--imageBaseDir <dir>`: Controls output directory structure when copying images
-  - **Behavior**: Determines how the directory structure is preserved when copying images to output directory
-  - **Options**: `task-file` (relative to task file), `input-dir` (relative to input directory)
+  - **Behavior**: Determines how the directory structure is preserved when
+    copying images to output directory
+  - **Options**: `task-file` (relative to task file), `input-dir` (relative to
+    input directory)
   - **Default**: `task-file`
-  - **Example**: `--imageBaseDir input-dir --copyImages` preserves full path structure from input directory
-  - **Use case**: Control whether copied images maintain full path from input directory or relative to task file
+  - **Example**: `--imageBaseDir input-dir --copyImages` preserves full path
+    structure from input directory
+  - **Use case**: Control whether copied images maintain full path from input
+    directory or relative to task file
   - **Note**: Only affects output when --copyImages is used with --outDir
+  - **Note**: Not available for `label-studio-output-to-ppocr` command since it
+    only processes Label Studio output files which have no image paths
 
 **Enhancement Flags:**
 
@@ -327,16 +344,19 @@ COMMANDS
   - **Example**: `--sortVertical top-bottom` sorts boxes from top to bottom
 
 - `--sortHorizontal <order>`: Horizontal sorting order
-  - **Behavior**: Sorts bounding boxes by horizontal position (applied after vertical sort)
+  - **Behavior**: Sorts bounding boxes by horizontal position (applied after
+    vertical sort)
   - **Options**: `none`, `ltr` (left-to-right), `rtl` (right-to-left)
   - **Default**: `none` (no sorting)
-  - **Example**: `--sortHorizontal rtl` sorts boxes right-to-left (for vertical text)
+  - **Example**: `--sortHorizontal rtl` sorts boxes right-to-left (for vertical
+    text)
 
 - `--normalizeShape <option>`: Shape normalization
   - **Behavior**: Converts diamond/rotated shapes to axis-aligned rectangles
   - **Options**: `none`, `rectangle`
   - **Default**: `none` (preserve original shapes)
-  - **Example**: `--normalizeShape rectangle` converts all polygons to rectangles
+  - **Example**: `--normalizeShape rectangle` converts all polygons to
+    rectangles
 
 - `--widthIncrement <pixels>`: Adjust box width
   - **Behavior**: Adds pixels to box width (can be negative to shrink)
@@ -360,15 +380,18 @@ COMMANDS
 **Adaptive Resize Flags (Advanced):**
 
 - `--adaptResize` / `--noAdaptResize`: Enable intelligent box resizing
-  - **Behavior**: Uses image analysis to shrink oversized boxes to fit actual text
+  - **Behavior**: Uses image analysis to shrink oversized boxes to fit actual
+    text
   - **Default**: `false` (disabled)
   - **Use Case**: Sino-Nom OCR datasets with excessive padding
   - **Example**: `--adaptResize` enables feature with default parameters
 
 - `--adaptResizeThreshold <0-255>`: Grayscale threshold
-  - **Behavior**: Pixels ≥ threshold are considered text (white), < threshold are background (black)
+  - **Behavior**: Pixels ≥ threshold are considered text (white), < threshold
+    are background (black)
   - **Default**: `128`
-  - **Example**: `--adaptResizeThreshold 140` for darker text on light background
+  - **Example**: `--adaptResizeThreshold 140` for darker text on light
+    background
 
 - `--adaptResizeMargin <pixels>`: Padding around detected content
   - **Behavior**: Additional pixels added on all sides after detection
@@ -386,9 +409,11 @@ COMMANDS
   - **Example**: `--adaptResizeMaxComponentSize 50000` for smaller characters
 
 - `--adaptResizeOutlierPercentile <%>`: Outlier removal
-  - **Behavior**: Ignores this % of smallest and largest pixels when calculating boundaries
+  - **Behavior**: Ignores this % of smallest and largest pixels when calculating
+    boundaries
   - **Default**: `2` (ignore 2% on each end)
-  - **Example**: `--adaptResizeOutlierPercentile 3` for more aggressive outlier removal
+  - **Example**: `--adaptResizeOutlierPercentile 3` for more aggressive outlier
+    removal
 
 - `--adaptResizeMorphologySize <pixels>`: Stroke connection
   - **Behavior**: Kernel size for connecting broken character strokes
@@ -396,7 +421,8 @@ COMMANDS
   - **Example**: `--adaptResizeMorphologySize 3` connects larger gaps
 
 - `--adaptResizeMaxHorizontalExpansion <pixels>`: Column overlap prevention
-  - **Behavior**: Maximum pixels boxes can expand horizontally (CRITICAL for vertical text)
+  - **Behavior**: Maximum pixels boxes can expand horizontally (CRITICAL for
+    vertical text)
   - **Default**: `50`
   - **Example**: `--adaptResizeMaxHorizontalExpansion 30` for closely-spaced columns
 
@@ -405,10 +431,12 @@ COMMANDS
 - `--defaultLabelName <name>`: Default label for annotations
   - **Behavior**: Label assigned to all text regions
   - **Default**: `"Text"`
-  - **Example**: `--defaultLabelName "Handwriting"` labels all regions as Handwriting
+  - **Example**: `--defaultLabelName "Handwriting"` labels all regions as
+    Handwriting
 
 - `--toFullJson` / `--noToFullJson`: Output format
-  - **Behavior**: `true` = Full format (more metadata), `false` = Min format (compact)
+  - **Behavior**: `true` = Full format (more metadata), `false` = Min format
+    (compact)
   - **Default**: `true` (Full format)
   - **Example**: `--noToFullJson` creates minimal format files
 
@@ -417,7 +445,8 @@ COMMANDS
   - **Default**: `false` (single file)
   - **Example**: `--createFilePerImage` creates `image1.json`, `image2.json`, etc.
 
-- `--createFileListForServing` / `--noCreateFileListForServing`: Generate file list
+- `--createFileListForServing` / `--noCreateFileListForServing`: Generate file
+  list
   - **Behavior**: Creates `files.txt` with image URLs for Label Studio import
   - **Default**: `true` (create file list)
   - **Example**: `--noCreateFileListForServing` skips file list creation
@@ -428,7 +457,8 @@ COMMANDS
   - **Example**: `--fileListName "images.txt"` creates `images.txt` instead
 
 - `--baseServerUrl <url>`: Base URL for images
-  - **Behavior**: Prepended to image paths in output JSON (e.g., for local HTTP server)
+  - **Behavior**: Prepended to image paths in output JSON (e.g., for local HTTP
+    server)
   - **Default**: `"http://localhost:8081"`
   - **Example**: `--baseServerUrl "http://192.168.1.100:8080"` for network access
 
@@ -444,12 +474,23 @@ COMMANDS
 - `--baseImageDir <path>`: Image directory prefix
   - **Behavior**: Prepended to image filenames in output `Label.txt`
   - **Default**: Empty string (no prefix)
-  - **Example**: `--baseImageDir "images/ch"` writes `images/ch/example.jpg` in Label.txt
+  - **Example**: `--baseImageDir "images/ch"` writes `images/ch/example.jpg` in
+    Label.txt
 
 ##### Flags Specific to enhance-labelstudio Command
 
 - `--outputMode <mode>`: Same as toLabelStudio command
   - See toLabelStudio flags section above
+
+##### Flags Specific to label-studio-output-to-ppocr Command
+
+- `--removeBaseImageDir <dir>`: Remove base directory from image paths
+  - **Behavior**: Strips specified base directory from image paths in output
+    `Label.txt`
+  - **Default**: `"/data/local-files/?d="` (removes Label Studio's default local
+    file prefix)
+  - **Example**: `--removeBaseImageDir "data/"` converts `data/example.jpg` to
+    `example.jpg` in Label.txt
 
 #### Image Path Resolution Logic
 
@@ -823,6 +864,18 @@ output/example.jpg	[{"transcription":"Text","points":[[...]],"dt_score":1}]
 - Uses `baseImageDir` or output directory basename as folder prefix
 - Extracts filename from resolved path, prepends folder name
 
+##### label-studio-output-to-ppocr: Label Studio Output → PPOCRLabel
+
+**INPUT Resolution**:
+
+- Reads Label Studio output JSON files
+- Strips `removeBaseImageDir` prefix from image paths (e.g.,
+  `data/local-files/?d=example.jpg` → `example.jpg`)
+
+**OUTPUT Resolution**:
+
+- Generates PPOCRLabel Label.txt with `folder/filename.jpg` format
+
 ---
 
 **Key Concepts:**
@@ -869,31 +922,47 @@ label-studio-converter toLabelStudio --help
 
 ```
 USAGE
-  label-studio-converter toLabelStudio [--outDir value] [--fileName value] [--backup] [--defaultLabelName value] [--toFullJson] [--createFilePerImage] [--createFileListForServing] [--fileListName value] [--baseServerUrl value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] [--recursive] [--filePattern value] [--outputMode value] <args>...
+  label-studio-converter toLabelStudio [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] [--defaultLabelName value] [--toFullJson] [--createFilePerImage] [--createFileListForServing] [--fileListName value] [--baseServerUrl value] [--outputMode value] <args>...
   label-studio-converter toLabelStudio --help
 
 Convert PPOCRLabel files to Label Studio format
 
 FLAGS
-     [--outDir]                                                 Output directory. If not specified, files are saved in the same directory as the source files
-     [--fileName]                                               Custom output filename (without extension). If not specified, uses source filename with format suffix
-     [--backup/--noBackup]                                      Create backup of existing files before overwriting. Default: false
-     [--defaultLabelName]                                       Default label name for text annotations. Default: "Text"
-     [--toFullJson/--noToFullJson]                              Convert to Full OCR Label Studio format. Default: "true"
-     [--createFilePerImage/--noCreateFilePerImage]              Create a separate Label Studio JSON file for each image. Default: "false"
-     [--createFileListForServing/--noCreateFileListForServing]  Create a file list for serving in Label Studio. Default: "true"
-     [--fileListName]                                           Name of the file list for serving. Default: "files.txt"
-     [--baseServerUrl]                                          Base server URL for constructing image URLs in the file list. Default: "http://localhost:8081"
-     [--sortVertical]                                           Sort bounding boxes vertically. Options: "none", "top-bottom", "bottom-top". Default: "none"
-     [--sortHorizontal]                                         Sort bounding boxes horizontally. Options: "none", "ltr", "rtl". Default: "none"
-     [--normalizeShape]                                         Normalize diamond-like shapes to axis-aligned rectangles. Options: "none", "rectangle". Default: "none"
-     [--widthIncrement]                                         Increase bounding box width by this amount (in pixels). Can be negative to decrease. Default: 0
-     [--heightIncrement]                                        Increase bounding box height by this amount (in pixels). Can be negative to decrease. Default: 0
-     [--precision]                                              Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: -1
-     [--recursive/--noRecursive]                                Recursively search directories for files. Default: false
-     [--filePattern]                                            Regex pattern to match PPOCRLabel files (should match .txt files). Default: ".*\.txt$"
-     [--outputMode]                                             Output mode: "annotations" for editable annotations (ground truth) or "predictions" for read-only predictions (pre-annotations). Default: "annotations"
-  -h  --help                                                    Print help information and exit
+     [--outDir]                                                               Output directory. If not specified, files are saved in the same directory as the source files
+     [--fileName]                                                             Custom output filename (without extension). If not specified, uses source filename with format suffix
+     [--backup/--noBackup]                                                    Create backup of existing files before overwriting. Default: false
+     [--recursive/--noRecursive]                                              Recursively search directories for files. Default: false
+     [--filePattern]                                                          Regex pattern to match PPOCRLabel files (should match .txt files). Default: ".*\.txt$"
+     [--copyImages/--noCopyImages]                                            Copy images to output directory when --outDir is specified. Only applies to toLabelStudio and toPPOCR commands. Default: true
+     [--imageBaseDir]                                                         Base directory for resolving image paths. Options: "task-file" (relative to task file location), "input-dir" (relative to command execution directory). Default: "task-file"
+     [--sortVertical]                                                         Sort bounding boxes vertically. Options: "none", "top-bottom", "bottom-top". Default: "none"
+     [--sortHorizontal]                                                       Sort bounding boxes horizontally. Options: "none", "ltr", "rtl". Default: "none"
+     [--normalizeShape]                                                       Normalize diamond-like shapes to axis-aligned rectangles. Options: "none", "rectangle". Default: "none"
+     [--useOrientedBox/--noUseOrientedBox]                                    Use oriented (rotated) bounding box when normalizing shapes. Useful for skewed text. Default: false
+     [--widthIncrement]                                                       Increase bounding box width by this amount (in pixels). Can be negative to decrease. Default: 0
+     [--heightIncrement]                                                      Increase bounding box height by this amount (in pixels). Can be negative to decrease. Default: 0
+     [--adaptResize/--noAdaptResize]                                          Apply adaptive resize to automatically adjust bounding boxes based on image content. Default: false
+     [--adaptResizeThreshold]                                                 Grayscale threshold for adaptive resize (0-255). Default: 128
+     [--adaptResizeMargin]                                                    Margin pixels around detected content for adaptive resize. Default: 5
+     [--adaptResizeMinComponentSize]                                          Minimum component size in pixels (filters dirt/noise). Default: 10
+     [--adaptResizeMaxComponentSize]                                          Maximum component size in pixels (filters large artifacts). Default: 100000
+     [--adaptResizeOutlierPercentile]                                         Percentile for outlier removal (0-100). Default: 2
+     [--adaptResizeMorphologySize]                                            Morphological operation kernel size. Default: 2
+     [--adaptResizeMaxHorizontalExpansion]                                    Maximum horizontal expansion in pixels (prevents column overlap). Default: 50
+     [--adaptResizePaddingCheckWidth]                                         Width of padding strip to validate (in pixels). Default: 3
+     [--adaptResizeMinPaddingBrightness]                                      Minimum brightness for white padding pixels (0-255). Default: 200
+     [--adaptResizeMinPaddingRatio]                                           Minimum ratio of white pixels in padding strip (0-1). Default: 0.85
+     [--adaptResizeUseAdaptiveThreshold/--noAdaptResizeUseAdaptiveThreshold]  Use adaptive thresholding based on image histogram (recommended). Default: true
+     [--adaptResizeAdaptiveBlockSize]                                         Block size for adaptive thresholding. Default: 50
+     [--precision]                                                            Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: 0 (integers)
+     [--defaultLabelName]                                                     Default label name for text annotations. Default: "Text"
+     [--toFullJson/--noToFullJson]                                            Convert to Full OCR Label Studio format. Default: "true"
+     [--createFilePerImage/--noCreateFilePerImage]                            Create a separate Label Studio JSON file for each image. Default: "false"
+     [--createFileListForServing/--noCreateFileListForServing]                Create a file list for serving in Label Studio. Default: "true"
+     [--fileListName]                                                         Name of the file list for serving. Default: "files.txt"
+     [--baseServerUrl]                                                        Base server URL for constructing image URLs in the file list. Default: "http://localhost:8081"
+     [--outputMode]                                                           Output mode: "annotations" for editable annotations (ground truth) or "predictions" for read-only predictions (pre-annotations). Default: "annotations"
+  -h  --help                                                                  Print help information and exit
 
 ARGUMENTS
   args...  Input directories containing PPOCRLabel files
@@ -909,25 +978,41 @@ label-studio-converter toPPOCR --help
 
 ```
 USAGE
-  label-studio-converter toPPOCR [--outDir value] [--fileName value] [--backup] [--baseImageDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] [--recursive] [--filePattern value] <args>...
+  label-studio-converter toPPOCR [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] [--baseImageDir value] <args>...
   label-studio-converter toPPOCR --help
 
 Convert Label Studio files to PPOCRLabel format
 
 FLAGS
-     [--outDir]                   Output directory. If not specified, files are saved in the same directory as the source files
-     [--fileName]                 Output PPOCR file name. Default: "Label.txt"
-     [--backup/--noBackup]        Create backup of existing files before overwriting. Default: false
-     [--baseImageDir]             Base directory path to prepend to image filenames in output (e.g., "ch" or "images/ch")
-     [--sortVertical]             Sort bounding boxes vertically. Options: "none", "top-bottom", "bottom-top". Default: "none"
-     [--sortHorizontal]           Sort bounding boxes horizontally. Options: "none", "ltr", "rtl". Default: "none"
-     [--normalizeShape]           Normalize diamond-like shapes to axis-aligned rectangles. Options: "none", "rectangle". Default: "none"
-     [--widthIncrement]           Increase bounding box width by this amount (in pixels). Can be negative to decrease. Default: 0
-     [--heightIncrement]          Increase bounding box height by this amount (in pixels). Can be negative to decrease. Default: 0
-     [--precision]                Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: 0 (integers)
-     [--recursive/--noRecursive]  Recursively search directories for files. Default: false
-     [--filePattern]              Regex pattern to match Label Studio files (should match .json files). Default: ".*\.json$"
-  -h  --help                      Print help information and exit
+     [--outDir]                                                               Output directory. If not specified, files are saved in the same directory as the source files
+     [--fileName]                                                             Output PPOCR file name. Default: "Label.txt"
+     [--backup/--noBackup]                                                    Create backup of existing files before overwriting. Default: false
+     [--recursive/--noRecursive]                                              Recursively search directories for files. Default: false
+     [--filePattern]                                                          Regex pattern to match Label Studio files (should match .json files). Default: ".*\.json$"
+     [--copyImages/--noCopyImages]                                            Copy images to output directory when --outDir is specified. Only applies to toLabelStudio and toPPOCR commands. Default: true
+     [--imageBaseDir]                                                         Base directory for resolving image paths. Options: "task-file" (relative to task file location), "input-dir" (relative to command execution directory). Default: "task-file"
+     [--sortVertical]                                                         Sort bounding boxes vertically. Options: "none", "top-bottom", "bottom-top". Default: "none"
+     [--sortHorizontal]                                                       Sort bounding boxes horizontally. Options: "none", "ltr", "rtl". Default: "none"
+     [--normalizeShape]                                                       Normalize diamond-like shapes to axis-aligned rectangles. Options: "none", "rectangle". Default: "none"
+     [--useOrientedBox/--noUseOrientedBox]                                    Use oriented (rotated) bounding box when normalizing shapes. Useful for skewed text. Default: false
+     [--widthIncrement]                                                       Increase bounding box width by this amount (in pixels). Can be negative to decrease. Default: 0
+     [--heightIncrement]                                                      Increase bounding box height by this amount (in pixels). Can be negative to decrease. Default: 0
+     [--adaptResize/--noAdaptResize]                                          Apply adaptive resize to automatically adjust bounding boxes based on image content. Default: false
+     [--adaptResizeThreshold]                                                 Grayscale threshold for adaptive resize (0-255). Default: 128
+     [--adaptResizeMargin]                                                    Margin pixels around detected content for adaptive resize. Default: 5
+     [--adaptResizeMinComponentSize]                                          Minimum component size in pixels (filters dirt/noise). Default: 10
+     [--adaptResizeMaxComponentSize]                                          Maximum component size in pixels (filters large artifacts). Default: 100000
+     [--adaptResizeOutlierPercentile]                                         Percentile for outlier removal (0-100). Default: 2
+     [--adaptResizeMorphologySize]                                            Morphological operation kernel size. Default: 2
+     [--adaptResizeMaxHorizontalExpansion]                                    Maximum horizontal expansion in pixels (prevents column overlap). Default: 50
+     [--adaptResizePaddingCheckWidth]                                         Width of padding strip to validate (in pixels). Default: 3
+     [--adaptResizeMinPaddingBrightness]                                      Minimum brightness for white padding pixels (0-255). Default: 200
+     [--adaptResizeMinPaddingRatio]                                           Minimum ratio of white pixels in padding strip (0-1). Default: 0.85
+     [--adaptResizeUseAdaptiveThreshold/--noAdaptResizeUseAdaptiveThreshold]  Use adaptive thresholding based on image histogram (recommended). Default: true
+     [--adaptResizeAdaptiveBlockSize]                                         Block size for adaptive thresholding. Default: 50
+     [--precision]                                                            Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: 0 (integers)
+     [--baseImageDir]                                                         Base directory path to prepend to image filenames in output (e.g., "ch" or "images/ch")
+  -h  --help                                                                  Print help information and exit
 
 ARGUMENTS
   args...  Input directories containing Label Studio files
@@ -943,25 +1028,41 @@ label-studio-converter enhance-labelstudio --help
 
 ```
 USAGE
-  label-studio-converter enhance-labelstudio [--outDir value] [--fileName value] [--backup] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] [--recursive] [--filePattern value] [--outputMode value] <args>...
+  label-studio-converter enhance-labelstudio [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] [--outputMode value] <args>...
   label-studio-converter enhance-labelstudio --help
 
 Enhance Label Studio files with sorting, normalization, and resizing
 
 FLAGS
-     [--outDir]                   Output directory. If not specified, files are saved in the same directory as the source files
-     [--fileName]                 Custom output filename. If not specified, uses the same name as the source file
-     [--backup/--noBackup]        Create backup of existing files before overwriting. Default: false
-     [--sortVertical]             Sort bounding boxes vertically. Options: "none", "top-bottom", "bottom-top". Default: "none"
-     [--sortHorizontal]           Sort bounding boxes horizontally. Options: "none", "ltr", "rtl". Default: "none"
-     [--normalizeShape]           Normalize diamond-like shapes to axis-aligned rectangles. Options: "none", "rectangle". Default: "none"
-     [--widthIncrement]           Increase bounding box width by this amount (in pixels). Can be negative to decrease. Default: 0
-     [--heightIncrement]          Increase bounding box height by this amount (in pixels). Can be negative to decrease. Default: 0
-     [--precision]                Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: -1
-     [--recursive/--noRecursive]  Recursively search directories for files. Default: false
-     [--filePattern]              Regex pattern to match Label Studio files (should match .json files). Default: ".*\.json$"
-     [--outputMode]               Output mode: "annotations" for editable annotations (ground truth) or "predictions" for read-only predictions (pre-annotations). Default: "annotations"
-  -h  --help                      Print help information and exit
+     [--outDir]                                                               Output directory. If not specified, files are saved in the same directory as the source files
+     [--fileName]                                                             Custom output filename. If not specified, uses the same name as the source file
+     [--backup/--noBackup]                                                    Create backup of existing files before overwriting. Default: false
+     [--recursive/--noRecursive]                                              Recursively search directories for files. Default: false
+     [--filePattern]                                                          Regex pattern to match Label Studio files (should match .json files). Default: ".*\.json$"
+     [--copyImages/--noCopyImages]                                            Copy images to output directory when --outDir is specified. Only applies to toLabelStudio and toPPOCR commands. Default: true
+     [--imageBaseDir]                                                         Base directory for resolving image paths. Options: "task-file" (relative to task file location), "input-dir" (relative to command execution directory). Default: "task-file"
+     [--sortVertical]                                                         Sort bounding boxes vertically. Options: "none", "top-bottom", "bottom-top". Default: "none"
+     [--sortHorizontal]                                                       Sort bounding boxes horizontally. Options: "none", "ltr", "rtl". Default: "none"
+     [--normalizeShape]                                                       Normalize diamond-like shapes to axis-aligned rectangles. Options: "none", "rectangle". Default: "none"
+     [--useOrientedBox/--noUseOrientedBox]                                    Use oriented (rotated) bounding box when normalizing shapes. Useful for skewed text. Default: false
+     [--widthIncrement]                                                       Increase bounding box width by this amount (in pixels). Can be negative to decrease. Default: 0
+     [--heightIncrement]                                                      Increase bounding box height by this amount (in pixels). Can be negative to decrease. Default: 0
+     [--adaptResize/--noAdaptResize]                                          Apply adaptive resize to automatically adjust bounding boxes based on image content. Default: false
+     [--adaptResizeThreshold]                                                 Grayscale threshold for adaptive resize (0-255). Default: 128
+     [--adaptResizeMargin]                                                    Margin pixels around detected content for adaptive resize. Default: 5
+     [--adaptResizeMinComponentSize]                                          Minimum component size in pixels (filters dirt/noise). Default: 10
+     [--adaptResizeMaxComponentSize]                                          Maximum component size in pixels (filters large artifacts). Default: 100000
+     [--adaptResizeOutlierPercentile]                                         Percentile for outlier removal (0-100). Default: 2
+     [--adaptResizeMorphologySize]                                            Morphological operation kernel size. Default: 2
+     [--adaptResizeMaxHorizontalExpansion]                                    Maximum horizontal expansion in pixels (prevents column overlap). Default: 50
+     [--adaptResizePaddingCheckWidth]                                         Width of padding strip to validate (in pixels). Default: 3
+     [--adaptResizeMinPaddingBrightness]                                      Minimum brightness for white padding pixels (0-255). Default: 200
+     [--adaptResizeMinPaddingRatio]                                           Minimum ratio of white pixels in padding strip (0-1). Default: 0.85
+     [--adaptResizeUseAdaptiveThreshold/--noAdaptResizeUseAdaptiveThreshold]  Use adaptive thresholding based on image histogram (recommended). Default: true
+     [--adaptResizeAdaptiveBlockSize]                                         Block size for adaptive thresholding. Default: 50
+     [--precision]                                                            Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: 0 (integers)
+     [--outputMode]                                                           Output mode: "annotations" for editable annotations (ground truth) or "predictions" for read-only predictions (pre-annotations). Default: "annotations"
+  -h  --help                                                                  Print help information and exit
 
 ARGUMENTS
   args...  Input directories containing Label Studio JSON files
@@ -977,27 +1078,71 @@ label-studio-converter enhance-ppocr --help
 
 ```
 USAGE
-  label-studio-converter enhance-ppocr [--outDir value] [--fileName value] [--backup] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--widthIncrement value] [--heightIncrement value] [--precision value] [--recursive] [--filePattern value] <args>...
+  label-studio-converter enhance-ppocr [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] <args>...
   label-studio-converter enhance-ppocr --help
 
 Enhance PPOCRLabel files with sorting, normalization, and resizing
 
 FLAGS
-     [--outDir]                   Output directory. If not specified, files are saved in the same directory as the source files
-     [--fileName]                 Custom output filename. If not specified, uses the same name as the source file
-     [--backup/--noBackup]        Create backup of existing files before overwriting. Default: false
-     [--sortVertical]             Sort bounding boxes vertically. Options: "none", "top-bottom", "bottom-top". Default: "none"
-     [--sortHorizontal]           Sort bounding boxes horizontally. Options: "none", "ltr", "rtl". Default: "none"
-     [--normalizeShape]           Normalize diamond-like shapes to axis-aligned rectangles. Options: "none", "rectangle". Default: "none"
-     [--widthIncrement]           Increase bounding box width by this amount (in pixels). Can be negative to decrease. Default: 0
-     [--heightIncrement]          Increase bounding box height by this amount (in pixels). Can be negative to decrease. Default: 0
-     [--precision]                Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: 0 (integers)
-     [--recursive/--noRecursive]  Recursively search directories for files. Default: false
-     [--filePattern]              Regex pattern to match PPOCRLabel files (should match .txt files). Default: ".*\.txt$"
-  -h  --help                      Print help information and exit
+     [--outDir]                                                               Output directory. If not specified, files are saved in the same directory as the source files
+     [--fileName]                                                             Custom output filename. If not specified, uses the same name as the source file
+     [--backup/--noBackup]                                                    Create backup of existing files before overwriting. Default: false
+     [--recursive/--noRecursive]                                              Recursively search directories for files. Default: false
+     [--filePattern]                                                          Regex pattern to match PPOCRLabel files (should match .txt files). Default: ".*\.txt$"
+     [--copyImages/--noCopyImages]                                            Copy images to output directory when --outDir is specified. Only applies to toLabelStudio and toPPOCR commands. Default: true
+     [--imageBaseDir]                                                         Base directory for resolving image paths. Options: "task-file" (relative to task file location), "input-dir" (relative to command execution directory). Default: "task-file"
+     [--sortVertical]                                                         Sort bounding boxes vertically. Options: "none", "top-bottom", "bottom-top". Default: "none"
+     [--sortHorizontal]                                                       Sort bounding boxes horizontally. Options: "none", "ltr", "rtl". Default: "none"
+     [--normalizeShape]                                                       Normalize diamond-like shapes to axis-aligned rectangles. Options: "none", "rectangle". Default: "none"
+     [--useOrientedBox/--noUseOrientedBox]                                    Use oriented (rotated) bounding box when normalizing shapes. Useful for skewed text. Default: false
+     [--widthIncrement]                                                       Increase bounding box width by this amount (in pixels). Can be negative to decrease. Default: 0
+     [--heightIncrement]                                                      Increase bounding box height by this amount (in pixels). Can be negative to decrease. Default: 0
+     [--adaptResize/--noAdaptResize]                                          Apply adaptive resize to automatically adjust bounding boxes based on image content. Default: false
+     [--adaptResizeThreshold]                                                 Grayscale threshold for adaptive resize (0-255). Default: 128
+     [--adaptResizeMargin]                                                    Margin pixels around detected content for adaptive resize. Default: 5
+     [--adaptResizeMinComponentSize]                                          Minimum component size in pixels (filters dirt/noise). Default: 10
+     [--adaptResizeMaxComponentSize]                                          Maximum component size in pixels (filters large artifacts). Default: 100000
+     [--adaptResizeOutlierPercentile]                                         Percentile for outlier removal (0-100). Default: 2
+     [--adaptResizeMorphologySize]                                            Morphological operation kernel size. Default: 2
+     [--adaptResizeMaxHorizontalExpansion]                                    Maximum horizontal expansion in pixels (prevents column overlap). Default: 50
+     [--adaptResizePaddingCheckWidth]                                         Width of padding strip to validate (in pixels). Default: 3
+     [--adaptResizeMinPaddingBrightness]                                      Minimum brightness for white padding pixels (0-255). Default: 200
+     [--adaptResizeMinPaddingRatio]                                           Minimum ratio of white pixels in padding strip (0-1). Default: 0.85
+     [--adaptResizeUseAdaptiveThreshold/--noAdaptResizeUseAdaptiveThreshold]  Use adaptive thresholding based on image histogram (recommended). Default: true
+     [--adaptResizeAdaptiveBlockSize]                                         Block size for adaptive thresholding. Default: 50
+     [--precision]                                                            Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: 0 (integers)
+  -h  --help                                                                  Print help information and exit
 
 ARGUMENTS
   args...  Input directories containing PPOCRLabel files
+```
+
+##### label-studio-output-to-ppocr Command
+
+```bash
+label-studio-converter label-studio-output-to-ppocr --help
+```
+
+**Output:**
+
+```
+USAGE
+  label-studio-converter label-studio-output-to-ppocr [--recursive] [--backup] [--filePattern value] (--outDir value) [--fileName value] [--removeBaseImageDir value] <args>...
+  label-studio-converter label-studio-output-to-ppocr --help
+
+Convert Label Studio output files to PPOCRLabel format
+
+FLAGS
+     [--recursive/--noRecursive]  Recursively search directories for files. Default: false
+     [--backup/--noBackup]        Create backup of existing files before overwriting. Default: false
+     [--filePattern]              Regex pattern to match input files
+      --outDir                    Output directory.
+     [--fileName]                 Output PPOCR file name. Default: "Label.txt"
+     [--removeBaseImageDir]       Remove base image directory from image paths in output. Default: "/data/local-files/?d="
+  -h  --help                      Print help information and exit
+
+ARGUMENTS
+  args...  Input directories containing Label Studio files
 ```
 
 #### Examples
