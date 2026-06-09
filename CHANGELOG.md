@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.5.0](https://github.com/DuckyMomo20012/label-studio-converter/compare/v1.4.0...v1.5.0) (2026-06-09)
+
+
+### Features
+
+* setup adapt-resize ([6f2cc6e](https://github.com/DuckyMomo20012/label-studio-converter/commit/6f2cc6efdf4593474a671202b5863fbe74924029))
+* setup output label studio to ppocr converter ([dd333dc](https://github.com/DuckyMomo20012/label-studio-converter/commit/dd333dc10446e7d7d9765e87ad0358ae817a7246))
+* support output image base dir ([0b54b4f](https://github.com/DuckyMomo20012/label-studio-converter/commit/0b54b4ff9d396b2d946ca664e95cc7360b3c6722))
+
+
+### Bug Fixes
+
+* incorrect path resolution ([c05cafd](https://github.com/DuckyMomo20012/label-studio-converter/commit/c05cafdf9fafaf19c9e86ece88a8f1d568630f62))
+* **lib, processor:** update default resolve image path ([bf6100f](https://github.com/DuckyMomo20012/label-studio-converter/commit/bf6100f6e3511ae1755ac1fa20242faa2251d28c))
+* **lib:** update findFiles func ([5875f19](https://github.com/DuckyMomo20012/label-studio-converter/commit/5875f19df7b507f23e7dc5a4a005d2e8821c4d92))
+* outputMode is not passed to converter ([a1c2500](https://github.com/DuckyMomo20012/label-studio-converter/commit/a1c25003742649d67447eba6e5762880113d7a7c))
+* update adaptResize default value ([bb0676f](https://github.com/DuckyMomo20012/label-studio-converter/commit/bb0676fbe7815f9c134649f4fc2f7d6e0cdaf245))
+* update console.log ([7bb96cd](https://github.com/DuckyMomo20012/label-studio-converter/commit/7bb96cdec8b69618b1cf933ec4e7cd13ed55d232))
+
 ## [1.4.0](https://github.com/DuckyMomo20012/label-studio-converter/compare/v1.3.1...v1.4.0) (2026-01-24)
 
 
