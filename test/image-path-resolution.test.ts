@@ -307,7 +307,7 @@ describe('Image Path Resolution - Comprehensive Tests', () => {
       it('imageBaseDir=input-dir, copyImages=false, baseServerUrl=http', async () => {
         const inputTasks = await loadTestData();
         // Use realistic path: inputBaseDir is parent of test fixtures
-        const inputBaseDir = '/home/vinh/Desktop/label-studio-converter';
+        const inputBaseDir = WORKSPACE_ROOT;
         const results = await ppocrToFullLabelStudioConverters(
           inputTasks,
           testFile,
@@ -363,7 +363,7 @@ describe('Image Path Resolution - Comprehensive Tests', () => {
 
       it('imageBaseDir=input-dir, copyImages=true, baseServerUrl=http', async () => {
         const inputTasks = await loadTestData();
-        const inputBaseDir = '/home/vinh/Desktop/label-studio-converter';
+        const inputBaseDir = WORKSPACE_ROOT;
         const results = await ppocrToFullLabelStudioConverters(
           inputTasks,
           testFile,
@@ -412,7 +412,7 @@ describe('Image Path Resolution - Comprehensive Tests', () => {
     describe('Flag: copyImages (true vs false)', () => {
       it('copyImages=true, imageBaseDir=input-dir, baseServerUrl=http', async () => {
         const inputTasks = await loadTestData();
-        const inputBaseDir = '/home/vinh/Desktop/label-studio-converter';
+        const inputBaseDir = WORKSPACE_ROOT;
         const results = await ppocrToFullLabelStudioConverters(
           inputTasks,
           testFile,
@@ -435,7 +435,7 @@ describe('Image Path Resolution - Comprehensive Tests', () => {
 
       it('copyImages=false, imageBaseDir=input-dir, baseServerUrl=http', async () => {
         const inputTasks = await loadTestData();
-        const inputBaseDir = '/home/vinh/Desktop/label-studio-converter';
+        const inputBaseDir = WORKSPACE_ROOT;
         const results = await ppocrToFullLabelStudioConverters(
           inputTasks,
           testFile,
@@ -460,7 +460,7 @@ describe('Image Path Resolution - Comprehensive Tests', () => {
     describe('Flag: baseServerUrl (undefined vs empty vs http)', () => {
       it('baseServerUrl=undefined, imageBaseDir=input-dir, copyImages=false', async () => {
         const inputTasks = await loadTestData();
-        const inputBaseDir = '/home/vinh/Desktop/label-studio-converter';
+        const inputBaseDir = WORKSPACE_ROOT;
         const results = await ppocrToFullLabelStudioConverters(
           inputTasks,
           testFile,
@@ -484,7 +484,7 @@ describe('Image Path Resolution - Comprehensive Tests', () => {
 
       it('baseServerUrl="" (Docker mount), imageBaseDir=input-dir, copyImages=false', async () => {
         const inputTasks = await loadTestData();
-        const inputBaseDir = '/home/vinh/Desktop/label-studio-converter';
+        const inputBaseDir = WORKSPACE_ROOT;
         const results = await ppocrToFullLabelStudioConverters(
           inputTasks,
           testFile,
@@ -508,7 +508,7 @@ describe('Image Path Resolution - Comprehensive Tests', () => {
 
       it('baseServerUrl="http://localhost:8081", imageBaseDir=input-dir, copyImages=false', async () => {
         const inputTasks = await loadTestData();
-        const inputBaseDir = '/home/vinh/Desktop/label-studio-converter';
+        const inputBaseDir = WORKSPACE_ROOT;
         const results = await ppocrToFullLabelStudioConverters(
           inputTasks,
           testFile,
@@ -534,7 +534,7 @@ describe('Image Path Resolution - Comprehensive Tests', () => {
     describe('Flag: outDir (affects relative path calculation)', () => {
       it('outDir=/tmp/output, imageBaseDir=input-dir, copyImages=false', async () => {
         const inputTasks = await loadTestData();
-        const inputBaseDir = '/home/vinh/Desktop/label-studio-converter';
+        const inputBaseDir = WORKSPACE_ROOT;
         const results = await ppocrToFullLabelStudioConverters(
           inputTasks,
           testFile,
@@ -579,7 +579,7 @@ describe('Image Path Resolution - Comprehensive Tests', () => {
     describe('Flag: inputBaseDir (required for input-dir mode)', () => {
       it('inputBaseDir=/home/vinh/Desktop/label-studio-converter, imageBaseDir=input-dir, copyImages=false', async () => {
         const inputTasks = await loadTestData();
-        const inputBaseDir = '/home/vinh/Desktop/label-studio-converter';
+        const inputBaseDir = WORKSPACE_ROOT;
         const results = await ppocrToFullLabelStudioConverters(
           inputTasks,
           testFile,
@@ -635,7 +635,7 @@ describe('Image Path Resolution - Comprehensive Tests', () => {
       it('SCENARIO: User command with --imageBaseDir input-dir, default copyImages=false', async () => {
         const inputTasks = await loadTestData();
         // Realistic: inputBaseDir is parent of test fixtures
-        const inputBaseDir = '/home/vinh/Desktop/label-studio-converter';
+        const inputBaseDir = WORKSPACE_ROOT;
         const results = await ppocrToFullLabelStudioConverters(
           inputTasks,
           testFile,
