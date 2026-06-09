@@ -2,6 +2,7 @@ import { copyFile, mkdir, readFile, writeFile } from 'fs/promises';
 import { basename, dirname, join, relative, resolve } from 'path';
 import chalk from 'chalk';
 import {
+  DEFAULT_ADAPT_RESIZE,
   DEFAULT_ADAPT_RESIZE_MARGIN,
   DEFAULT_ADAPT_RESIZE_MAX_COMPONENT_SIZE,
   DEFAULT_ADAPT_RESIZE_MAX_HORIZONTAL_EXPANSION,
@@ -100,7 +101,7 @@ export async function convertToPPOCR(
     normalizeShape = DEFAULT_SHAPE_NORMALIZE,
     widthIncrement = DEFAULT_WIDTH_INCREMENT,
     heightIncrement = DEFAULT_HEIGHT_INCREMENT,
-    adaptResize = false,
+    adaptResize = DEFAULT_ADAPT_RESIZE,
     adaptResizeThreshold = DEFAULT_ADAPT_RESIZE_THRESHOLD,
     adaptResizeMargin = DEFAULT_ADAPT_RESIZE_MARGIN,
     adaptResizeMinComponentSize = DEFAULT_ADAPT_RESIZE_MIN_COMPONENT_SIZE,

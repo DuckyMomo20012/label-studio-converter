@@ -48,6 +48,7 @@ export const DEFAULT_WIDTH_INCREMENT = 0;
 export const DEFAULT_HEIGHT_INCREMENT = 0;
 
 // Adaptive resize options
+export const DEFAULT_ADAPT_RESIZE = false;
 export const DEFAULT_ADAPT_RESIZE_THRESHOLD = 128;
 export const DEFAULT_ADAPT_RESIZE_MARGIN = 5;
 export const DEFAULT_ADAPT_RESIZE_MIN_COMPONENT_SIZE = 10;

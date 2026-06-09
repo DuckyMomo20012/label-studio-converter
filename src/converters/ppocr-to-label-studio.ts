@@ -48,7 +48,7 @@ export const ppocrToFullLabelStudioConverters = async (
     useOrientedBox,
     widthIncrement,
     heightIncrement,
-    adaptResize = false,
+    adaptResize,
     adaptResizeThreshold,
     adaptResizeMargin,
     adaptResizeMinComponentSize,

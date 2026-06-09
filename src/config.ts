@@ -1,5 +1,6 @@
 import type { CommandContext, TypedCommandFlagParameters } from '@stricli/core';
 import {
+  DEFAULT_ADAPT_RESIZE,
   DEFAULT_ADAPT_RESIZE_ADAPTIVE_BLOCK_SIZE,
   DEFAULT_ADAPT_RESIZE_MARGIN,
   DEFAULT_ADAPT_RESIZE_MAX_COMPONENT_SIZE,
@@ -11,6 +12,7 @@ import {
   DEFAULT_ADAPT_RESIZE_OUTLIER_PERCENTILE,
   DEFAULT_ADAPT_RESIZE_PADDING_CHECK_WIDTH,
   DEFAULT_ADAPT_RESIZE_THRESHOLD,
+  DEFAULT_ADAPT_RESIZE_USE_ADAPTIVE_THRESHOLD,
   DEFAULT_BACKUP,
   DEFAULT_COPY_IMAGES,
   DEFAULT_HEIGHT_INCREMENT,
@@ -152,7 +154,7 @@ export const baseEnhanceFlagOptions = {
   },
   adaptResize: {
     kind: 'boolean',
-    brief: `Apply adaptive resize to automatically adjust bounding boxes based on image content. Default: false`,
+    brief: `Apply adaptive resize to automatically adjust bounding boxes based on image content. Default: ${DEFAULT_ADAPT_RESIZE}`,
     optional: true,
   },
   adaptResizeThreshold: {
@@ -217,7 +219,7 @@ export const baseEnhanceFlagOptions = {
   },
   adaptResizeUseAdaptiveThreshold: {
     kind: 'boolean',
-    brief: 'Use adaptive thresholding based on image histogram (recommended)',
+    brief: `Use adaptive thresholding based on image histogram (recommended). Default: ${DEFAULT_ADAPT_RESIZE_USE_ADAPTIVE_THRESHOLD}`,
     optional: true,
   },
   adaptResizeAdaptiveBlockSize: {

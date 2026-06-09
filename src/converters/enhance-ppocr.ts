@@ -33,7 +33,7 @@ export const enhancePPOCRConverters = async (
     useOrientedBox,
     widthIncrement,
     heightIncrement,
-    adaptResize = false,
+    adaptResize,
     adaptResizeThreshold,
     adaptResizeMargin,
     adaptResizeMinComponentSize,
