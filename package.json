@@ -44,7 +44,6 @@
     "test:coverage": "vitest run --coverage",
     "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm",
     "check-all": "pnpm run type-check && pnpm run lint && pnpm run test:run",
-    "prepublish": "pnpm run build && pnpm run check-exports && pnpm run check-all",
     "postinstall": "npx @stricli/auto-complete@latest install label-studio-converter --bash __label-studio-converter_bash_complete"
   },
   "dependencies": {

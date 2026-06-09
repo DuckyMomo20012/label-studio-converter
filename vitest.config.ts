@@ -6,6 +6,8 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
+    // FORCE Vitest to anchor its execution root to the workspace base
+    root: resolve(__dirname, './'),
     include: ['test/**/*.test.ts'],
     coverage: {
       provider: 'v8',
