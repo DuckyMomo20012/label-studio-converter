@@ -126,6 +126,21 @@ export function pointsToTuple(points: UnifiedPoint[]): number[][] {
   return points.map(({ x, y }) => [x, y]);
 }
 
+export function polyToPoints(
+  tuples: number[][],
+  original_width?: number,
+  original_height?: number,
+): UnifiedPoint[] {
+  if (original_width && original_height) {
+    return tuples.map(([x, y]) => ({
+      x: ((x as number) / 100) * original_width,
+      y: ((y as number) / 100) * original_height,
+    }));
+  }
+
+  return tupleToPoints(tuples);
+}
+
 export function rectangleToPoints(
   x: number,
   y: number,

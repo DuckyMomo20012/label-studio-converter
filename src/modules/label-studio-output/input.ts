@@ -1,6 +1,8 @@
 import { groupBy } from 'es-toolkit';
 import { type UnionToIntersection } from 'type-fest';
-import { rectangleToPoints, tupleToPoints } from '@/lib/geometry';
+import { DEFAULT_DETECT_IMAGE_SIZE } from '@/constants';
+import { polyToPoints, rectangleToPoints } from '@/lib/geometry';
+import { getImageDimensions } from '@/lib/image';
 import { type ProcessorInput } from '@/lib/processor';
 import {
   type PolygonResult,
@@ -8,7 +10,17 @@ import {
 } from '@/modules/label-studio-full/schema';
 import { type OutputLabelStudioTask } from '@/modules/label-studio-output/schema';
 
-export const OutputLabelStudioInput = (async (inputTask, resolveImagePath) => {
+export type OutputLabelStudioInputOptions = {
+  autoDetectImageSize?: boolean;
+};
+
+export const OutputLabelStudioInput = (async (
+  inputTask,
+  resolveImagePath,
+  options?: OutputLabelStudioInputOptions,
+) => {
+  const { autoDetectImageSize = DEFAULT_DETECT_IMAGE_SIZE } = options || {};
+
   const imageFilePath = await resolveImagePath(inputTask.task.data.ocr);
 
   const { id, result, ...metadata } = inputTask;
@@ -22,6 +34,18 @@ export const OutputLabelStudioInput = (async (inputTask, resolveImagePath) => {
 
   let { original_height: imgHeight, original_width: imgWidth } =
     imageMeta ?? {};
+
+  if (autoDetectImageSize && (!imgHeight || !imgWidth)) {
+    const dimensions = await getImageDimensions(imageFilePath);
+    if (dimensions) {
+      imgHeight = dimensions.height;
+      imgWidth = dimensions.width;
+    } else {
+      console.warn(
+        `Failed to auto-detect image size for ${imageFilePath}, using existing or 0x0`,
+      );
+    }
+  }
 
   // NOTE: By default, one bounding box per annotation will have 3 annotations
   // data: base, label, text
@@ -42,7 +66,9 @@ export const OutputLabelStudioInput = (async (inputTask, resolveImagePath) => {
       }
 
       let newPoints =
-        'points' in baseAnno ? tupleToPoints(baseAnno.points) : [];
+        'points' in baseAnno
+          ? polyToPoints(baseAnno.points, imgWidth, imgHeight)
+          : [];
 
       if (
         newPoints.length === 0 &&
@@ -57,8 +83,6 @@ export const OutputLabelStudioInput = (async (inputTask, resolveImagePath) => {
           baseAnno.y,
           baseAnno.width,
           baseAnno.height,
-          imgWidth,
-          imgHeight,
         );
       }
 
