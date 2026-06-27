@@ -106,3 +106,5 @@ export type ImageBaseDir =
 
 export const DEFAULT_LABEL_STUDIO_OUTPUT_IMAGE_BASE_DIR =
   '/data/local-files/?d=';
+
+export const DEFAULT_GENERATE_FILE_STATE = true;

@@ -4,6 +4,7 @@ import chalk from 'chalk';
 import { groupBy } from 'es-toolkit';
 import {
   DEFAULT_BACKUP,
+  DEFAULT_GENERATE_FILE_STATE,
   DEFAULT_LABEL_STUDIO_OUTPUT_IMAGE_BASE_DIR,
   DEFAULT_PPOCR_FILE_NAME,
   DEFAULT_RECURSIVE,
@@ -21,6 +22,7 @@ type CommandFlags = {
   recursive?: boolean;
   filePattern?: string;
   removeBaseImageDir?: string;
+  generateFileState?: boolean;
 };
 
 export async function labelStudioOutputToPPOCR(
@@ -35,6 +37,7 @@ export async function labelStudioOutputToPPOCR(
     recursive = DEFAULT_RECURSIVE,
     filePattern = undefined,
     removeBaseImageDir = DEFAULT_LABEL_STUDIO_OUTPUT_IMAGE_BASE_DIR,
+    generateFileState = DEFAULT_GENERATE_FILE_STATE,
   } = flags;
 
   // Find all files matching the pattern
@@ -120,6 +123,20 @@ export async function labelStudioOutputToPPOCR(
     }
 
     await writeFile(outputPath, outputLines.join('\n'), 'utf-8');
+
+    if (generateFileState) {
+      const fileStateLines: string[] = [];
+
+      for (const task of tasks) {
+        fileStateLines.push(`${task.imagePath}\t1`);
+      }
+
+      const fileStatePath = join(outputImageDir, `fileState.txt`);
+
+      await writeFile(fileStatePath, fileStateLines.join('\n'), 'utf-8');
+
+      console.log(chalk.green(`✓ Generated file state: \"${fileStatePath}\"`));
+    }
   }
 
   console.log(chalk.green('\n✓ Conversion completed!'));
