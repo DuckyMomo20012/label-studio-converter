@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.1](https://github.com/DuckyMomo20012/label-studio-converter/compare/v1.5.0...v1.5.1) (2026-06-27)
+
+
+### Bug Fixes
+
+* generate PPOCR file state ([ac90692](https://github.com/DuckyMomo20012/label-studio-converter/commit/ac9069232a5d37b0210c6c4beef67f01bb250822))
+* incorrect label studio mapping ([59335f9](https://github.com/DuckyMomo20012/label-studio-converter/commit/59335f90915f2cd7154d92a77e6be2e1af7b0b8d))
+
 ## [1.5.0](https://github.com/DuckyMomo20012/label-studio-converter/compare/v1.4.0...v1.5.0) (2026-06-09)
 
 
