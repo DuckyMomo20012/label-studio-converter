@@ -249,10 +249,10 @@ label-studio-converter --help
 ```
 USAGE
   label-studio-converter toLabelStudio [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] [--defaultLabelName value] [--toFullJson] [--createFilePerImage] [--createFileListForServing] [--fileListName value] [--baseServerUrl value] [--outputMode value] <args>...
-  label-studio-converter toPPOCR [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] [--baseImageDir value] <args>...
+  label-studio-converter toPPOCR [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] [--baseImageDir value] [--generateFileState] <args>...
   label-studio-converter enhance-labelstudio [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] [--outputMode value] <args>...
   label-studio-converter enhance-ppocr [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] <args>...
-  label-studio-converter label-studio-output-to-ppocr [--recursive] (--outDir value) [--fileName value] [--removeBaseImageDir value] <args>...
+  label-studio-converter label-studio-output-to-ppocr [--recursive] [--backup] [--filePattern value] (--outDir value) [--fileName value] [--removeBaseImageDir value] [--generateFileState] <args>...
   label-studio-converter --help
   label-studio-converter --version
 
@@ -267,7 +267,7 @@ COMMANDS
   toPPOCR                       Convert Label Studio files to PPOCRLabel format
   enhance-labelstudio           Enhance Label Studio files with sorting, normalization, and resizing
   enhance-ppocr                 Enhance PPOCRLabel files with sorting, normalization, and resizing
-  label-studio-output-to-ppocr  Convert Label Studio output files to PPOCRLabel format     Enhance PPOCRLabel files with sorting, normalization, and resizing
+  label-studio-output-to-ppocr  Convert Label Studio output files to PPOCRLabel format
 ```
 
 #### Command Flags Reference
@@ -477,6 +477,13 @@ COMMANDS
   - **Example**: `--baseImageDir "images/ch"` writes `images/ch/example.jpg` in
     Label.txt
 
+- `--generateFileState` / `--noGenerateFileState`: Generate file state
+  - **Behavior**: Creates `fileState.txt` for each input directory, listing all
+    processed files
+  - **Default**: `true`
+  - **Example**: `--generateFileState` creates `fileState.txt` in each input
+    directory
+
 ##### Flags Specific to enhance-labelstudio Command
 
 - `--outputMode <mode>`: Same as toLabelStudio command
@@ -491,6 +498,13 @@ COMMANDS
     file prefix)
   - **Example**: `--removeBaseImageDir "data/"` converts `data/example.jpg` to
     `example.jpg` in Label.txt
+
+- `--generateFileState` / `--noGenerateFileState`: Generate file state
+  - **Behavior**: Creates `fileState.txt` for each input directory, listing all
+    processed files
+  - **Default**: `true`
+  - **Example**: `--generateFileState` creates `fileState.txt` in each input
+    directory
 
 #### Image Path Resolution Logic
 
@@ -875,6 +889,7 @@ output/example.jpg	[{"transcription":"Text","points":[[...]],"dt_score":1}]
 **OUTPUT Resolution**:
 
 - Generates PPOCRLabel Label.txt with `folder/filename.jpg` format
+- Generates fileState.txt if `--generateFileState` is specified
 
 ---
 
@@ -978,7 +993,7 @@ label-studio-converter toPPOCR --help
 
 ```
 USAGE
-  label-studio-converter toPPOCR [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] [--baseImageDir value] <args>...
+  label-studio-converter toPPOCR [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] [--baseImageDir value] [--generateFileState] <args>...
   label-studio-converter toPPOCR --help
 
 Convert Label Studio files to PPOCRLabel format
@@ -1012,6 +1027,7 @@ FLAGS
      [--adaptResizeAdaptiveBlockSize]                                         Block size for adaptive thresholding. Default: 50
      [--precision]                                                            Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: 0 (integers)
      [--baseImageDir]                                                         Base directory path to prepend to image filenames in output (e.g., "ch" or "images/ch")
+     [--generateFileState/--noGenerateFileState]                              Generate a file state file for each input directory
   -h  --help                                                                  Print help information and exit
 
 ARGUMENTS
@@ -1127,19 +1143,20 @@ label-studio-converter label-studio-output-to-ppocr --help
 
 ```
 USAGE
-  label-studio-converter label-studio-output-to-ppocr [--recursive] [--backup] [--filePattern value] (--outDir value) [--fileName value] [--removeBaseImageDir value] <args>...
+  label-studio-converter label-studio-output-to-ppocr [--recursive] [--backup] [--filePattern value] (--outDir value) [--fileName value] [--removeBaseImageDir value] [--generateFileState] <args>...
   label-studio-converter label-studio-output-to-ppocr --help
 
 Convert Label Studio output files to PPOCRLabel format
 
 FLAGS
-     [--recursive/--noRecursive]  Recursively search directories for files. Default: false
-     [--backup/--noBackup]        Create backup of existing files before overwriting. Default: false
-     [--filePattern]              Regex pattern to match input files
-      --outDir                    Output directory.
-     [--fileName]                 Output PPOCR file name. Default: "Label.txt"
-     [--removeBaseImageDir]       Remove base image directory from image paths in output. Default: "/data/local-files/?d="
-  -h  --help                      Print help information and exit
+     [--recursive/--noRecursive]                  Recursively search directories for files. Default: false
+     [--backup/--noBackup]                        Create backup of existing files before overwriting. Default: false
+     [--filePattern]                              Regex pattern to match input files
+      --outDir                                    Output directory.
+     [--fileName]                                 Output PPOCR file name. Default: "Label.txt"
+     [--removeBaseImageDir]                       Remove base image directory from image paths in output. Default: "/data/local-files/?d="
+     [--generateFileState/--noGenerateFileState]  Generate a file state file for each input directory
+  -h  --help                                      Print help information and exit
 
 ARGUMENTS
   args...  Input directories containing Label Studio files

@@ -1,7 +1,7 @@
 import { groupBy } from 'es-toolkit';
 import { type UnionToIntersection } from 'type-fest';
 import { DEFAULT_DETECT_IMAGE_SIZE } from '@/constants';
-import { rectangleToPoints, tupleToPoints } from '@/lib/geometry';
+import { polyToPoints, rectangleToPoints } from '@/lib/geometry';
 import { getImageDimensions } from '@/lib/image';
 import { type ProcessorInput } from '@/lib/processor';
 import {
@@ -71,7 +71,9 @@ export const FullOCRLabelStudioInput = (async (
       }
 
       let newPoints =
-        'points' in baseAnno ? tupleToPoints(baseAnno.points) : [];
+        'points' in baseAnno
+          ? polyToPoints(baseAnno.points, imgWidth, imgHeight)
+          : [];
 
       if (
         newPoints.length === 0 &&

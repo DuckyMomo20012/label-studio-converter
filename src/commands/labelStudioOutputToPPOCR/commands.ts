@@ -40,6 +40,11 @@ export const labelStudioOutputToPPOCRCommand = buildCommand({
         brief: `Remove base image directory from image paths in output. Default: "${DEFAULT_LABEL_STUDIO_OUTPUT_IMAGE_BASE_DIR}"`,
         optional: true,
       },
+      generateFileState: {
+        kind: 'boolean',
+        brief: 'Generate a file state file for each input directory',
+        optional: true,
+      },
     },
   },
   docs: {

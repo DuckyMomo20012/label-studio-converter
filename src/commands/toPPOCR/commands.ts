@@ -41,6 +41,11 @@ export const toPPOCRCommand = buildCommand({
         parse: String,
         optional: true,
       },
+      generateFileState: {
+        kind: 'boolean',
+        brief: 'Generate a file state file for each input directory',
+        optional: true,
+      },
     },
   },
   docs: {

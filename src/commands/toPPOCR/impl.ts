@@ -12,6 +12,7 @@ import {
   DEFAULT_ADAPT_RESIZE_THRESHOLD,
   DEFAULT_BACKUP,
   DEFAULT_COPY_IMAGES,
+  DEFAULT_GENERATE_FILE_STATE,
   DEFAULT_HEIGHT_INCREMENT,
   DEFAULT_IMAGE_BASE_DIR,
   DEFAULT_LABEL_STUDIO_FILE_PATTERN,
@@ -52,6 +53,7 @@ type CommandFlags = {
   recursive?: boolean;
   filePattern?: string;
   imageBaseDir?: string;
+  generateFileState?: boolean;
 } & BaseEnhanceOptions;
 
 export const isLabelStudioFullJSON = (
@@ -112,6 +114,7 @@ export async function convertToPPOCR(
     precision = DEFAULT_PPOCR_PRECISION,
     recursive = DEFAULT_RECURSIVE,
     filePattern = DEFAULT_LABEL_STUDIO_FILE_PATTERN,
+    generateFileState = DEFAULT_GENERATE_FILE_STATE,
   } = flags;
 
   // Find all files matching the pattern
@@ -281,6 +284,22 @@ export async function convertToPPOCR(
       await writeFile(outputPath, outputLines.join('\n'), 'utf-8');
 
       console.log(chalk.green(`✓ Converted \"${file}\" -> \"${outputPath}\"`));
+
+      if (generateFileState) {
+        const fileStateLines: string[] = [];
+
+        for (const task of outputTasks) {
+          fileStateLines.push(`${task.imagePath}\t1`);
+        }
+
+        const fileStatePath = join(outputSubDir, `fileState.txt`);
+
+        await writeFile(fileStatePath, fileStateLines.join('\n'), 'utf-8');
+
+        console.log(
+          chalk.green(`✓ Generated file state: \"${fileStatePath}\"`),
+        );
+      }
     } catch (error) {
       console.error(
         chalk.red(`✗ Failed to process \"${file}\":`),
