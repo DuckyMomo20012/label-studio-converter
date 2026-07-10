@@ -19,7 +19,8 @@ export const outputLabelStudioToPPOCRConverters = async (
       const outputData = await processor.process({
         inputData: task,
         taskFilePath,
-        resolveOutputImagePath: (taskImagePath) => decodeURI(taskImagePath),
+        resolveOutputImagePath: (taskImagePath) =>
+          decodeURIComponent(taskImagePath),
       });
       return outputData;
     }),
