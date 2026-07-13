@@ -27,6 +27,7 @@ import {
 } from '@/constants';
 import type { LocalContext } from '@/context';
 import {
+  type BaseCheckOptions,
   type BaseEnhanceOptions,
   PPOCRLabelSchema,
   type PPOCRLabelTask,
@@ -44,17 +45,18 @@ import {
   MinOCRLabelStudioSchema,
 } from '@/modules/label-studio-min/schema';
 
-type CommandFlags = {
-  outDir?: string;
-  fileName?: string;
-  backup?: boolean;
-  copyImages?: boolean;
-  baseImageDir?: string;
-  recursive?: boolean;
-  filePattern?: string;
-  imageBaseDir?: string;
-  generateFileState?: boolean;
-} & BaseEnhanceOptions;
+type CommandFlags = BaseEnhanceOptions &
+  BaseCheckOptions & {
+    outDir?: string;
+    fileName?: string;
+    backup?: boolean;
+    copyImages?: boolean;
+    baseImageDir?: string;
+    recursive?: boolean;
+    filePattern?: string;
+    imageBaseDir?: string;
+    generateFileState?: boolean;
+  };
 
 export const isLabelStudioFullJSON = (
   data: unknown,
@@ -115,6 +117,7 @@ export async function convertToPPOCR(
     recursive = DEFAULT_RECURSIVE,
     filePattern = DEFAULT_LABEL_STUDIO_FILE_PATTERN,
     generateFileState = DEFAULT_GENERATE_FILE_STATE,
+    numPointCheck,
   } = flags;
 
   // Find all files matching the pattern
@@ -171,6 +174,10 @@ export async function convertToPPOCR(
         imageBaseDir,
       };
 
+      const checkParams = {
+        numPointCheck,
+      };
+
       // Determine output directory before calling converters
       const outputSubDir = outDir
         ? join(outDir, relativeDir)
@@ -184,6 +191,7 @@ export async function convertToPPOCR(
           {
             ...convertParams,
             ...enhanceParams,
+            ...checkParams,
           },
         );
       } else {
@@ -194,6 +202,7 @@ export async function convertToPPOCR(
           {
             ...convertParams,
             ...enhanceParams,
+            ...checkParams,
           },
         );
       }

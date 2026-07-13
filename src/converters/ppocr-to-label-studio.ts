@@ -1,5 +1,5 @@
 import { basename, dirname, join, relative } from 'path';
-import { type BaseEnhanceOptions } from '@/config';
+import { type BaseCheckOptions, type BaseEnhanceOptions } from '@/config';
 import { IMAGE_BASE_DIR_INPUT_DIR } from '@/constants';
 import {
   FullOCRLabelStudioOutput,
@@ -11,6 +11,7 @@ import {
   type ShapeNormalizeOption,
   type VerticalSortOrder,
   adaptResizeTransformer,
+  checkPointNum,
   normalizeTransformer,
   resizeTransformer,
   roundTransformer,
@@ -18,16 +19,17 @@ import {
   withOptions,
 } from '@/lib';
 
-export type PPOCRToLabelStudioOptions = BaseEnhanceOptions & {
-  baseServerUrl?: string;
-  defaultLabelName?: string;
-  outputMode?: string;
-  outDir?: string;
-  copyImages?: boolean;
-  imageBaseDir?: string;
-  inputBaseDir?: string;
-  outputRootDir?: string;
-};
+export type PPOCRToLabelStudioOptions = BaseEnhanceOptions &
+  BaseCheckOptions & {
+    baseServerUrl?: string;
+    defaultLabelName?: string;
+    outputMode?: string;
+    outDir?: string;
+    copyImages?: boolean;
+    imageBaseDir?: string;
+    inputBaseDir?: string;
+    outputRootDir?: string;
+  };
 
 export const ppocrToFullLabelStudioConverters = async (
   inputTasks: PPOCRLabelTask[],
@@ -62,6 +64,7 @@ export const ppocrToFullLabelStudioConverters = async (
     adaptResizeUseAdaptiveThreshold,
     adaptResizeAdaptiveBlockSize,
     precision,
+    numPointCheck,
   } = options;
 
   const transformerParams = [
@@ -98,6 +101,7 @@ export const ppocrToFullLabelStudioConverters = async (
       horizontalSort: sortHorizontal as HorizontalSortOrder,
       verticalSort: sortVertical as VerticalSortOrder,
     }),
+    withOptions(checkPointNum, { numPointCheck }),
   ];
 
   const resolveInputImagePath = (

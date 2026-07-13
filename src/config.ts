@@ -69,6 +69,10 @@ export type BaseEnhanceOptions = {
   precision?: number;
 };
 
+export type BaseCheckOptions = {
+  numPointCheck?: number;
+};
+
 export const baseFileIOFlagOptions = {
   outDir: {
     kind: 'parsed',
@@ -236,5 +240,17 @@ export const baseEnhanceFlagOptions = {
   },
 } satisfies TypedCommandFlagParameters<
   BaseEnhanceOptions,
+  CommandContext
+>['flags'];
+
+export const baseCheckFlagOptions = {
+  numPointCheck: {
+    kind: 'parsed',
+    brief: 'Expected number of points in bounding boxes',
+    parse: Number,
+    optional: true,
+  },
+} satisfies TypedCommandFlagParameters<
+  BaseCheckOptions,
   CommandContext
 >['flags'];

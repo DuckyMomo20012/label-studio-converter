@@ -23,6 +23,7 @@ import {
 } from '@/constants';
 import type { LocalContext } from '@/context';
 import {
+  type BaseCheckOptions,
   type BaseEnhanceOptions,
   PPOCRLabelSchema,
   type PPOCRLabelTask,
@@ -31,14 +32,15 @@ import {
 import { backupFileIfExists } from '@/lib/backup-utils';
 import { findFiles } from '@/lib/file-utils';
 
-type CommandFlags = {
-  outDir?: string;
-  fileName?: string;
-  backup?: boolean;
-  recursive?: boolean;
-  filePattern?: string;
-  imageBaseDir?: string;
-} & BaseEnhanceOptions;
+type CommandFlags = BaseEnhanceOptions &
+  BaseCheckOptions & {
+    outDir?: string;
+    fileName?: string;
+    backup?: boolean;
+    recursive?: boolean;
+    filePattern?: string;
+    imageBaseDir?: string;
+  };
 
 export async function enhancePPOCR(
   this: LocalContext,
@@ -66,6 +68,7 @@ export async function enhancePPOCR(
     precision = DEFAULT_PPOCR_PRECISION,
     recursive = DEFAULT_RECURSIVE,
     filePattern = DEFAULT_PPOCR_FILE_PATTERN,
+    numPointCheck,
   } = flags;
 
   // Find all files matching the pattern
@@ -149,11 +152,14 @@ export async function enhancePPOCR(
         imageBaseDir,
       };
 
-      const outputTasks = await enhancePPOCRConverters(
-        inputTasks,
-        filePath,
-        enhanceParams,
-      );
+      const checkParams = {
+        numPointCheck,
+      };
+
+      const outputTasks = await enhancePPOCRConverters(inputTasks, filePath, {
+        ...enhanceParams,
+        ...checkParams,
+      });
 
       // Write enhanced data
       // Use outDir if specified, otherwise use source file directory

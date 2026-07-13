@@ -1,5 +1,5 @@
 import { dirname, join } from 'path';
-import { BaseEnhanceOptions } from '@/config';
+import { BaseCheckOptions, BaseEnhanceOptions } from '@/config';
 import {
   type HorizontalSortOrder,
   PPOCRInput,
@@ -9,6 +9,7 @@ import {
   type ShapeNormalizeOption,
   type VerticalSortOrder,
   adaptResizeTransformer,
+  checkPointNum,
   normalizeTransformer,
   resizeTransformer,
   roundTransformer,
@@ -16,9 +17,10 @@ import {
   withOptions,
 } from '@/lib';
 
-export type EnhancePPOCROptions = BaseEnhanceOptions & {
-  imageBaseDir?: string;
-};
+export type EnhancePPOCROptions = BaseEnhanceOptions &
+  BaseCheckOptions & {
+    imageBaseDir?: string;
+  };
 
 export const enhancePPOCRConverters = async (
   inputTasks: PPOCRLabelTask[],
@@ -47,6 +49,7 @@ export const enhancePPOCRConverters = async (
     adaptResizeUseAdaptiveThreshold,
     adaptResizeAdaptiveBlockSize,
     precision,
+    numPointCheck,
   } = options;
 
   const transformerParams = [
@@ -83,6 +86,7 @@ export const enhancePPOCRConverters = async (
       horizontalSort: sortHorizontal as HorizontalSortOrder,
       verticalSort: sortVertical as VerticalSortOrder,
     }),
+    withOptions(checkPointNum, { numPointCheck }),
   ];
 
   const resolveInputImagePath = (

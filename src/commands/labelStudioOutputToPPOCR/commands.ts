@@ -4,7 +4,7 @@ import {
   DEFAULT_LABEL_STUDIO_OUTPUT_IMAGE_BASE_DIR,
   DEFAULT_PPOCR_FILE_NAME,
 } from '@/constants';
-import { baseFileIOFlagOptions } from '@/lib';
+import { baseCheckFlagOptions, baseFileIOFlagOptions } from '@/lib';
 
 export const labelStudioOutputToPPOCRCommand = buildCommand({
   loader: async () => {
@@ -22,6 +22,7 @@ export const labelStudioOutputToPPOCRCommand = buildCommand({
     },
     flags: {
       ...pick(baseFileIOFlagOptions, ['recursive', 'backup', 'filePattern']),
+      ...baseCheckFlagOptions,
       outDir: {
         kind: 'parsed',
         brief: 'Output directory.',

@@ -25,6 +25,7 @@ import {
 } from '@/constants';
 import type { LocalContext } from '@/context';
 import {
+  type BaseCheckOptions,
   type BaseEnhanceOptions,
   type LabelStudioTask,
   type LabelStudioTaskMin,
@@ -34,15 +35,16 @@ import {
 import { backupFileIfExists } from '@/lib/backup-utils';
 import { findFiles } from '@/lib/file-utils';
 
-type CommandFlags = {
-  outDir?: string;
-  fileName?: string;
-  backup?: boolean;
-  recursive?: boolean;
-  filePattern?: string;
-  outputMode?: string;
-  imageBaseDir?: string;
-} & BaseEnhanceOptions;
+type CommandFlags = BaseEnhanceOptions &
+  BaseCheckOptions & {
+    outDir?: string;
+    fileName?: string;
+    backup?: boolean;
+    recursive?: boolean;
+    filePattern?: string;
+    outputMode?: string;
+    imageBaseDir?: string;
+  };
 
 export async function enhanceLabelStudio(
   this: LocalContext,
@@ -71,6 +73,7 @@ export async function enhanceLabelStudio(
     recursive = DEFAULT_RECURSIVE,
     filePattern = DEFAULT_LABEL_STUDIO_FILE_PATTERN,
     outputMode = DEFAULT_OUTPUT_MODE,
+    numPointCheck,
   } = flags;
 
   // Find all files matching the pattern
@@ -126,17 +129,27 @@ export async function enhanceLabelStudio(
         imageBaseDir,
       };
 
+      const checkParams = {
+        numPointCheck,
+      };
+
       if (isFull) {
         outputTasks = await enhanceFullLabelStudioConverters(
           inputTasks,
           filePath,
-          enhanceParams,
+          {
+            ...enhanceParams,
+            ...checkParams,
+          },
         );
       } else {
         outputTasks = await enhanceMinLabelStudioConverters(
           inputTasks,
           filePath,
-          enhanceParams,
+          {
+            ...enhanceParams,
+            ...checkParams,
+          },
         );
       }
 

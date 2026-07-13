@@ -11,7 +11,11 @@ import {
   OUTPUT_MODE_ANNOTATIONS,
   OUTPUT_MODE_PREDICTIONS,
 } from '@/constants';
-import { baseEnhanceFlagOptions, baseFileIOFlagOptions } from '@/lib';
+import {
+  baseCheckFlagOptions,
+  baseEnhanceFlagOptions,
+  baseFileIOFlagOptions,
+} from '@/lib';
 
 export const toLabelStudioCommand = buildCommand({
   loader: async () => {
@@ -30,6 +34,7 @@ export const toLabelStudioCommand = buildCommand({
     flags: {
       ...baseFileIOFlagOptions,
       ...baseEnhanceFlagOptions,
+      ...baseCheckFlagOptions,
       fileName: {
         kind: 'parsed',
         brief:

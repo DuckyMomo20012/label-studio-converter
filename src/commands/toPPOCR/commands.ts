@@ -3,7 +3,11 @@ import {
   DEFAULT_LABEL_STUDIO_FILE_PATTERN,
   DEFAULT_PPOCR_FILE_NAME,
 } from '@/constants';
-import { baseEnhanceFlagOptions, baseFileIOFlagOptions } from '@/lib';
+import {
+  baseCheckFlagOptions,
+  baseEnhanceFlagOptions,
+  baseFileIOFlagOptions,
+} from '@/lib';
 
 export const toPPOCRCommand = buildCommand({
   loader: async () => {
@@ -22,6 +26,7 @@ export const toPPOCRCommand = buildCommand({
     flags: {
       ...baseFileIOFlagOptions,
       ...baseEnhanceFlagOptions,
+      ...baseCheckFlagOptions,
       fileName: {
         kind: 'parsed',
         brief: `Output PPOCR file name. Default: "${DEFAULT_PPOCR_FILE_NAME}"`,
