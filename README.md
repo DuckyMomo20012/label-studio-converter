@@ -248,11 +248,11 @@ label-studio-converter --help
 
 ```
 USAGE
-  label-studio-converter toLabelStudio [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] [--defaultLabelName value] [--toFullJson] [--createFilePerImage] [--createFileListForServing] [--fileListName value] [--baseServerUrl value] [--outputMode value] <args>...
-  label-studio-converter toPPOCR [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] [--baseImageDir value] [--generateFileState] <args>...
-  label-studio-converter enhance-labelstudio [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] [--outputMode value] <args>...
-  label-studio-converter enhance-ppocr [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] <args>...
-  label-studio-converter label-studio-output-to-ppocr [--recursive] [--backup] [--filePattern value] (--outDir value) [--fileName value] [--removeBaseImageDir value] [--generateFileState] <args>...
+  label-studio-converter toLabelStudio [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] [--numPointCheck value] [--defaultLabelName value] [--toFullJson] [--createFilePerImage] [--createFileListForServing] [--fileListName value] [--baseServerUrl value] [--outputMode value] <args>...
+  label-studio-converter toPPOCR [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] [--numPointCheck value] [--baseImageDir value] [--generateFileState] <args>...
+  label-studio-converter enhance-labelstudio [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] [--numPointCheck value] [--outputMode value] <args>...
+  label-studio-converter enhance-ppocr [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] [--numPointCheck value] <args>...
+  label-studio-converter label-studio-output-to-ppocr [--recursive] [--backup] [--filePattern value] [--numPointCheck value] (--outDir value) [--fileName value] [--removeBaseImageDir value] [--generateFileState] <args>...
   label-studio-converter --help
   label-studio-converter --version
 
@@ -376,6 +376,13 @@ COMMANDS
     - enhance-labelstudio: `-1` (full precision)
     - enhance-ppocr: `0` (integers)
   - **Example**: `--precision 2` rounds to 2 decimal places (e.g., 123.45)
+
+**Check Flags:**
+
+- `--numPointCheck <number>`: Check number of points in each annotation
+  - **Behavior**: Validates that each annotation has exactly this number of
+    points
+  - **Example**: `--numPointCheck 4` ensures all boxes are quadrilaterals
 
 **Adaptive Resize Flags (Advanced):**
 
@@ -937,7 +944,7 @@ label-studio-converter toLabelStudio --help
 
 ```
 USAGE
-  label-studio-converter toLabelStudio [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] [--defaultLabelName value] [--toFullJson] [--createFilePerImage] [--createFileListForServing] [--fileListName value] [--baseServerUrl value] [--outputMode value] <args>...
+  label-studio-converter toLabelStudio [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] [--numPointCheck value] [--defaultLabelName value] [--toFullJson] [--createFilePerImage] [--createFileListForServing] [--fileListName value] [--baseServerUrl value] [--outputMode value] <args>...
   label-studio-converter toLabelStudio --help
 
 Convert PPOCRLabel files to Label Studio format
@@ -970,6 +977,7 @@ FLAGS
      [--adaptResizeUseAdaptiveThreshold/--noAdaptResizeUseAdaptiveThreshold]  Use adaptive thresholding based on image histogram (recommended). Default: true
      [--adaptResizeAdaptiveBlockSize]                                         Block size for adaptive thresholding. Default: 50
      [--precision]                                                            Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: 0 (integers)
+     [--numPointCheck]                                                        Expected number of points in bounding boxes
      [--defaultLabelName]                                                     Default label name for text annotations. Default: "Text"
      [--toFullJson/--noToFullJson]                                            Convert to Full OCR Label Studio format. Default: "true"
      [--createFilePerImage/--noCreateFilePerImage]                            Create a separate Label Studio JSON file for each image. Default: "false"
@@ -993,7 +1001,7 @@ label-studio-converter toPPOCR --help
 
 ```
 USAGE
-  label-studio-converter toPPOCR [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] [--baseImageDir value] [--generateFileState] <args>...
+  label-studio-converter toPPOCR [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] [--numPointCheck value] [--baseImageDir value] [--generateFileState] <args>...
   label-studio-converter toPPOCR --help
 
 Convert Label Studio files to PPOCRLabel format
@@ -1026,6 +1034,7 @@ FLAGS
      [--adaptResizeUseAdaptiveThreshold/--noAdaptResizeUseAdaptiveThreshold]  Use adaptive thresholding based on image histogram (recommended). Default: true
      [--adaptResizeAdaptiveBlockSize]                                         Block size for adaptive thresholding. Default: 50
      [--precision]                                                            Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: 0 (integers)
+     [--numPointCheck]                                                        Expected number of points in bounding boxes
      [--baseImageDir]                                                         Base directory path to prepend to image filenames in output (e.g., "ch" or "images/ch")
      [--generateFileState/--noGenerateFileState]                              Generate a file state file for each input directory
   -h  --help                                                                  Print help information and exit
@@ -1044,7 +1053,7 @@ label-studio-converter enhance-labelstudio --help
 
 ```
 USAGE
-  label-studio-converter enhance-labelstudio [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] [--outputMode value] <args>...
+  label-studio-converter enhance-labelstudio [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] [--numPointCheck value] [--outputMode value] <args>...
   label-studio-converter enhance-labelstudio --help
 
 Enhance Label Studio files with sorting, normalization, and resizing
@@ -1077,6 +1086,7 @@ FLAGS
      [--adaptResizeUseAdaptiveThreshold/--noAdaptResizeUseAdaptiveThreshold]  Use adaptive thresholding based on image histogram (recommended). Default: true
      [--adaptResizeAdaptiveBlockSize]                                         Block size for adaptive thresholding. Default: 50
      [--precision]                                                            Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: 0 (integers)
+     [--numPointCheck]                                                        Expected number of points in bounding boxes
      [--outputMode]                                                           Output mode: "annotations" for editable annotations (ground truth) or "predictions" for read-only predictions (pre-annotations). Default: "annotations"
   -h  --help                                                                  Print help information and exit
 
@@ -1094,7 +1104,7 @@ label-studio-converter enhance-ppocr --help
 
 ```
 USAGE
-  label-studio-converter enhance-ppocr [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] <args>...
+  label-studio-converter enhance-ppocr [--outDir value] [--fileName value] [--backup] [--recursive] [--filePattern value] [--copyImages] [--imageBaseDir value] [--sortVertical value] [--sortHorizontal value] [--normalizeShape value] [--useOrientedBox] [--widthIncrement value] [--heightIncrement value] [--adaptResize] [--adaptResizeThreshold value] [--adaptResizeMargin value] [--adaptResizeMinComponentSize value] [--adaptResizeMaxComponentSize value] [--adaptResizeOutlierPercentile value] [--adaptResizeMorphologySize value] [--adaptResizeMaxHorizontalExpansion value] [--adaptResizePaddingCheckWidth value] [--adaptResizeMinPaddingBrightness value] [--adaptResizeMinPaddingRatio value] [--adaptResizeUseAdaptiveThreshold] [--adaptResizeAdaptiveBlockSize value] [--precision value] [--numPointCheck value] <args>...
   label-studio-converter enhance-ppocr --help
 
 Enhance PPOCRLabel files with sorting, normalization, and resizing
@@ -1127,6 +1137,7 @@ FLAGS
      [--adaptResizeUseAdaptiveThreshold/--noAdaptResizeUseAdaptiveThreshold]  Use adaptive thresholding based on image histogram (recommended). Default: true
      [--adaptResizeAdaptiveBlockSize]                                         Block size for adaptive thresholding. Default: 50
      [--precision]                                                            Number of decimal places for coordinates. Use -1 for full precision (no rounding). Default: 0 (integers)
+     [--numPointCheck]                                                        Expected number of points in bounding boxes
   -h  --help                                                                  Print help information and exit
 
 ARGUMENTS
@@ -1143,7 +1154,7 @@ label-studio-converter label-studio-output-to-ppocr --help
 
 ```
 USAGE
-  label-studio-converter label-studio-output-to-ppocr [--recursive] [--backup] [--filePattern value] (--outDir value) [--fileName value] [--removeBaseImageDir value] [--generateFileState] <args>...
+  label-studio-converter label-studio-output-to-ppocr [--recursive] [--backup] [--filePattern value] [--numPointCheck value] (--outDir value) [--fileName value] [--removeBaseImageDir value] [--generateFileState] <args>...
   label-studio-converter label-studio-output-to-ppocr --help
 
 Convert Label Studio output files to PPOCRLabel format
@@ -1152,6 +1163,7 @@ FLAGS
      [--recursive/--noRecursive]                  Recursively search directories for files. Default: false
      [--backup/--noBackup]                        Create backup of existing files before overwriting. Default: false
      [--filePattern]                              Regex pattern to match input files
+     [--numPointCheck]                            Expected number of points in bounding boxes
       --outDir                                    Output directory.
      [--fileName]                                 Output PPOCR file name. Default: "Label.txt"
      [--removeBaseImageDir]                       Remove base image directory from image paths in output. Default: "/data/local-files/?d="
