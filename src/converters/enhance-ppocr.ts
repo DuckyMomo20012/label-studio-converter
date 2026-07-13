@@ -1,4 +1,4 @@
-import { dirname, join } from 'path';
+import { basename, dirname, join } from 'path';
 import { BaseCheckOptions, BaseEnhanceOptions } from '@/config';
 import {
   type HorizontalSortOrder,
@@ -113,7 +113,10 @@ export const enhancePPOCRConverters = async (
   ) => {
     const fileDir = dirname(taskFilePath);
     // NOTE: For PPOCR output, we keep only the folder of the task file
-    const resolvedPath = join(fileDir.split('/').pop() || '', taskImagePath);
+    const resolvedPath = join(
+      fileDir.split('/').pop() || '',
+      basename(taskImagePath),
+    );
     return resolvedPath;
   };
 
