@@ -97,6 +97,7 @@ export async function convertToLabelStudio(
     filePattern = DEFAULT_PPOCR_FILE_PATTERN,
     outputMode = DEFAULT_OUTPUT_MODE,
     numPointCheck,
+    thresholdAreaCheck,
   } = flags;
 
   // Validate outputMode is only used with Full JSON format
@@ -244,6 +245,7 @@ export async function convertToLabelStudio(
 
       const checkParams = {
         numPointCheck,
+        thresholdAreaCheck,
       };
 
       if (toFullJson) {

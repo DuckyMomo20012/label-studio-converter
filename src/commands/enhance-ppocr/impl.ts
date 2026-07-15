@@ -69,6 +69,7 @@ export async function enhancePPOCR(
     recursive = DEFAULT_RECURSIVE,
     filePattern = DEFAULT_PPOCR_FILE_PATTERN,
     numPointCheck,
+    thresholdAreaCheck,
   } = flags;
 
   // Find all files matching the pattern
@@ -154,6 +155,7 @@ export async function enhancePPOCR(
 
       const checkParams = {
         numPointCheck,
+        thresholdAreaCheck,
       };
 
       const outputTasks = await enhancePPOCRConverters(inputTasks, filePath, {

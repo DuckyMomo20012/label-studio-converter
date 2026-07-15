@@ -15,12 +15,14 @@ export const outputLabelStudioToPPOCRConverters = async (
   taskFilePath: string,
   options: OutputLabelStudioToPPOCRConverterOptions,
 ) => {
-  const { numPointCheck } = options;
+  const { numPointCheck, thresholdAreaCheck } = options;
 
   const processor = new Processor({
     input: OutputLabelStudioInput,
     output: PPOCROutput,
-    transformers: [withOptions(checkPointNum, { numPointCheck })],
+    transformers: [
+      withOptions(checkPointNum, { numPointCheck, thresholdAreaCheck }),
+    ],
   });
 
   return await Promise.all(

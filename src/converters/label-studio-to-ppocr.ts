@@ -52,6 +52,7 @@ export const fullLabelStudioToPPOCRConverters = async (
     adaptResizeMaxHorizontalExpansion,
     precision,
     numPointCheck,
+    thresholdAreaCheck,
   } = options;
 
   const transformerParams = [
@@ -83,7 +84,7 @@ export const fullLabelStudioToPPOCRConverters = async (
       horizontalSort: sortHorizontal as HorizontalSortOrder,
       verticalSort: sortVertical as VerticalSortOrder,
     }),
-    withOptions(checkPointNum, { numPointCheck }),
+    withOptions(checkPointNum, { numPointCheck, thresholdAreaCheck }),
   ];
 
   const resolveInputImagePath = async (

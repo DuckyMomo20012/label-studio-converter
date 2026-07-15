@@ -50,6 +50,7 @@ export const enhancePPOCRConverters = async (
     adaptResizeAdaptiveBlockSize,
     precision,
     numPointCheck,
+    thresholdAreaCheck,
   } = options;
 
   const transformerParams = [
@@ -86,7 +87,7 @@ export const enhancePPOCRConverters = async (
       horizontalSort: sortHorizontal as HorizontalSortOrder,
       verticalSort: sortVertical as VerticalSortOrder,
     }),
-    withOptions(checkPointNum, { numPointCheck }),
+    withOptions(checkPointNum, { numPointCheck, thresholdAreaCheck }),
   ];
 
   const resolveInputImagePath = (

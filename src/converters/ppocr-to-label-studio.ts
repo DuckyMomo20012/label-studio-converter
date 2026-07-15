@@ -65,6 +65,7 @@ export const ppocrToFullLabelStudioConverters = async (
     adaptResizeAdaptiveBlockSize,
     precision,
     numPointCheck,
+    thresholdAreaCheck,
   } = options;
 
   const transformerParams = [
@@ -101,7 +102,7 @@ export const ppocrToFullLabelStudioConverters = async (
       horizontalSort: sortHorizontal as HorizontalSortOrder,
       verticalSort: sortVertical as VerticalSortOrder,
     }),
-    withOptions(checkPointNum, { numPointCheck }),
+    withOptions(checkPointNum, { numPointCheck, thresholdAreaCheck }),
   ];
 
   const resolveInputImagePath = (

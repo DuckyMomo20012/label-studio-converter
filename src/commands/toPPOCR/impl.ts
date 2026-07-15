@@ -118,6 +118,7 @@ export async function convertToPPOCR(
     filePattern = DEFAULT_LABEL_STUDIO_FILE_PATTERN,
     generateFileState = DEFAULT_GENERATE_FILE_STATE,
     numPointCheck,
+    thresholdAreaCheck,
   } = flags;
 
   // Find all files matching the pattern
@@ -176,6 +177,7 @@ export async function convertToPPOCR(
 
       const checkParams = {
         numPointCheck,
+        thresholdAreaCheck,
       };
 
       // Determine output directory before calling converters

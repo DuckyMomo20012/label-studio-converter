@@ -64,6 +64,7 @@ export const enhanceFullLabelStudioConverters = async (
     adaptResizeAdaptiveBlockSize,
     precision,
     numPointCheck,
+    thresholdAreaCheck,
   } = options;
 
   const transformerParams = [
@@ -100,7 +101,7 @@ export const enhanceFullLabelStudioConverters = async (
       horizontalSort: sortHorizontal as HorizontalSortOrder,
       verticalSort: sortVertical as VerticalSortOrder,
     }),
-    withOptions(checkPointNum, { numPointCheck }),
+    withOptions(checkPointNum, { numPointCheck, thresholdAreaCheck }),
   ];
 
   const resolveInputImagePath = async (

@@ -42,6 +42,7 @@ export async function labelStudioOutputToPPOCR(
     removeBaseImageDir = DEFAULT_LABEL_STUDIO_OUTPUT_IMAGE_BASE_DIR,
     generateFileState = DEFAULT_GENERATE_FILE_STATE,
     numPointCheck,
+    thresholdAreaCheck,
   } = flags;
 
   // Find all files matching the pattern
@@ -66,6 +67,7 @@ export async function labelStudioOutputToPPOCR(
 
     const checkParams = {
       numPointCheck,
+      thresholdAreaCheck,
     };
 
     const [outputTask] = await outputLabelStudioToPPOCRConverters(

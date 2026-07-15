@@ -71,6 +71,7 @@ export type BaseEnhanceOptions = {
 
 export type BaseCheckOptions = {
   numPointCheck?: number;
+  thresholdAreaCheck?: number;
 };
 
 export const baseFileIOFlagOptions = {
@@ -247,6 +248,12 @@ export const baseCheckFlagOptions = {
   numPointCheck: {
     kind: 'parsed',
     brief: 'Expected number of points in bounding boxes',
+    parse: Number,
+    optional: true,
+  },
+  thresholdAreaCheck: {
+    kind: 'parsed',
+    brief: 'Threshold for point coordinates in bounding boxes',
     parse: Number,
     optional: true,
   },
