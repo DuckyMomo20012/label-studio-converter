@@ -34,16 +34,15 @@
   ],
   "scripts": {
     "prepare": "husky",
-    "type-check": "tsc --noEmit",
-    "lint": "npx eslint src/ test/",
-    "lint:fix": "npx eslint src/ test/ --fix",
-    "build": "tsc && tsup",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit",
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "check-exports": "attw --pack . --ignore-rules=cjs-resolves-to-esm",
-    "check-all": "pnpm run type-check && pnpm run lint && pnpm run test:run",
     "postinstall": "npx @stricli/auto-complete@latest install label-studio-converter --bash __label-studio-converter_bash_complete"
   },
   "dependencies": {
@@ -70,7 +69,7 @@
     "globals": "17.7.0",
     "husky": "9.1.7",
     "lint-staged": "17.0.8",
-    "tsup": "8.5.1",
+    "tsdown": "0.22.8",
     "typescript": "6.0.3",
     "vitest": "4.1.10"
   }

@@ -1,19 +1,18 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { defineConfig } from 'tsup';
+import { defineConfig } from 'tsdown'
 
 export default defineConfig({
   entry: {
-    index: 'src/lib/index.ts',
-    cli: 'src/bin/cli.ts',
+    'index': 'src/lib/index.ts',
+    'cli': 'src/bin/cli.ts',
     'bash-complete': 'src/bin/bash-complete.ts',
   },
   format: ['esm', 'cjs'],
   dts: {
-    resolve: true,
+    build: true,
   },
   outDir: 'dist',
-  splitting: false,
   sourcemap: true,
   clean: true,
   shims: true,
-});
+  target: false,
+})
