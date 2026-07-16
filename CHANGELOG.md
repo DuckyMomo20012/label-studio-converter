@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.6.1](https://github.com/DuckyMomo20012/label-studio-converter/compare/v1.6.0...v1.6.1) (2026-07-16)
+
+
+### Bug Fixes
+
+* eslint errors ([144911d](https://github.com/DuckyMomo20012/label-studio-converter/commit/144911d30fbb083f2982fdbf78216b7f563640aa))
+* export check errors ([1a1d119](https://github.com/DuckyMomo20012/label-studio-converter/commit/1a1d11922e4e57d2500ca38a43a3202ee29a316e))
+
 ## [1.6.0](https://github.com/DuckyMomo20012/label-studio-converter/compare/v1.5.1...v1.6.0) (2026-07-16)
 
 
