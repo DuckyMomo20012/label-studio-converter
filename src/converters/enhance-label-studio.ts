@@ -1,42 +1,34 @@
-import { createWriteStream } from 'fs';
-import { get } from 'https';
-import { basename, dirname, join, relative } from 'path';
-import { type BaseCheckOptions, type BaseEnhanceOptions } from '@/config';
-import { IMAGE_BASE_DIR_INPUT_DIR } from '@/constants';
+import type { BaseCheckOptions, BaseEnhanceOptions } from '@/config'
+import type { HorizontalSortOrder, LabelStudioTask, LabelStudioTaskMin, ShapeNormalizeOption, VerticalSortOrder } from '@/lib'
+import { createWriteStream } from 'node:fs'
+import { get } from 'node:https'
+import { basename, dirname, join, relative } from 'node:path'
+import { IMAGE_BASE_DIR_INPUT_DIR } from '@/constants'
 import {
-  FullOCRLabelStudioInput,
-  FullOCRLabelStudioOutput,
-  type HorizontalSortOrder,
-  type LabelStudioTask,
-  type LabelStudioTaskMin,
-  MinOCRLabelStudioInput,
-  MinOCRLabelStudioOutput,
-  Processor,
-  type ShapeNormalizeOption,
-  type VerticalSortOrder,
   adaptResizeTransformer,
   checkPointNum,
+  FullOCRLabelStudioInput,
+  FullOCRLabelStudioOutput,
+  MinOCRLabelStudioInput,
+  MinOCRLabelStudioOutput,
   normalizeTransformer,
+  Processor,
   resizeTransformer,
   roundTransformer,
   sortTransformer,
   withOptions,
-} from '@/lib';
+} from '@/lib'
 
-export type EnhanceLabelStudioOptions = BaseEnhanceOptions &
-  BaseCheckOptions & {
-    baseServerUrl?: string;
-    outDir?: string;
-    imageBaseDir?: string;
-    copyImages?: boolean;
-    inputBaseDir?: string;
-  };
+export type EnhanceLabelStudioOptions = BaseEnhanceOptions
+  & BaseCheckOptions & {
+    baseServerUrl?: string
+    outDir?: string
+    imageBaseDir?: string
+    copyImages?: boolean
+    inputBaseDir?: string
+  }
 
-export const enhanceFullLabelStudioConverters = async (
-  inputTasks: LabelStudioTask[],
-  taskFilePath: string,
-  options: EnhanceLabelStudioOptions,
-) => {
+export async function enhanceFullLabelStudioConverters(inputTasks: LabelStudioTask[], taskFilePath: string, options: EnhanceLabelStudioOptions) {
   const {
     baseServerUrl,
     outDir: _outDir, // Keep for potential future use
@@ -65,7 +57,7 @@ export const enhanceFullLabelStudioConverters = async (
     precision,
     numPointCheck,
     thresholdAreaCheck,
-  } = options;
+  } = options
 
   const transformerParams = [
     withOptions(normalizeTransformer, {
@@ -102,45 +94,45 @@ export const enhanceFullLabelStudioConverters = async (
       verticalSort: sortVertical as VerticalSortOrder,
     }),
     withOptions(checkPointNum, { numPointCheck, thresholdAreaCheck }),
-  ];
+  ]
 
   const resolveInputImagePath = async (
     taskImagePath: string,
     taskFilePath: string,
   ) => {
-    const fileDir = dirname(taskFilePath);
+    const fileDir = dirname(taskFilePath)
 
     // Check if it's a remote URL
     if (
-      taskImagePath.startsWith('http://') ||
-      taskImagePath.startsWith('https://')
+      taskImagePath.startsWith('http://')
+      || taskImagePath.startsWith('https://')
     ) {
       // Extract filename from URL
-      const urlPath = new URL(taskImagePath).pathname;
-      const filename = basename(urlPath);
-      const localPath = join(fileDir, filename);
+      const urlPath = new URL(taskImagePath).pathname
+      const filename = basename(urlPath)
+      const localPath = join(fileDir, filename)
 
       // Download the image
       await new Promise<void>((resolve, reject) => {
         get(taskImagePath, (response) => {
-          const fileStream = createWriteStream(localPath);
-          response.pipe(fileStream);
+          const fileStream = createWriteStream(localPath)
+          response.pipe(fileStream)
           fileStream.on('finish', () => {
-            fileStream.close();
-            resolve();
-          });
-          fileStream.on('error', reject);
-        }).on('error', reject);
-      });
+            fileStream.close()
+            resolve()
+          })
+          fileStream.on('error', reject)
+        }).on('error', reject)
+      })
 
-      return localPath;
+      return localPath
     }
 
     // Label Studio exports can have leading slash (/path)
     // Strip leading slashes to get relative path
-    const cleanPath = taskImagePath.replace(/^\/+/, '');
-    return join(fileDir, cleanPath);
-  };
+    const cleanPath = taskImagePath.replace(/^\/+/, '')
+    return join(fileDir, cleanPath)
+  }
 
   const resolveOutputImagePath = (
     taskImagePath: string,
@@ -148,46 +140,42 @@ export const enhanceFullLabelStudioConverters = async (
   ) => {
     // Simple logic: if imageBaseDir is 'input-dir' and inputBaseDir is provided,
     // return path relative to inputBaseDir; otherwise return just the filename
-    const relativePath =
-      imageBaseDir === IMAGE_BASE_DIR_INPUT_DIR && inputBaseDir
+    const relativePath
+      = imageBaseDir === IMAGE_BASE_DIR_INPUT_DIR && inputBaseDir !== undefined
         ? relative(inputBaseDir, taskImagePath)
-        : basename(taskImagePath);
+        : basename(taskImagePath)
 
     if (baseServerUrl === undefined) {
-      return relativePath;
+      return relativePath
     }
 
     if (baseServerUrl === '') {
-      return '/' + relativePath;
+      return `/${relativePath}`
     }
 
-    return new URL(relativePath, baseServerUrl).href;
-  };
+    return new URL(relativePath, baseServerUrl).href
+  }
 
   const processor = new Processor({
     input: FullOCRLabelStudioInput,
     output: FullOCRLabelStudioOutput,
     transformers: transformerParams,
-  });
+  })
 
-  return await Promise.all(
+  return Promise.all(
     inputTasks.map(async (task) => {
       const outputData = await processor.process({
         inputData: task,
         taskFilePath,
         resolveInputImagePath,
         resolveOutputImagePath,
-      });
-      return outputData;
+      })
+      return outputData
     }),
-  );
-};
+  )
+}
 
-export const enhanceMinLabelStudioConverters = async (
-  inputTasks: LabelStudioTaskMin[],
-  taskFilePath: string,
-  options: EnhanceLabelStudioOptions,
-) => {
+export async function enhanceMinLabelStudioConverters(inputTasks: LabelStudioTaskMin[], taskFilePath: string, options: EnhanceLabelStudioOptions) {
   const {
     baseServerUrl,
     outDir: _outDir, // Keep for potential future use
@@ -214,7 +202,7 @@ export const enhanceMinLabelStudioConverters = async (
     adaptResizeUseAdaptiveThreshold,
     adaptResizeAdaptiveBlockSize,
     precision,
-  } = options;
+  } = options
 
   const transformerParams = [
     withOptions(normalizeTransformer, {
@@ -250,45 +238,45 @@ export const enhanceMinLabelStudioConverters = async (
       horizontalSort: sortHorizontal as HorizontalSortOrder,
       verticalSort: sortVertical as VerticalSortOrder,
     }),
-  ];
+  ]
 
   const resolveInputImagePath = async (
     taskImagePath: string,
     taskFilePath: string,
   ) => {
-    const fileDir = dirname(taskFilePath);
+    const fileDir = dirname(taskFilePath)
 
     // Check if it's a remote URL
     if (
-      taskImagePath.startsWith('http://') ||
-      taskImagePath.startsWith('https://')
+      taskImagePath.startsWith('http://')
+      || taskImagePath.startsWith('https://')
     ) {
       // Extract filename from URL
-      const urlPath = new URL(taskImagePath).pathname;
-      const filename = basename(urlPath);
-      const localPath = join(fileDir, filename);
+      const urlPath = new URL(taskImagePath).pathname
+      const filename = basename(urlPath)
+      const localPath = join(fileDir, filename)
 
       // Download the image
       await new Promise<void>((resolve, reject) => {
         get(taskImagePath, (response) => {
-          const fileStream = createWriteStream(localPath);
-          response.pipe(fileStream);
+          const fileStream = createWriteStream(localPath)
+          response.pipe(fileStream)
           fileStream.on('finish', () => {
-            fileStream.close();
-            resolve();
-          });
-          fileStream.on('error', reject);
-        }).on('error', reject);
-      });
+            fileStream.close()
+            resolve()
+          })
+          fileStream.on('error', reject)
+        }).on('error', reject)
+      })
 
-      return localPath;
+      return localPath
     }
 
     // Label Studio exports can have leading slash (/path)
     // Strip leading slashes to get relative path
-    const cleanPath = taskImagePath.replace(/^\/+/, '');
-    return join(fileDir, cleanPath);
-  };
+    const cleanPath = taskImagePath.replace(/^\/+/, '')
+    return join(fileDir, cleanPath)
+  }
 
   const resolveOutputImagePath = (
     taskImagePath: string,
@@ -296,37 +284,37 @@ export const enhanceMinLabelStudioConverters = async (
   ) => {
     // Simple logic: if imageBaseDir is 'input-dir' and inputBaseDir is provided,
     // return path relative to inputBaseDir; otherwise return just the filename
-    const relativePath =
-      imageBaseDir === IMAGE_BASE_DIR_INPUT_DIR && inputBaseDir
+    const relativePath
+      = imageBaseDir === IMAGE_BASE_DIR_INPUT_DIR && inputBaseDir !== undefined
         ? relative(inputBaseDir, taskImagePath)
-        : basename(taskImagePath);
+        : basename(taskImagePath)
 
     if (baseServerUrl === undefined) {
-      return relativePath;
+      return relativePath
     }
 
     if (baseServerUrl === '') {
-      return '/' + relativePath;
+      return `/${relativePath}`
     }
 
-    return new URL(relativePath, baseServerUrl).href;
-  };
+    return new URL(relativePath, baseServerUrl).href
+  }
 
   const processor = new Processor({
     input: MinOCRLabelStudioInput,
     output: MinOCRLabelStudioOutput,
     transformers: transformerParams,
-  });
+  })
 
-  return await Promise.all(
+  return Promise.all(
     inputTasks.map(async (task) => {
       const outputData = await processor.process({
         inputData: task,
         taskFilePath,
         resolveInputImagePath,
         resolveOutputImagePath,
-      });
-      return outputData;
+      })
+      return outputData
     }),
-  );
-};
+  )
+}

@@ -1,6 +1,9 @@
-import { mkdir, readFile, writeFile } from 'fs/promises';
-import { basename, dirname, join, relative } from 'path';
-import chalk from 'chalk';
+import type { LocalContext } from '@/context'
+import type { BaseCheckOptions, BaseEnhanceOptions, PPOCRLabelTask } from '@/lib'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { basename, dirname, join, relative } from 'node:path'
+import process from 'node:process'
+import chalk from 'chalk'
 import {
   DEFAULT_ADAPT_RESIZE,
   DEFAULT_ADAPT_RESIZE_MARGIN,
@@ -20,27 +23,24 @@ import {
   DEFAULT_SORT_HORIZONTAL,
   DEFAULT_SORT_VERTICAL,
   DEFAULT_WIDTH_INCREMENT,
-} from '@/constants';
-import type { LocalContext } from '@/context';
+} from '@/constants'
 import {
-  type BaseCheckOptions,
-  type BaseEnhanceOptions,
-  PPOCRLabelSchema,
-  type PPOCRLabelTask,
   enhancePPOCRConverters,
-} from '@/lib';
-import { backupFileIfExists } from '@/lib/backup-utils';
-import { findFiles } from '@/lib/file-utils';
+  PPOCRLabelSchema,
+} from '@/lib'
+import { backupFileIfExists } from '@/lib/backup-utils'
+import { findFiles } from '@/lib/file-utils'
+import { logger } from '@/logger/logger'
 
-type CommandFlags = BaseEnhanceOptions &
-  BaseCheckOptions & {
-    outDir?: string;
-    fileName?: string;
-    backup?: boolean;
-    recursive?: boolean;
-    filePattern?: string;
-    imageBaseDir?: string;
-  };
+type CommandFlags = BaseEnhanceOptions
+  & BaseCheckOptions & {
+    outDir?: string
+    fileName?: string
+    backup?: boolean
+    recursive?: boolean
+    filePattern?: string
+    imageBaseDir?: string
+  }
 
 export async function enhancePPOCR(
   this: LocalContext,
@@ -70,69 +70,66 @@ export async function enhancePPOCR(
     filePattern = DEFAULT_PPOCR_FILE_PATTERN,
     numPointCheck,
     thresholdAreaCheck,
-  } = flags;
+  } = flags
 
   // Find all files matching the pattern
-  console.log(chalk.blue('Finding files...'));
-  const filePaths = await findFiles(inputDirs, filePattern, recursive);
+  logger.info(`Finding files matching pattern: ${filePattern} in directories: ${inputDirs.join(', ')} (recursive: ${recursive})`)
+  const filePaths = await findFiles(inputDirs, filePattern, recursive)
 
   if (filePaths.length === 0) {
-    console.log(chalk.yellow('No files found matching the pattern.'));
-    return;
+    logger.warn('No files found matching the pattern.')
+    return
   }
 
-  console.log(chalk.blue(`Found ${filePaths.length} files to process\n`));
+  logger.info(`Found ${filePaths.length} files to process`)
 
   for (const filePath of filePaths) {
-    const file = basename(filePath);
-    console.log(chalk.gray(`Processing file: \"${filePath}\"`));
+    const file = basename(filePath)
+    logger.info(`Processing file: \"${filePath}\"`)
 
     try {
-      const fileData = await readFile(filePath, 'utf-8');
-      const lines = fileData.trim().split('\n');
+      const fileData = await readFile(filePath, 'utf-8')
+      const lines = fileData.trim().split('\n')
 
       // Parse PPOCRLabelV2 format: <filename>\t<json_array_of_annotations>
-      const inputTasks: PPOCRLabelTask[] = [];
+      const inputTasks: PPOCRLabelTask[] = []
 
       for (const line of lines) {
-        const parts = line.split('\t');
+        const parts = line.split('\t')
 
         if (parts.length !== 2) {
-          console.warn(`Skipping invalid PPOCRLabelV2 format in line: ${line}`);
-          continue;
+          logger.warn(`Skipping invalid PPOCRLabelV2 format in line: ${line}`)
+          continue
         }
 
-        const [imagePath, annotationsStr] = parts;
+        const [imagePath, annotationsStr] = parts
 
-        if (!imagePath || !annotationsStr) {
-          console.warn(
+        if (imagePath === undefined || annotationsStr === undefined) {
+          logger.warn(
             `Skipping line with missing imagePath or annotations: ${line}`,
-          );
-          continue;
+          )
+          continue
         }
 
         try {
-          const inputTask = JSON.parse(annotationsStr!);
-
           // Validate annotations
-          PPOCRLabelSchema.parse(inputTask);
+          const inputTask = PPOCRLabelSchema.parse(JSON.parse(annotationsStr))
 
-          inputTasks.push({ imagePath, data: inputTask });
-        } catch (error) {
-          console.warn(
+          inputTasks.push({ imagePath, data: inputTask })
+        }
+        catch (error) {
+          logger.warn(
             `Skipping line due to parse/validation error: ${line}`,
             error,
-          );
-          continue;
+          )
+          continue
         }
       }
 
       // If no valid lines were found, skip this file
       if (inputTasks.length === 0) {
-        console.log(
-          chalk.yellow(`  Skipping file with no valid data: \"${filePath}\"`),
-        );
-        continue;
+        logger.warn(`Skipping file with no valid data: \"${filePath}\"`)
+        continue
       }
 
       const enhanceParams = {
@@ -151,59 +148,60 @@ export async function enhancePPOCR(
         adaptResizeMaxHorizontalExpansion,
         precision,
         imageBaseDir,
-      };
+      }
 
       const checkParams = {
         numPointCheck,
         thresholdAreaCheck,
-      };
+      }
 
       const outputTasks = await enhancePPOCRConverters(inputTasks, filePath, {
         ...enhanceParams,
         ...checkParams,
-      });
+      })
 
-      const outputLines: string[] = [];
+      const outputLines: string[] = []
 
       for (const task of outputTasks) {
-        PPOCRLabelSchema.parse(task.data);
+        PPOCRLabelSchema.parse(task.data)
 
         // Format as: image_path<tab>[{annotations}]
-        const jsonArray = JSON.stringify(task.data);
-        outputLines.push(`${task.imagePath}\t${jsonArray}`);
+        const jsonArray = JSON.stringify(task.data)
+        outputLines.push(`${task.imagePath}\t${jsonArray}`)
       }
 
       // Write enhanced data
       // Use outDir if specified, otherwise use source file directory
-      const outputSubDir = outDir
+      const outputSubDir = outDir !== undefined
         ? (() => {
-            const relativePath = relative(process.cwd(), filePath);
-            const relativeDir = dirname(relativePath);
-            return join(outDir, relativeDir);
+            const relativePath = relative(process.cwd(), filePath)
+            const relativeDir = dirname(relativePath)
+            return join(outDir, relativeDir)
           })()
-        : dirname(filePath);
-      await mkdir(outputSubDir, { recursive: true });
+        : dirname(filePath)
+      await mkdir(outputSubDir, { recursive: true })
 
-      const outputFileName = fileName || file;
-      const outputFilePath = join(outputSubDir, outputFileName);
+      const outputFileName = fileName ?? file
+      const outputFilePath = join(outputSubDir, outputFileName)
 
       // Backup existing file if requested
       if (backup) {
-        const backupPath = await backupFileIfExists(outputFilePath);
-        if (backupPath) {
-          console.log(chalk.gray(`  Backed up to: \"${backupPath}\"`));
+        const backupPath = await backupFileIfExists(outputFilePath)
+        if (backupPath !== null) {
+          logger.info((`Backed up to: \"${backupPath}\"`))
         }
       }
 
-      await writeFile(outputFilePath, outputLines.join('\n'), 'utf-8');
-      console.log(chalk.green(`✓ Enhanced file saved: \"${outputFilePath}\"`));
-    } catch (error) {
+      await writeFile(outputFilePath, outputLines.join('\n'), 'utf-8')
+      logger.info(`Enhanced file saved: \"${outputFilePath}\"`)
+    }
+    catch (error) {
       console.error(
         chalk.red(`Error processing file \"${file}\":`),
         error instanceof Error ? error.message : String(error),
-      );
+      )
     }
   }
 
-  console.log(chalk.green('\n✓ Enhancement complete!'));
+  logger.info('Enhancement complete!')
 }

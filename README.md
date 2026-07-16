@@ -12,7 +12,7 @@
 
 <!-- Table of Contents -->
 
-# :notebook_with_decorative_cover: Table of Contents
+## :notebook_with_decorative_cover: Table of Contents
 
 - [Getting Started](#toolbox-getting-started)
   - [Prerequisites](#bangbang-prerequisites)
@@ -148,27 +148,27 @@ import {
   fullLabelStudioToPPOCRConverters,
   minLabelStudioToPPOCRConverters,
   ppocrToLabelStudio
-} from 'label-studio-converter';
+} from 'label-studio-converter'
 
 // Convert Label Studio Full Format to PPOCRLabel
-const fullData = [...]; // FullOCRLabelStudio type
+const fullData = [] // FullOCRLabelStudio type
 const ppocrMap = await fullLabelStudioToPPOCRConverters(fullData, {
   baseImageDir: 'images/ch',
   normalizeShape: 'rectangle',
   widthIncrement: 5,
   heightIncrement: 5,
   precision: 0 // integers
-});
+})
 
 // Convert Label Studio Min Format to PPOCRLabel
-const minData = [...]; // MinOCRLabelStudio type
+const minData = [] // MinOCRLabelStudio type
 const ppocrMap2 = await minLabelStudioToPPOCRConverters(minData, {
   baseImageDir: 'images/ch',
   precision: 0
-});
+})
 
 // Convert PPOCRLabel to Label Studio
-const ppocrData = [...]; // PPOCRLabel type
+const ppocrData = [] // PPOCRLabel type
 const labelStudioData = await ppocrToLabelStudio(ppocrData, {
   imagePath: 'example.jpg',
   baseServerUrl: 'http://localhost:8081',
@@ -176,16 +176,16 @@ const labelStudioData = await ppocrToLabelStudio(ppocrData, {
   toFullJson: true,
   labelName: 'Text',
   precision: -1 // full precision
-});
+})
 ```
 
 **Enhancement Functions:**
 
 ```ts
 import {
-  enhancePPOCRLabel,
   enhanceLabelStudioData,
-} from 'label-studio-converter';
+  enhancePPOCRLabel,
+} from 'label-studio-converter'
 
 // Enhance PPOCRLabel data
 const enhanced = enhancePPOCRLabel(ppocrData, {
@@ -195,7 +195,7 @@ const enhanced = enhancePPOCRLabel(ppocrData, {
   widthIncrement: 10,
   heightIncrement: 5,
   precision: 0,
-});
+})
 
 // Enhance Label Studio data (Full or Min format)
 const enhancedLS = await enhanceLabelStudioData(
@@ -206,34 +206,34 @@ const enhancedLS = await enhanceLabelStudioData(
     normalizeShape: 'rectangle',
     precision: 2,
   },
-);
+)
 ```
 
 **Utility Functions:**
 
 ```ts
 import {
-  transformPoints,
   normalizeShape,
   resizeBoundingBox,
   sortBoundingBoxes,
-} from 'label-studio-converter';
+  transformPoints,
+} from 'label-studio-converter'
 
 // Transform points (normalize + resize)
 const transformed = transformPoints(points, {
   normalizeShape: 'rectangle',
   widthIncrement: 10,
   heightIncrement: 5,
-});
+})
 
 // Normalize diamond shapes to rectangles
-const normalized = normalizeShape(points);
+const normalized = normalizeShape(points)
 
 // Resize bounding box
-const resized = resizeBoundingBox(points, 10, 5);
+const resized = resizeBoundingBox(points, 10, 5)
 
 // Sort bounding boxes
-const sorted = sortBoundingBoxes(annotations, 'top-bottom', 'ltr');
+const sorted = sortBoundingBoxes(annotations, 'top-bottom', 'ltr')
 ```
 
 ### CLI Usage
@@ -1621,7 +1621,7 @@ Converted back to Label Studio annotation:
     "file_upload": "example.jpg",
     "drafts": [],
     "predictions": [],
-    "data": { "ocr": "\/example.jpg" },
+    "data": { "ocr": "/example.jpg" },
     "meta": {},
     "created_at": "2026-01-07T03:13:41.175183Z",
     "updated_at": "2026-01-10T03:21:09.923449Z",
@@ -2015,7 +2015,7 @@ commands:
 ## :wave: Contributing
 
 <a href="https://github.com/DuckyMomo20012/label-studio-converter/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=DuckyMomo20012/label-studio-converter" />
+  <img src="https://contrib.rocks/image?repo=DuckyMomo20012/label-studio-converter" alt="contributors"/>
 </a>
 
 Contributions are always welcome!

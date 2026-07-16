@@ -1,3 +1,5 @@
+import { Buffer } from 'node:buffer'
+
 /**
  * Morphological image processing operations
  * Used for connecting character strokes and cleaning noise
@@ -12,32 +14,32 @@ export function dilate(
   height: number,
   kernelSize: number,
 ): Buffer {
-  const result = Buffer.alloc(data.length);
+  const result = Buffer.alloc(data.length)
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
-      const idx = y * width + x;
-      let maxVal = data[idx] || 0;
+      const idx = y * width + x
+      let maxVal = (data[idx] !== undefined) ? data[idx] : 0
 
       // Check neighborhood
       for (let ky = -kernelSize; ky <= kernelSize; ky++) {
         for (let kx = -kernelSize; kx <= kernelSize; kx++) {
-          const ny = y + ky;
-          const nx = x + kx;
+          const ny = y + ky
+          const nx = x + kx
           if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
-            const nIdx = ny * width + nx;
-            const neighborValue = data[nIdx] || 0;
+            const nIdx = ny * width + nx
+            const neighborValue = (data[nIdx] !== undefined) ? data[nIdx] : 0
             if (neighborValue > maxVal) {
-              maxVal = neighborValue;
+              maxVal = neighborValue
             }
           }
         }
       }
-      result[idx] = maxVal;
+      result[idx] = maxVal
     }
   }
 
-  return result;
+  return result
 }
 
 /**
@@ -49,32 +51,32 @@ export function erode(
   height: number,
   kernelSize: number,
 ): Buffer {
-  const result = Buffer.alloc(data.length);
+  const result = Buffer.alloc(data.length)
 
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
-      const idx = y * width + x;
-      let minVal = data[idx] || 255;
+      const idx = y * width + x
+      let minVal = data[idx] ?? 255
 
       // Check neighborhood
       for (let ky = -kernelSize; ky <= kernelSize; ky++) {
         for (let kx = -kernelSize; kx <= kernelSize; kx++) {
-          const ny = y + ky;
-          const nx = x + kx;
+          const ny = y + ky
+          const nx = x + kx
           if (ny >= 0 && ny < height && nx >= 0 && nx < width) {
-            const nIdx = ny * width + nx;
-            const neighborValue = data[nIdx] || 255;
+            const nIdx = ny * width + nx
+            const neighborValue = data[nIdx] ?? 255
             if (neighborValue < minVal) {
-              minVal = neighborValue;
+              minVal = neighborValue
             }
           }
         }
       }
-      result[idx] = minVal;
+      result[idx] = minVal
     }
   }
 
-  return result;
+  return result
 }
 
 /**
@@ -87,7 +89,7 @@ export function morphologicalClosing(
   height: number,
   kernelSize: number,
 ): Buffer {
-  const dilated = dilate(data, width, height, kernelSize);
-  const eroded = erode(dilated, width, height, kernelSize);
-  return eroded;
+  const dilated = dilate(data, width, height, kernelSize)
+  const eroded = erode(dilated, width, height, kernelSize)
+  return eroded
 }

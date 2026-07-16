@@ -1,38 +1,33 @@
-import { randomUUID } from 'crypto';
+import type { ProcessorOutput } from '@/lib/processor'
+import type { LabelStudioAnnotation, LabelStudioPrediction, LabelStudioResultItem, LabelStudioTask } from '@/modules/label-studio-full/schema'
+import { randomUUID } from 'node:crypto'
 import {
   DEFAULT_LABEL_NAME,
   DEFAULT_OUTPUT_MODE,
   OUTPUT_MODE_PREDICTIONS,
-} from '@/constants';
-import { pixelToPercentage, pointsToTuple } from '@/lib/geometry';
-import { type ProcessorOutput } from '@/lib/processor';
-import {
-  type LabelStudioAnnotation,
-  type LabelStudioPrediction,
-  type LabelStudioResultItem,
-  type LabelStudioTask,
-} from '@/modules/label-studio-full/schema';
+} from '@/constants'
+import { pixelToPercentage, pointsToTuple } from '@/lib/geometry'
 
 export type FullOCRLabelStudioOutputOptions = {
-  taskId?: number;
-  outputMode?: string;
-  defaultLabelName?: string;
-};
+  taskId?: number
+  outputMode?: string
+  defaultLabelName?: string
+}
 
 export const FullOCRLabelStudioOutput = (async (
   outputTask,
   resolveImagePath,
   options,
 ) => {
-  const imageFilePath = await resolveImagePath(outputTask.imagePath);
+  const imageFilePath = await resolveImagePath(outputTask.imagePath)
 
   const {
     taskId = 1,
     defaultLabelName = DEFAULT_LABEL_NAME,
     outputMode = DEFAULT_OUTPUT_MODE,
-  } = options || {};
+  } = options
 
-  const now = new Date().toISOString();
+  const now = new Date().toISOString()
 
   const {
     id: baseTaskId,
@@ -40,32 +35,32 @@ export const FullOCRLabelStudioOutput = (async (
     height: imgHeight,
     boxes,
     metadata,
-  } = outputTask;
+  } = outputTask
 
-  const newTaskId =
-    baseTaskId !== undefined ? parseInt(baseTaskId, 10) : taskId;
+  const newTaskId
+    = baseTaskId !== undefined ? parseInt(baseTaskId, 10) : taskId
 
-  const fileName = imageFilePath.split('/').pop() || imageFilePath;
+  const fileName = imageFilePath.split('/').pop() ?? imageFilePath
 
-  const isPredictions = outputMode === OUTPUT_MODE_PREDICTIONS;
+  const isPredictions = outputMode === OUTPUT_MODE_PREDICTIONS
 
   const resultItems = boxes
     .map((box) => {
-      const { id: baseBoxId, points, text, score } = box;
+      const { id: baseBoxId, points, text, score } = box
 
-      const newPoints = pointsToTuple(points);
+      const newPoints = pointsToTuple(points)
 
       // Convert from absolute pixel coordinates to percentage (0-100)
       const percentagePoints = pixelToPercentage(
         newPoints,
         imgWidth,
         imgHeight,
-      );
+      )
 
-      const newBoxId = baseBoxId || randomUUID().slice(0, 10);
+      const newBoxId = baseBoxId ?? randomUUID().slice(0, 10)
 
       // For predictions, add score from dt_score
-      const scoreField = isPredictions && score !== undefined ? { score } : {};
+      const scoreField = isPredictions && score !== undefined ? { score } : {}
 
       // Create result items: polygon, labels, and textarea
       return [
@@ -112,7 +107,7 @@ export const FullOCRLabelStudioOutput = (async (
           value: {
             points: percentagePoints,
             closed: true,
-            text: [text || ''],
+            text: [text ?? ''],
           },
           id: newBoxId,
           from_name: 'transcription',
@@ -122,9 +117,9 @@ export const FullOCRLabelStudioOutput = (async (
           // ...boxMeta,
           ...scoreField,
         },
-      ] satisfies LabelStudioResultItem[];
+      ] satisfies LabelStudioResultItem[]
     })
-    .flat();
+    .flat()
 
   return {
     id: newTaskId,
@@ -184,5 +179,5 @@ export const FullOCRLabelStudioOutput = (async (
     project: 1,
     updated_by: 1,
     comment_authors: [],
-  };
-}) satisfies ProcessorOutput<LabelStudioTask, FullOCRLabelStudioOutputOptions>;
+  }
+}) satisfies ProcessorOutput<LabelStudioTask, FullOCRLabelStudioOutputOptions>

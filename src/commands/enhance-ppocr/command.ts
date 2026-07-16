@@ -1,15 +1,15 @@
-import { buildCommand } from '@stricli/core';
-import { DEFAULT_PPOCR_FILE_PATTERN } from '@/constants';
+import { buildCommand } from '@stricli/core'
+import { DEFAULT_PPOCR_FILE_PATTERN } from '@/constants'
 import {
   baseCheckFlagOptions,
   baseEnhanceFlagOptions,
   baseFileIOFlagOptions,
-} from '@/lib';
+} from '@/lib'
 
 export const enhancePPOCRCommand = buildCommand({
   loader: async () => {
-    const { enhancePPOCR } = await import('./impl');
-    return enhancePPOCR;
+    const { enhancePPOCR } = await import('./impl')
+    return enhancePPOCR
   },
   parameters: {
     positional: {
@@ -42,4 +42,4 @@ export const enhancePPOCRCommand = buildCommand({
   docs: {
     brief: 'Enhance PPOCRLabel files with sorting, normalization, and resizing',
   },
-});
+})

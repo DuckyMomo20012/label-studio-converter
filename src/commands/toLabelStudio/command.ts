@@ -1,4 +1,4 @@
-import { buildCommand } from '@stricli/core';
+import { buildCommand } from '@stricli/core'
 import {
   DEFAULT_BASE_SERVER_URL,
   DEFAULT_CREATE_FILE_LIST_FOR_SERVING,
@@ -10,17 +10,17 @@ import {
   DEFAULT_PPOCR_FILE_PATTERN,
   OUTPUT_MODE_ANNOTATIONS,
   OUTPUT_MODE_PREDICTIONS,
-} from '@/constants';
+} from '@/constants'
 import {
   baseCheckFlagOptions,
   baseEnhanceFlagOptions,
   baseFileIOFlagOptions,
-} from '@/lib';
+} from '@/lib'
 
 export const toLabelStudioCommand = buildCommand({
   loader: async () => {
-    const { convertToLabelStudio } = await import('./impl');
-    return convertToLabelStudio;
+    const { convertToLabelStudio } = await import('./impl')
+    return convertToLabelStudio
   },
   parameters: {
     positional: {
@@ -92,4 +92,4 @@ export const toLabelStudioCommand = buildCommand({
   docs: {
     brief: 'Convert PPOCRLabel files to Label Studio format',
   },
-});
+})

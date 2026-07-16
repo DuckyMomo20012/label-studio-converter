@@ -1,8 +1,8 @@
-import z from 'zod';
+import z from 'zod'
 import {
   AnnotationSchema,
   FullOCRLabelStudioSchema,
-} from '@/modules/label-studio-full/schema';
+} from '@/modules/label-studio-full/schema'
 
 export const OutputLabelStudioSchema = AnnotationSchema.extend({
   created_username: z.string(),
@@ -20,6 +20,6 @@ export const OutputLabelStudioSchema = AnnotationSchema.extend({
   }).extend({
     overlap: z.number(),
   }),
-});
+})
 
-export type OutputLabelStudioTask = z.infer<typeof OutputLabelStudioSchema>;
+export type OutputLabelStudioTask = z.infer<typeof OutputLabelStudioSchema>

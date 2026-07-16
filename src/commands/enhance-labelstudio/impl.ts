@@ -1,7 +1,10 @@
-import { mkdir, readFile, writeFile } from 'fs/promises';
-import { basename, dirname, join, relative } from 'path';
-import chalk from 'chalk';
-import { isLabelStudioFullJSON } from '@/commands/toPPOCR/impl';
+import type { LocalContext } from '@/context'
+import type { BaseCheckOptions, BaseEnhanceOptions, LabelStudioTask, LabelStudioTaskMin } from '@/lib'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { basename, dirname, join, relative } from 'node:path'
+import process from 'node:process'
+import chalk from 'chalk'
+import { isLabelStudioFullJSON } from '@/commands/toPPOCR/impl'
 import {
   DEFAULT_ADAPT_RESIZE,
   DEFAULT_ADAPT_RESIZE_MARGIN,
@@ -22,29 +25,25 @@ import {
   DEFAULT_SORT_HORIZONTAL,
   DEFAULT_SORT_VERTICAL,
   DEFAULT_WIDTH_INCREMENT,
-} from '@/constants';
-import type { LocalContext } from '@/context';
+} from '@/constants'
 import {
-  type BaseCheckOptions,
-  type BaseEnhanceOptions,
-  type LabelStudioTask,
-  type LabelStudioTaskMin,
   enhanceFullLabelStudioConverters,
   enhanceMinLabelStudioConverters,
-} from '@/lib';
-import { backupFileIfExists } from '@/lib/backup-utils';
-import { findFiles } from '@/lib/file-utils';
+} from '@/lib'
+import { backupFileIfExists } from '@/lib/backup-utils'
+import { findFiles } from '@/lib/file-utils'
+import { logger } from '@/logger/logger'
 
-type CommandFlags = BaseEnhanceOptions &
-  BaseCheckOptions & {
-    outDir?: string;
-    fileName?: string;
-    backup?: boolean;
-    recursive?: boolean;
-    filePattern?: string;
-    outputMode?: string;
-    imageBaseDir?: string;
-  };
+type CommandFlags = BaseEnhanceOptions
+  & BaseCheckOptions & {
+    outDir?: string
+    fileName?: string
+    backup?: boolean
+    recursive?: boolean
+    filePattern?: string
+    outputMode?: string
+    imageBaseDir?: string
+  }
 
 export async function enhanceLabelStudio(
   this: LocalContext,
@@ -75,41 +74,39 @@ export async function enhanceLabelStudio(
     outputMode = DEFAULT_OUTPUT_MODE,
     numPointCheck,
     thresholdAreaCheck,
-  } = flags;
+  } = flags
 
   // Find all files matching the pattern
-  console.log(chalk.blue('Finding files...'));
-  const filePaths = await findFiles(inputDirs, filePattern, recursive);
+  logger.info(`Finding files matching pattern: ${filePattern} in directories: ${inputDirs.join(', ')} (recursive: ${recursive})`)
+  const filePaths = await findFiles(inputDirs, filePattern, recursive)
 
   if (filePaths.length === 0) {
-    console.log(chalk.yellow('No files found matching the pattern.'));
-    return;
+    logger.warn('No files found matching the pattern.')
+    return
   }
 
-  console.log(chalk.blue(`Found ${filePaths.length} files to process\n`));
+  logger.info(`Found ${filePaths.length} files to process\n`)
 
-  for await (const filePath of filePaths) {
-    const file = basename(filePath);
-    console.log(chalk.gray(`Processing file: \"${filePath}\"`));
+  for (const filePath of filePaths) {
+    const file = basename(filePath)
+    logger.info(`Processing file: \"${filePath}\"`)
 
     try {
-      const fileData = await readFile(filePath, 'utf-8');
-      const labelStudioData = JSON.parse(fileData);
+      const fileData = await readFile(filePath, 'utf-8')
+      const labelStudioData = JSON.parse(fileData) as unknown
 
-      const { tasks: inputTasks, isFull } =
-        isLabelStudioFullJSON(labelStudioData);
+      const { tasks: inputTasks, isFull }
+        = isLabelStudioFullJSON(labelStudioData)
 
       // Validate outputMode is only used with Full JSON format
       if (outputMode !== DEFAULT_OUTPUT_MODE && !isFull) {
-        console.log(
-          chalk.red(
-            `  Skipping file: \"${filePath}\"\n  Error: --outputMode can only be used with Full JSON format. This file is in Min JSON format which does not support annotations/predictions distinction.`,
-          ),
-        );
-        continue;
+        logger.error(
+          `Skipping file: \"${filePath}\"\n  Error: --outputMode can only be used with Full JSON format. This file is in Min JSON format which does not support annotations/predictions distinction.`,
+        )
+        continue
       }
 
-      let outputTasks: LabelStudioTask[] | LabelStudioTaskMin[];
+      let outputTasks: LabelStudioTask[] | LabelStudioTaskMin[]
 
       const enhanceParams = {
         outDir,
@@ -128,12 +125,12 @@ export async function enhanceLabelStudio(
         adaptResizeMaxHorizontalExpansion,
         precision,
         imageBaseDir,
-      };
+      }
 
       const checkParams = {
         numPointCheck,
         thresholdAreaCheck,
-      };
+      }
 
       if (isFull) {
         outputTasks = await enhanceFullLabelStudioConverters(
@@ -143,8 +140,9 @@ export async function enhanceLabelStudio(
             ...enhanceParams,
             ...checkParams,
           },
-        );
-      } else {
+        )
+      }
+      else {
         outputTasks = await enhanceMinLabelStudioConverters(
           inputTasks,
           filePath,
@@ -152,28 +150,28 @@ export async function enhanceLabelStudio(
             ...enhanceParams,
             ...checkParams,
           },
-        );
+        )
       }
 
       // Write enhanced data
       // Use outDir if specified, otherwise use source file directory
-      const outputSubDir = outDir
+      const outputSubDir = outDir !== undefined
         ? (() => {
-            const relativePath = relative(process.cwd(), filePath);
-            const relativeDir = dirname(relativePath);
-            return join(outDir, relativeDir);
+            const relativePath = relative(process.cwd(), filePath)
+            const relativeDir = dirname(relativePath)
+            return join(outDir, relativeDir)
           })()
-        : dirname(filePath);
-      await mkdir(outputSubDir, { recursive: true });
+        : dirname(filePath)
+      await mkdir(outputSubDir, { recursive: true })
 
-      const outputFileName = fileName || file;
-      const outputFilePath = join(outputSubDir, outputFileName);
+      const outputFileName = fileName ?? file
+      const outputFilePath = join(outputSubDir, outputFileName)
 
       // Backup existing file if requested
       if (backup) {
-        const backupPath = await backupFileIfExists(outputFilePath);
-        if (backupPath) {
-          console.log(chalk.gray(`  Backed up to: \"${backupPath}\"`));
+        const backupPath = await backupFileIfExists(outputFilePath)
+        if (backupPath !== null) {
+          logger.info(`Backed up to: \"${backupPath}\"`)
         }
       }
 
@@ -181,15 +179,16 @@ export async function enhanceLabelStudio(
         outputFilePath,
         JSON.stringify(outputTasks, null, 2),
         'utf-8',
-      );
-      console.log(chalk.green(`✓ Enhanced file saved: \"${outputFilePath}\"`));
-    } catch (error) {
+      )
+      logger.info(`Enhanced file saved: \"${outputFilePath}\"`)
+    }
+    catch (error) {
       console.error(
         chalk.red(`Error processing file \"${file}\":`),
         error instanceof Error ? error.message : String(error),
-      );
+      )
     }
   }
 
-  console.log(chalk.green('\n✓ Enhancement complete!'));
+  logger.info('Enhancement complete!')
 }

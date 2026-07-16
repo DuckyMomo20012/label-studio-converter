@@ -1,6 +1,11 @@
-import { copyFile, mkdir, readFile, writeFile } from 'fs/promises';
-import { basename, dirname, join, relative, resolve } from 'path';
-import chalk from 'chalk';
+import type { LocalContext } from '@/context'
+import type { BaseCheckOptions, BaseEnhanceOptions, PPOCRLabelTask } from '@/lib'
+import type { LabelStudioTask } from '@/modules/label-studio-full/schema'
+import type { LabelStudioTaskMin } from '@/modules/label-studio-min/schema'
+import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises'
+import { basename, dirname, join, relative, resolve } from 'node:path'
+import process from 'node:process'
+import chalk from 'chalk'
 import {
   DEFAULT_ADAPT_RESIZE,
   DEFAULT_ADAPT_RESIZE_MARGIN,
@@ -24,69 +29,62 @@ import {
   DEFAULT_SORT_VERTICAL,
   DEFAULT_WIDTH_INCREMENT,
   IMAGE_BASE_DIR_INPUT_DIR,
-} from '@/constants';
-import type { LocalContext } from '@/context';
+} from '@/constants'
 import {
-  type BaseCheckOptions,
-  type BaseEnhanceOptions,
-  PPOCRLabelSchema,
-  type PPOCRLabelTask,
   fullLabelStudioToPPOCRConverters,
   minLabelStudioToPPOCRConverters,
-} from '@/lib';
-import { backupFileIfExists } from '@/lib/backup-utils';
-import { findFiles } from '@/lib/file-utils';
+  PPOCRLabelSchema,
+} from '@/lib'
+import { backupFileIfExists } from '@/lib/backup-utils'
+import { findFiles } from '@/lib/file-utils'
+import { logger } from '@/logger/logger'
 import {
   FullOCRLabelStudioSchema,
-  type LabelStudioTask,
-} from '@/modules/label-studio-full/schema';
+} from '@/modules/label-studio-full/schema'
 import {
-  type LabelStudioTaskMin,
   MinOCRLabelStudioSchema,
-} from '@/modules/label-studio-min/schema';
+} from '@/modules/label-studio-min/schema'
 
-type CommandFlags = BaseEnhanceOptions &
-  BaseCheckOptions & {
-    outDir?: string;
-    fileName?: string;
-    backup?: boolean;
-    copyImages?: boolean;
-    baseImageDir?: string;
-    recursive?: boolean;
-    filePattern?: string;
-    imageBaseDir?: string;
-    generateFileState?: boolean;
-  };
+type CommandFlags = BaseEnhanceOptions
+  & BaseCheckOptions & {
+    outDir?: string
+    fileName?: string
+    backup?: boolean
+    copyImages?: boolean
+    baseImageDir?: string
+    recursive?: boolean
+    filePattern?: string
+    imageBaseDir?: string
+    generateFileState?: boolean
+  }
 
-export const isLabelStudioFullJSON = (
-  data: unknown,
-):
+export function isLabelStudioFullJSON(data: unknown):
   | {
-      isFull: true;
-      tasks: LabelStudioTask[];
-    }
+    isFull: true
+    tasks: LabelStudioTask[]
+  }
   | {
-      isFull: false;
-      tasks: LabelStudioTaskMin[];
-    } => {
-  const newData = Array.isArray(data) ? data : [data];
+    isFull: false
+    tasks: LabelStudioTaskMin[]
+  } {
+  const newData = Array.isArray(data) ? data : [data]
 
   // Try parsing as full format array
-  const parsedFull = FullOCRLabelStudioSchema.array().safeParse(newData);
+  const parsedFull = FullOCRLabelStudioSchema.array().safeParse(newData)
   if (parsedFull.success) {
-    return { isFull: true as const, tasks: parsedFull.data };
+    return { isFull: true as const, tasks: parsedFull.data }
   }
 
   // Try parsing as min format
-  const parsedMin = MinOCRLabelStudioSchema.array().safeParse(newData);
+  const parsedMin = MinOCRLabelStudioSchema.array().safeParse(newData)
   if (parsedMin.success) {
-    return { isFull: false, tasks: parsedMin.data };
+    return { isFull: false, tasks: parsedMin.data }
   }
 
   throw new Error(
-    `Input data is not valid Label Studio JSON format. ${[parsedFull.error.message, parsedMin.error.message].filter(Boolean)}`,
-  );
-};
+    `Input data is not valid Label Studio JSON format. ${[parsedFull.error.message, parsedMin.error.message].filter(Boolean).toString()}`,
+  )
+}
 
 export async function convertToPPOCR(
   this: LocalContext,
@@ -119,43 +117,43 @@ export async function convertToPPOCR(
     generateFileState = DEFAULT_GENERATE_FILE_STATE,
     numPointCheck,
     thresholdAreaCheck,
-  } = flags;
+  } = flags
 
   // Find all files matching the pattern
-  console.log(chalk.blue('Finding files...'));
-  const filePaths = await findFiles(inputDirs, filePattern, recursive);
+  logger.info(`Finding files matching pattern: ${filePattern} in directories: ${inputDirs.join(', ')} (recursive: ${recursive})`)
+  const filePaths = await findFiles(inputDirs, filePattern, recursive)
 
   if (filePaths.length === 0) {
-    console.log(chalk.yellow('No files found matching the pattern.'));
-    return;
+    logger.warn('No files found matching the pattern.')
+    return
   }
 
-  console.log(chalk.blue(`Found ${filePaths.length} files to process\n`));
+  logger.info(`Found ${filePaths.length} files to process\n`)
 
   // Use first input directory as base for relative paths (resolve to absolute)
   // If no input dirs, use current working directory
-  const baseDir = inputDirs.length > 0 ? resolve(inputDirs[0]!) : process.cwd();
+  const baseDir = inputDirs.length > 0 ? resolve(inputDirs[0]!) : process.cwd()
 
   for (const filePath of filePaths) {
-    const file = basename(filePath);
+    const file = basename(filePath)
     // Get relative path to preserve directory structure
-    const relativePath = relative(process.cwd(), filePath);
-    const relativeDir = dirname(relativePath);
+    const relativePath = relative(process.cwd(), filePath)
+    const relativeDir = dirname(relativePath)
 
-    console.log(chalk.gray(`Processing file: \"${filePath}\"`));
+    logger.info(`Processing file: \"${filePath}\"`)
 
     try {
-      const fileData = await readFile(filePath, 'utf-8');
-      const labelStudioData = JSON.parse(fileData);
+      const fileData = await readFile(filePath, 'utf-8')
+      const labelStudioData = JSON.parse(fileData) as unknown
 
-      const { tasks: inputTasks, isFull } =
-        isLabelStudioFullJSON(labelStudioData);
+      const { tasks: inputTasks, isFull }
+        = isLabelStudioFullJSON(labelStudioData)
 
-      let outputTasks: PPOCRLabelTask[] = [];
+      let outputTasks: PPOCRLabelTask[] = []
 
       const convertParams = {
         baseImageDir,
-      };
+      }
 
       const enhanceParams = {
         sortVertical,
@@ -173,17 +171,17 @@ export async function convertToPPOCR(
         adaptResizeMaxHorizontalExpansion,
         precision,
         imageBaseDir,
-      };
+      }
 
       const checkParams = {
         numPointCheck,
         thresholdAreaCheck,
-      };
+      }
 
       // Determine output directory before calling converters
-      const outputSubDir = outDir
+      const outputSubDir = outDir !== undefined
         ? join(outDir, relativeDir)
-        : dirname(filePath);
+        : dirname(filePath)
 
       if (isFull) {
         outputTasks = await fullLabelStudioToPPOCRConverters(
@@ -195,8 +193,9 @@ export async function convertToPPOCR(
             ...enhanceParams,
             ...checkParams,
           },
-        );
-      } else {
+        )
+      }
+      else {
         outputTasks = await minLabelStudioToPPOCRConverters(
           inputTasks,
           filePath,
@@ -206,118 +205,117 @@ export async function convertToPPOCR(
             ...enhanceParams,
             ...checkParams,
           },
-        );
+        )
       }
 
       // Copy images to output directory if requested
-      if (outDir && copyImages) {
-        const taskFileDir = dirname(filePath);
+      if (outDir !== undefined && copyImages) {
+        const taskFileDir = dirname(filePath)
 
         for (const task of inputTasks) {
           try {
             // Extract image path from Label Studio task
             const imageUrl = isFull
               ? (task as LabelStudioTask).data.ocr
-              : (task as LabelStudioTaskMin).ocr;
+              : (task as LabelStudioTaskMin).ocr
 
             // Handle URLs vs local paths
-            let sourceImagePath: string;
+            let sourceImagePath: string
             if (
-              imageUrl.startsWith('http://') ||
-              imageUrl.startsWith('https://')
+              imageUrl.startsWith('http://')
+              || imageUrl.startsWith('https://')
             ) {
               // For URLs, the image should have been downloaded to task directory
               // Extract filename from URL
-              const urlFileName = basename(new URL(imageUrl).pathname);
-              sourceImagePath = join(taskFileDir, urlFileName);
-            } else {
+              const urlFileName = basename(new URL(imageUrl).pathname)
+              sourceImagePath = join(taskFileDir, urlFileName)
+            }
+            else {
               // Local path - strip leading slash and resolve from task directory
               const cleanPath = imageUrl.startsWith('/')
                 ? imageUrl.slice(1)
-                : imageUrl;
-              sourceImagePath = join(taskFileDir, cleanPath);
+                : imageUrl
+              sourceImagePath = join(taskFileDir, cleanPath)
             }
 
             // Calculate destination path based on imageBaseDir flag
-            let destImagePath: string;
+            let destImagePath: string
             if (imageBaseDir === IMAGE_BASE_DIR_INPUT_DIR) {
               // Keep full path structure from input directory
-              const relativeFromInput = relative(baseDir, sourceImagePath);
-              destImagePath = join(outDir, relativeFromInput);
-            } else {
+              const relativeFromInput = relative(baseDir, sourceImagePath)
+              destImagePath = join(outDir, relativeFromInput)
+            }
+            else {
               // Default: task-file - relative to task file location
-              const relativeFromTask = relative(taskFileDir, sourceImagePath);
-              destImagePath = join(outputSubDir, relativeFromTask);
+              const relativeFromTask = relative(taskFileDir, sourceImagePath)
+              destImagePath = join(outputSubDir, relativeFromTask)
             }
 
-            await mkdir(dirname(destImagePath), { recursive: true });
-            await copyFile(sourceImagePath, destImagePath);
-            console.log(
-              chalk.gray(`  ✓ Copied image: \"${basename(sourceImagePath)}\"`),
-            );
-          } catch (error) {
-            console.warn(
-              chalk.yellow(
-                `  ⚠ Failed to copy image: ${error instanceof Error ? error.message : error}`,
-              ),
-            );
+            await mkdir(dirname(destImagePath), { recursive: true })
+            await copyFile(sourceImagePath, destImagePath)
+            logger.info(`Copied image: \"${basename(sourceImagePath)}\"`)
+          }
+          catch (error) {
+            logger.warn(
+              // eslint-disable-next-line ts/restrict-template-expressions
+              `Failed to copy image: ${error instanceof Error ? error.message : error}`,
+            )
           }
         }
       }
 
       // Format output as PPOCR label format: image_path<tab>[{JSON array}]
-      const outputLines: string[] = [];
+      const outputLines: string[] = []
 
       for (const task of outputTasks) {
-        PPOCRLabelSchema.parse(task.data);
+        PPOCRLabelSchema.parse(task.data)
 
         // Format as: image_path<tab>[{annotations}]
-        const jsonArray = JSON.stringify(task.data);
-        outputLines.push(`${task.imagePath}\t${jsonArray}`);
+        const jsonArray = JSON.stringify(task.data)
+        outputLines.push(`${task.imagePath}\t${jsonArray}`)
       }
 
       // Write to output file
-      const baseName = file.replace('.json', '');
+      const baseName = file.replace('.json', '')
 
       // Ensure output directory exists
-      await mkdir(outputSubDir, { recursive: true });
+      await mkdir(outputSubDir, { recursive: true })
 
-      const outputPath = join(outputSubDir, `${baseName}_${fileName}`);
+      const outputPath = join(outputSubDir, `${baseName}_${fileName}`)
 
       // Backup existing file if requested
       if (backup) {
-        const backupPath = await backupFileIfExists(outputPath);
-        if (backupPath) {
-          console.log(chalk.gray(`  Backed up to: \"${backupPath}\"`));
+        const backupPath = await backupFileIfExists(outputPath)
+        if (backupPath !== null) {
+          logger.info(`Backed up to: \"${backupPath}\"`)
         }
       }
 
-      await writeFile(outputPath, outputLines.join('\n'), 'utf-8');
+      await writeFile(outputPath, outputLines.join('\n'), 'utf-8')
 
-      console.log(chalk.green(`✓ Converted \"${file}\" -> \"${outputPath}\"`));
+      logger.info(`Converted \"${file}\" -> \"${outputPath}\"`)
 
       if (generateFileState) {
-        const fileStateLines: string[] = [];
+        const fileStateLines: string[] = []
 
         for (const task of outputTasks) {
-          fileStateLines.push(`${task.imagePath}\t1`);
+          fileStateLines.push(`${task.imagePath}\t1`)
         }
 
-        const fileStatePath = join(outputSubDir, `fileState.txt`);
+        const fileStatePath = join(outputSubDir, `fileState.txt`)
 
-        await writeFile(fileStatePath, fileStateLines.join('\n'), 'utf-8');
+        await writeFile(fileStatePath, fileStateLines.join('\n'), 'utf-8')
 
-        console.log(
-          chalk.green(`✓ Generated file state: \"${fileStatePath}\"`),
-        );
+        logger.info(`Generated file state: \"${fileStatePath}\"`)
       }
-    } catch (error) {
+    }
+    catch (error) {
       console.error(
         chalk.red(`✗ Failed to process \"${file}\":`),
         error instanceof Error ? error.message : error,
-      );
+      )
     }
   }
 
-  console.log(chalk.green('\n✓ Conversion completed!'));
+  logger.info('Conversion completed!')
 }

@@ -1,6 +1,6 @@
-import { existsSync } from 'fs';
-import { copyFile } from 'fs/promises';
-import { BACKUP_SUFFIX_PREFIX } from '@/constants';
+import { existsSync } from 'node:fs'
+import { copyFile } from 'node:fs/promises'
+import { BACKUP_SUFFIX_PREFIX } from '@/constants'
 
 /**
  * Creates a backup of a file if it exists
@@ -11,13 +11,13 @@ export async function backupFileIfExists(
   filePath: string,
 ): Promise<string | null> {
   if (!existsSync(filePath)) {
-    return null;
+    return null
   }
 
   // Format: filename.ext.backup-YYYY-MM-DDTHH-MM-SS
-  const timestamp = new Date().toISOString().replace(/:/g, '-').split('.')[0];
-  const backupPath = `${filePath}.${BACKUP_SUFFIX_PREFIX}${timestamp}`;
+  const timestamp = new Date().toISOString().replace(/:/g, '-').split('.')[0]
+  const backupPath = `${filePath}.${BACKUP_SUFFIX_PREFIX}${timestamp}`
 
-  await copyFile(filePath, backupPath);
-  return backupPath;
+  await copyFile(filePath, backupPath)
+  return backupPath
 }
