@@ -74,6 +74,7 @@ export async function enhanceLabelStudio(
     outputMode = DEFAULT_OUTPUT_MODE,
     numPointCheck,
     thresholdAreaCheck,
+    noAnnoCheck,
   } = flags
 
   // Find all files matching the pattern
@@ -130,6 +131,7 @@ export async function enhanceLabelStudio(
       const checkParams = {
         numPointCheck,
         thresholdAreaCheck,
+        noAnnoCheck,
       }
 
       if (isFull) {

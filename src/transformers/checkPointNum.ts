@@ -4,6 +4,7 @@ import { logger } from '@/logger/logger'
 export type CheckPointNumOptions = {
   numPointCheck?: number
   thresholdAreaCheck?: number
+  noAnnoCheck?: boolean
 }
 
 function calculatePixelArea(points: [number, number][]): number {
@@ -21,7 +22,13 @@ function calculatePixelArea(points: [number, number][]): number {
 }
 
 export const checkPointNum = (async (boxes, imageFilePath: string, options) => {
-  const { numPointCheck, thresholdAreaCheck } = options
+  const { numPointCheck, noAnnoCheck, thresholdAreaCheck } = options
+
+  if (noAnnoCheck && boxes.length === 0) {
+    logger.warn(
+      `No annotations found in image: ${imageFilePath}`,
+    )
+  }
 
   boxes.forEach((box, index) => {
     if (numPointCheck !== undefined && box.points.length !== numPointCheck) {

@@ -44,6 +44,7 @@ export async function labelStudioOutputToPPOCR(
     generateFileState = DEFAULT_GENERATE_FILE_STATE,
     numPointCheck,
     thresholdAreaCheck,
+    noAnnoCheck,
   } = flags
 
   // Find all files matching the pattern
@@ -69,6 +70,7 @@ export async function labelStudioOutputToPPOCR(
     const checkParams = {
       numPointCheck,
       thresholdAreaCheck,
+      noAnnoCheck,
     }
 
     const [outputTask] = await outputLabelStudioToPPOCRConverters(

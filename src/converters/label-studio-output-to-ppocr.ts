@@ -10,13 +10,13 @@ import {
 export type OutputLabelStudioToPPOCRConverterOptions = BaseCheckOptions
 
 export async function outputLabelStudioToPPOCRConverters(inputTasks: OutputLabelStudioTask[], taskFilePath: string, options: OutputLabelStudioToPPOCRConverterOptions) {
-  const { numPointCheck, thresholdAreaCheck } = options
+  const { numPointCheck, thresholdAreaCheck, noAnnoCheck } = options
 
   const processor = new Processor({
     input: OutputLabelStudioInput,
     output: PPOCROutput,
     transformers: [
-      withOptions(checkPointNum, { numPointCheck, thresholdAreaCheck }),
+      withOptions(checkPointNum, { numPointCheck, thresholdAreaCheck, noAnnoCheck }),
     ],
   })
 

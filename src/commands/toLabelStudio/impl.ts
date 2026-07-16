@@ -96,6 +96,7 @@ export async function convertToLabelStudio(
     outputMode = DEFAULT_OUTPUT_MODE,
     numPointCheck,
     thresholdAreaCheck,
+    noAnnoCheck,
   } = flags
 
   // Validate outputMode is only used with Full JSON format
@@ -239,6 +240,7 @@ export async function convertToLabelStudio(
       const checkParams = {
         numPointCheck,
         thresholdAreaCheck,
+        noAnnoCheck,
       }
 
       if (toFullJson) {

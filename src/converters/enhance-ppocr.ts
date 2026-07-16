@@ -44,6 +44,7 @@ export async function enhancePPOCRConverters(inputTasks: PPOCRLabelTask[], taskF
     precision,
     numPointCheck,
     thresholdAreaCheck,
+    noAnnoCheck,
   } = options
 
   const transformerParams = [
@@ -80,7 +81,7 @@ export async function enhancePPOCRConverters(inputTasks: PPOCRLabelTask[], taskF
       horizontalSort: sortHorizontal as HorizontalSortOrder,
       verticalSort: sortVertical as VerticalSortOrder,
     }),
-    withOptions(checkPointNum, { numPointCheck, thresholdAreaCheck }),
+    withOptions(checkPointNum, { numPointCheck, thresholdAreaCheck, noAnnoCheck }),
   ]
 
   const resolveInputImagePath = (

@@ -59,6 +59,7 @@ export async function ppocrToFullLabelStudioConverters(inputTasks: PPOCRLabelTas
     precision,
     numPointCheck,
     thresholdAreaCheck,
+    noAnnoCheck,
   } = options
 
   const transformerParams = [
@@ -95,7 +96,7 @@ export async function ppocrToFullLabelStudioConverters(inputTasks: PPOCRLabelTas
       horizontalSort: sortHorizontal as HorizontalSortOrder,
       verticalSort: sortVertical as VerticalSortOrder,
     }),
-    withOptions(checkPointNum, { numPointCheck, thresholdAreaCheck }),
+    withOptions(checkPointNum, { numPointCheck, thresholdAreaCheck, noAnnoCheck }),
   ]
 
   const resolveInputImagePath = (

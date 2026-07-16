@@ -70,6 +70,7 @@ export async function enhancePPOCR(
     filePattern = DEFAULT_PPOCR_FILE_PATTERN,
     numPointCheck,
     thresholdAreaCheck,
+    noAnnoCheck,
   } = flags
 
   // Find all files matching the pattern
@@ -153,6 +154,7 @@ export async function enhancePPOCR(
       const checkParams = {
         numPointCheck,
         thresholdAreaCheck,
+        noAnnoCheck,
       }
 
       const outputTasks = await enhancePPOCRConverters(inputTasks, filePath, {

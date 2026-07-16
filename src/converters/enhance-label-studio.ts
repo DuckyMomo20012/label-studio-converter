@@ -57,6 +57,7 @@ export async function enhanceFullLabelStudioConverters(inputTasks: LabelStudioTa
     precision,
     numPointCheck,
     thresholdAreaCheck,
+    noAnnoCheck,
   } = options
 
   const transformerParams = [
@@ -93,7 +94,7 @@ export async function enhanceFullLabelStudioConverters(inputTasks: LabelStudioTa
       horizontalSort: sortHorizontal as HorizontalSortOrder,
       verticalSort: sortVertical as VerticalSortOrder,
     }),
-    withOptions(checkPointNum, { numPointCheck, thresholdAreaCheck }),
+    withOptions(checkPointNum, { numPointCheck, thresholdAreaCheck, noAnnoCheck }),
   ]
 
   const resolveInputImagePath = async (

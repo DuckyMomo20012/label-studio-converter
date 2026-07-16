@@ -72,6 +72,7 @@ export type BaseEnhanceOptions = {
 export type BaseCheckOptions = {
   numPointCheck?: number
   thresholdAreaCheck?: number
+  noAnnoCheck?: boolean
 }
 
 export const baseFileIOFlagOptions = {
@@ -255,6 +256,11 @@ export const baseCheckFlagOptions = {
     kind: 'parsed',
     brief: 'Threshold for point coordinates in bounding boxes',
     parse: Number,
+    optional: true,
+  },
+  noAnnoCheck: {
+    kind: 'boolean',
+    brief: 'Check for images with no annotations (bounding boxes)',
     optional: true,
   },
 } satisfies TypedCommandFlagParameters<

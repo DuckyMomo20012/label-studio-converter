@@ -44,6 +44,7 @@ export async function fullLabelStudioToPPOCRConverters(inputTasks: LabelStudioTa
     precision,
     numPointCheck,
     thresholdAreaCheck,
+    noAnnoCheck,
   } = options
 
   const transformerParams = [
@@ -75,7 +76,7 @@ export async function fullLabelStudioToPPOCRConverters(inputTasks: LabelStudioTa
       horizontalSort: sortHorizontal as HorizontalSortOrder,
       verticalSort: sortVertical as VerticalSortOrder,
     }),
-    withOptions(checkPointNum, { numPointCheck, thresholdAreaCheck }),
+    withOptions(checkPointNum, { numPointCheck, thresholdAreaCheck, noAnnoCheck }),
   ]
 
   const resolveInputImagePath = async (
@@ -174,6 +175,8 @@ export async function minLabelStudioToPPOCRConverters(inputTasks: LabelStudioTas
     adaptResizeMaxHorizontalExpansion,
     precision,
     numPointCheck,
+    thresholdAreaCheck,
+    noAnnoCheck,
   } = options
 
   const transformerParams = [
@@ -205,7 +208,7 @@ export async function minLabelStudioToPPOCRConverters(inputTasks: LabelStudioTas
       horizontalSort: sortHorizontal as HorizontalSortOrder,
       verticalSort: sortVertical as VerticalSortOrder,
     }),
-    withOptions(checkPointNum, { numPointCheck }),
+    withOptions(checkPointNum, { numPointCheck, thresholdAreaCheck, noAnnoCheck }),
   ]
 
   const resolveInputImagePath = async (
