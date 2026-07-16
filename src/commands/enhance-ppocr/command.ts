@@ -1,6 +1,10 @@
 import { buildCommand } from '@stricli/core';
 import { DEFAULT_PPOCR_FILE_PATTERN } from '@/constants';
-import { baseEnhanceFlagOptions, baseFileIOFlagOptions } from '@/lib';
+import {
+  baseCheckFlagOptions,
+  baseEnhanceFlagOptions,
+  baseFileIOFlagOptions,
+} from '@/lib';
 
 export const enhancePPOCRCommand = buildCommand({
   loader: async () => {
@@ -19,6 +23,7 @@ export const enhancePPOCRCommand = buildCommand({
     flags: {
       ...baseFileIOFlagOptions,
       ...baseEnhanceFlagOptions,
+      ...baseCheckFlagOptions,
       fileName: {
         kind: 'parsed',
         brief:

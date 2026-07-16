@@ -8,6 +8,7 @@ export * from '../transformers/normalize';
 export * from '../transformers/resize';
 export * from '../transformers/round';
 export * from '../transformers/sort';
+export * from '../transformers/checkPointNum';
 
 // Schema exports
 export * from '../modules/label-studio-full/schema';

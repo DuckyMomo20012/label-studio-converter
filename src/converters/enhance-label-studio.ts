@@ -1,7 +1,7 @@
 import { createWriteStream } from 'fs';
 import { get } from 'https';
 import { basename, dirname, join, relative } from 'path';
-import { BaseEnhanceOptions } from '@/config';
+import { type BaseCheckOptions, type BaseEnhanceOptions } from '@/config';
 import { IMAGE_BASE_DIR_INPUT_DIR } from '@/constants';
 import {
   FullOCRLabelStudioInput,
@@ -15,6 +15,7 @@ import {
   type ShapeNormalizeOption,
   type VerticalSortOrder,
   adaptResizeTransformer,
+  checkPointNum,
   normalizeTransformer,
   resizeTransformer,
   roundTransformer,
@@ -22,13 +23,14 @@ import {
   withOptions,
 } from '@/lib';
 
-export type EnhanceLabelStudioOptions = BaseEnhanceOptions & {
-  baseServerUrl?: string;
-  outDir?: string;
-  imageBaseDir?: string;
-  copyImages?: boolean;
-  inputBaseDir?: string;
-};
+export type EnhanceLabelStudioOptions = BaseEnhanceOptions &
+  BaseCheckOptions & {
+    baseServerUrl?: string;
+    outDir?: string;
+    imageBaseDir?: string;
+    copyImages?: boolean;
+    inputBaseDir?: string;
+  };
 
 export const enhanceFullLabelStudioConverters = async (
   inputTasks: LabelStudioTask[],
@@ -61,6 +63,8 @@ export const enhanceFullLabelStudioConverters = async (
     adaptResizeUseAdaptiveThreshold,
     adaptResizeAdaptiveBlockSize,
     precision,
+    numPointCheck,
+    thresholdAreaCheck,
   } = options;
 
   const transformerParams = [
@@ -97,6 +101,7 @@ export const enhanceFullLabelStudioConverters = async (
       horizontalSort: sortHorizontal as HorizontalSortOrder,
       verticalSort: sortVertical as VerticalSortOrder,
     }),
+    withOptions(checkPointNum, { numPointCheck, thresholdAreaCheck }),
   ];
 
   const resolveInputImagePath = async (

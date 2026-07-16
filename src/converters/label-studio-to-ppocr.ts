@@ -1,7 +1,7 @@
 import { createWriteStream } from 'fs';
 import { get } from 'https';
 import { basename, dirname, join } from 'path';
-import { type BaseEnhanceOptions } from '@/config';
+import { type BaseCheckOptions, type BaseEnhanceOptions } from '@/config';
 import {
   FullOCRLabelStudioInput,
   type HorizontalSortOrder,
@@ -13,6 +13,7 @@ import {
   type ShapeNormalizeOption,
   type VerticalSortOrder,
   adaptResizeTransformer,
+  checkPointNum,
   normalizeTransformer,
   resizeTransformer,
   roundTransformer,
@@ -20,10 +21,11 @@ import {
   withOptions,
 } from '@/lib';
 
-export type LabelStudioToPPOCRConverterOptions = BaseEnhanceOptions & {
-  baseImageDir?: string;
-  imageBaseDir?: string;
-};
+export type LabelStudioToPPOCRConverterOptions = BaseEnhanceOptions &
+  BaseCheckOptions & {
+    baseImageDir?: string;
+    imageBaseDir?: string;
+  };
 
 export const fullLabelStudioToPPOCRConverters = async (
   inputTasks: LabelStudioTask[],
@@ -49,6 +51,8 @@ export const fullLabelStudioToPPOCRConverters = async (
     adaptResizeMorphologySize,
     adaptResizeMaxHorizontalExpansion,
     precision,
+    numPointCheck,
+    thresholdAreaCheck,
   } = options;
 
   const transformerParams = [
@@ -80,6 +84,7 @@ export const fullLabelStudioToPPOCRConverters = async (
       horizontalSort: sortHorizontal as HorizontalSortOrder,
       verticalSort: sortVertical as VerticalSortOrder,
     }),
+    withOptions(checkPointNum, { numPointCheck, thresholdAreaCheck }),
   ];
 
   const resolveInputImagePath = async (
@@ -181,6 +186,7 @@ export const minLabelStudioToPPOCRConverters = async (
     adaptResizeMorphologySize,
     adaptResizeMaxHorizontalExpansion,
     precision,
+    numPointCheck,
   } = options;
 
   const transformerParams = [
@@ -212,6 +218,7 @@ export const minLabelStudioToPPOCRConverters = async (
       horizontalSort: sortHorizontal as HorizontalSortOrder,
       verticalSort: sortVertical as VerticalSortOrder,
     }),
+    withOptions(checkPointNum, { numPointCheck }),
   ];
 
   const resolveInputImagePath = async (

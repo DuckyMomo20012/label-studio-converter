@@ -23,6 +23,7 @@ import {
 } from '@/constants';
 import type { LocalContext } from '@/context';
 import {
+  type BaseCheckOptions,
   type BaseEnhanceOptions,
   PPOCRLabelSchema,
   type PPOCRLabelTask,
@@ -31,14 +32,15 @@ import {
 import { backupFileIfExists } from '@/lib/backup-utils';
 import { findFiles } from '@/lib/file-utils';
 
-type CommandFlags = {
-  outDir?: string;
-  fileName?: string;
-  backup?: boolean;
-  recursive?: boolean;
-  filePattern?: string;
-  imageBaseDir?: string;
-} & BaseEnhanceOptions;
+type CommandFlags = BaseEnhanceOptions &
+  BaseCheckOptions & {
+    outDir?: string;
+    fileName?: string;
+    backup?: boolean;
+    recursive?: boolean;
+    filePattern?: string;
+    imageBaseDir?: string;
+  };
 
 export async function enhancePPOCR(
   this: LocalContext,
@@ -66,6 +68,8 @@ export async function enhancePPOCR(
     precision = DEFAULT_PPOCR_PRECISION,
     recursive = DEFAULT_RECURSIVE,
     filePattern = DEFAULT_PPOCR_FILE_PATTERN,
+    numPointCheck,
+    thresholdAreaCheck,
   } = flags;
 
   // Find all files matching the pattern
@@ -149,11 +153,25 @@ export async function enhancePPOCR(
         imageBaseDir,
       };
 
-      const outputTasks = await enhancePPOCRConverters(
-        inputTasks,
-        filePath,
-        enhanceParams,
-      );
+      const checkParams = {
+        numPointCheck,
+        thresholdAreaCheck,
+      };
+
+      const outputTasks = await enhancePPOCRConverters(inputTasks, filePath, {
+        ...enhanceParams,
+        ...checkParams,
+      });
+
+      const outputLines: string[] = [];
+
+      for (const task of outputTasks) {
+        PPOCRLabelSchema.parse(task.data);
+
+        // Format as: image_path<tab>[{annotations}]
+        const jsonArray = JSON.stringify(task.data);
+        outputLines.push(`${task.imagePath}\t${jsonArray}`);
+      }
 
       // Write enhanced data
       // Use outDir if specified, otherwise use source file directory
@@ -177,7 +195,7 @@ export async function enhancePPOCR(
         }
       }
 
-      await writeFile(outputFilePath, outputTasks.join('\n'), 'utf-8');
+      await writeFile(outputFilePath, outputLines.join('\n'), 'utf-8');
       console.log(chalk.green(`✓ Enhanced file saved: \"${outputFilePath}\"`));
     } catch (error) {
       console.error(

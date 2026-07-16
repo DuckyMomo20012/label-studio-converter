@@ -32,6 +32,7 @@ import {
 } from '@/constants';
 import type { LocalContext } from '@/context';
 import {
+  type BaseCheckOptions,
   type BaseEnhanceOptions,
   type LabelStudioTask,
   type LabelStudioTaskMin,
@@ -58,7 +59,8 @@ type CommandFlags = {
   filePattern?: string;
   outputMode?: string;
   imageBaseDir?: string;
-} & BaseEnhanceOptions;
+} & BaseEnhanceOptions &
+  BaseCheckOptions;
 
 export async function convertToLabelStudio(
   this: LocalContext,
@@ -94,6 +96,8 @@ export async function convertToLabelStudio(
     recursive = DEFAULT_RECURSIVE,
     filePattern = DEFAULT_PPOCR_FILE_PATTERN,
     outputMode = DEFAULT_OUTPUT_MODE,
+    numPointCheck,
+    thresholdAreaCheck,
   } = flags;
 
   // Validate outputMode is only used with Full JSON format
@@ -239,6 +243,11 @@ export async function convertToLabelStudio(
         imageBaseDir,
       };
 
+      const checkParams = {
+        numPointCheck,
+        thresholdAreaCheck,
+      };
+
       if (toFullJson) {
         outputTasks = await ppocrToFullLabelStudioConverters(
           inputTasks,
@@ -246,6 +255,7 @@ export async function convertToLabelStudio(
           {
             ...convertParams,
             ...enhanceParams,
+            ...checkParams,
           },
         );
       } else {
@@ -255,6 +265,7 @@ export async function convertToLabelStudio(
           {
             ...convertParams,
             ...enhanceParams,
+            ...checkParams,
           },
         );
       }

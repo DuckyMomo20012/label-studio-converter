@@ -10,12 +10,15 @@ import {
   DEFAULT_RECURSIVE,
 } from '@/constants';
 import type { LocalContext } from '@/context';
-import { outputLabelStudioToPPOCRConverters } from '@/lib';
+import {
+  type BaseCheckOptions,
+  outputLabelStudioToPPOCRConverters,
+} from '@/lib';
 import { PPOCRLabelSchema, type PPOCRLabelTask } from '@/lib';
 import { backupFileIfExists } from '@/lib/backup-utils';
 import { findFiles } from '@/lib/file-utils';
 
-type CommandFlags = {
+type CommandFlags = BaseCheckOptions & {
   outDir: string;
   fileName?: string;
   backup?: boolean;
@@ -38,6 +41,8 @@ export async function labelStudioOutputToPPOCR(
     filePattern = undefined,
     removeBaseImageDir = DEFAULT_LABEL_STUDIO_OUTPUT_IMAGE_BASE_DIR,
     generateFileState = DEFAULT_GENERATE_FILE_STATE,
+    numPointCheck,
+    thresholdAreaCheck,
   } = flags;
 
   // Find all files matching the pattern
@@ -60,9 +65,17 @@ export async function labelStudioOutputToPPOCR(
     const fileData = await readFile(filePath, 'utf-8');
     const labelStudioData = JSON.parse(fileData);
 
+    const checkParams = {
+      numPointCheck,
+      thresholdAreaCheck,
+    };
+
     const [outputTask] = await outputLabelStudioToPPOCRConverters(
       [labelStudioData],
       filePath,
+      {
+        ...checkParams,
+      },
     );
 
     masterOutputTasks = masterOutputTasks.concat([

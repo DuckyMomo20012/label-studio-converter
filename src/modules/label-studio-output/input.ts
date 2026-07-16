@@ -4,6 +4,7 @@ import { DEFAULT_DETECT_IMAGE_SIZE } from '@/constants';
 import { polyToPoints, rectangleToPoints } from '@/lib/geometry';
 import { getImageDimensions } from '@/lib/image';
 import { type ProcessorInput } from '@/lib/processor';
+import { type UnifiedPoint } from '@/lib/unified';
 import {
   type PolygonResult,
   type RectangleResult,
@@ -65,13 +66,13 @@ export const OutputLabelStudioInput = (async (
         baseAnno = { ...baseAnno, ...item.value };
       }
 
-      let newPoints =
-        'points' in baseAnno
-          ? polyToPoints(baseAnno.points, imgWidth, imgHeight)
-          : [];
+      let newPoints = [] as UnifiedPoint[];
+
+      if ('points' in baseAnno) {
+        newPoints = polyToPoints(baseAnno.points, imgWidth, imgHeight);
+      }
 
       if (
-        newPoints.length === 0 &&
         'x' in baseAnno &&
         'y' in baseAnno &&
         'width' in baseAnno &&
@@ -83,6 +84,8 @@ export const OutputLabelStudioInput = (async (
           baseAnno.y,
           baseAnno.width,
           baseAnno.height,
+          imgWidth,
+          imgHeight,
         );
       }
 
