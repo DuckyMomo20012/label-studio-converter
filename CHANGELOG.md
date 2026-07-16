@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.6.0](https://github.com/DuckyMomo20012/label-studio-converter/compare/v1.5.1...v1.6.0) (2026-07-16)
+
+
+### Features
+
+* setup base check options ([c3b1421](https://github.com/DuckyMomo20012/label-studio-converter/commit/c3b1421bd555be580ca3ff1ae14358ca03866b01))
+* setup thresholdAreaCheck ([ad29131](https://github.com/DuckyMomo20012/label-studio-converter/commit/ad29131df56e683728501cffeb6adea3cd27d299))
+
+
+### Bug Fixes
+
+* **enhancee-ppocr:** incorrect output path ([8aa48c9](https://github.com/DuckyMomo20012/label-studio-converter/commit/8aa48c947cbeff820894da90931d83601bf24fac))
+* incorrect convert from label studio rect to ppocr ([b96c910](https://github.com/DuckyMomo20012/label-studio-converter/commit/b96c9100664433cff398f84c5c8672891a0c72b6))
+* **label-studio-output-to-ppocr:** use decodeURIComponent to decode comma ([6bc0814](https://github.com/DuckyMomo20012/label-studio-converter/commit/6bc081481f245b470bf4b12c83dc3128f5d18282))
+
 ## [1.5.1](https://github.com/DuckyMomo20012/label-studio-converter/compare/v1.5.0...v1.5.1) (2026-06-27)
 
 
