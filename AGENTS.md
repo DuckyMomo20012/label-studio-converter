@@ -28,15 +28,15 @@
 
     ```typescript
     // ✅ Good - reuse and compose
-    type TransformOptions = { normalizeShape?: boolean; precision?: number };
-    type EnhancementOptions = TransformOptions & { sortVertical?: string };
+    type TransformOptions = { normalizeShape?: boolean, precision?: number }
+    type EnhancementOptions = TransformOptions & { sortVertical?: string }
 
     // ❌ Bad - duplicate fields
     type EnhancementOptions = {
-      normalizeShape?: boolean;
-      precision?: number;
-      sortVertical?: string;
-    };
+      normalizeShape?: boolean
+      precision?: number
+      sortVertical?: string
+    }
     ```
 
 - **Functions**: Use `camelCase`
@@ -130,32 +130,32 @@
 
 ```typescript
 // ✅ Good - Schema-first approach
-const UserSchema = z.object({ name: z.string(), age: z.number() });
-type User = z.infer<typeof UserSchema>; // Extract type from schema
+const UserSchema = z.object({ name: z.string(), age: z.number() })
+type User = z.infer<typeof UserSchema> // Extract type from schema
 
 // ✅ Good - Reuse and compose with intersection
-type BaseOptions = { format?: string; verbose?: boolean };
-type ConvertOptions = BaseOptions & { outputDir: string };
-type EnhanceOptions = BaseOptions & { sortOrder?: string };
+type BaseOptions = { format?: string, verbose?: boolean }
+type ConvertOptions = BaseOptions & { outputDir: string }
+type EnhanceOptions = BaseOptions & { sortOrder?: string }
 
 // ✅ Good - Extract and reuse schema fragments
-const PointSchema = z.array(z.number());
+const PointSchema = z.array(z.number())
 const PolygonValueSchema = z.object({
   points: z.array(PointSchema),
   closed: z.boolean(),
-});
+})
 
 // ❌ Bad - Duplicate type definition when schema exists
-const UserSchema = z.object({ name: z.string(), age: z.number() });
-type User = { name: string; age: number }; // Duplicates schema definition
+const UserSchema = z.object({ name: z.string(), age: z.number() })
+type User = { name: string, age: number } // Duplicates schema definition
 
 // ❌ Bad - Duplicate fields instead of composing
-type ConvertOptions = { format?: string; verbose?: boolean; outputDir: string };
+type ConvertOptions = { format?: string, verbose?: boolean, outputDir: string }
 type EnhanceOptions = {
-  format?: string;
-  verbose?: boolean;
-  sortOrder?: string;
-};
+  format?: string
+  verbose?: boolean
+  sortOrder?: string
+}
 ```
 
 **When to use `interface` vs `type`:**
@@ -191,26 +191,27 @@ type EnhanceOptions = {
 
 ```typescript
 // ✅ Good - Using Zod for validation
+// ✅ Good - Using es-toolkit utilities
+import { chunk, groupBy, uniq } from 'es-toolkit'
+
 const ConfigSchema = z.object({
   outDir: z.string(),
   recursive: z.boolean().default(false),
-});
-const config = ConfigSchema.parse(userInput);
-
-// ✅ Good - Using es-toolkit utilities
-import { chunk, uniq, groupBy } from 'es-toolkit';
-const uniqueItems = uniq(items);
-const batches = chunk(items, 10);
-const grouped = groupBy(items, (item) => item.category);
+})
+const config = ConfigSchema.parse(userInput)
+const uniqueItems = uniq(items)
+const batches = chunk(items, 10)
+const grouped = groupBy(items, item => item.category)
 
 // ❌ Bad - Manual validation when Zod should be used
-if (typeof config.outDir !== 'string') throw new Error('Invalid outDir');
+if (typeof config.outDir !== 'string')
+  throw new Error('Invalid outDir')
 
 // ❌ Bad - Custom utility when es-toolkit provides it
-const uniqueItems = [...new Set(items)]; // Use uniq() instead
-const chunks = []; // Use chunk() instead
+const uniqueItems = [...new Set(items)] // Use uniq() instead
+const chunks = [] // Use chunk() instead
 for (let i = 0; i < items.length; i += 10) {
-  chunks.push(items.slice(i, i + 10));
+  chunks.push(items.slice(i, i + 10))
 }
 ```
 
@@ -364,10 +365,10 @@ label-studio-converter enhance-ppocr ./data --sortVertical top-bottom
 
 ```typescript
 import {
-  fullLabelStudioToPPOCRConverters,
-  enhancePPOCRLabel,
   enhanceLabelStudioData,
-} from 'label-studio-converter';
+  enhancePPOCRLabel,
+  fullLabelStudioToPPOCRConverters,
+} from 'label-studio-converter'
 ```
 
 ### Key Directories

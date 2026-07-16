@@ -1,20 +1,20 @@
-import { buildCommand } from '@stricli/core';
+import { buildCommand } from '@stricli/core'
 import {
   DEFAULT_LABEL_STUDIO_FILE_PATTERN,
   DEFAULT_OUTPUT_MODE,
   OUTPUT_MODE_ANNOTATIONS,
   OUTPUT_MODE_PREDICTIONS,
-} from '@/constants';
+} from '@/constants'
 import {
   baseCheckFlagOptions,
   baseEnhanceFlagOptions,
   baseFileIOFlagOptions,
-} from '@/lib';
+} from '@/lib'
 
 export const enhanceLabelStudioCommand = buildCommand({
   loader: async () => {
-    const { enhanceLabelStudio } = await import('./impl');
-    return enhanceLabelStudio;
+    const { enhanceLabelStudio } = await import('./impl')
+    return enhanceLabelStudio
   },
   parameters: {
     positional: {
@@ -54,4 +54,4 @@ export const enhanceLabelStudioCommand = buildCommand({
     brief:
       'Enhance Label Studio files with sorting, normalization, and resizing',
   },
-});
+})

@@ -1,41 +1,34 @@
-import { basename, dirname, join, relative } from 'path';
-import { type BaseCheckOptions, type BaseEnhanceOptions } from '@/config';
-import { IMAGE_BASE_DIR_INPUT_DIR } from '@/constants';
+import type { BaseCheckOptions, BaseEnhanceOptions } from '@/config'
+import type { HorizontalSortOrder, PPOCRLabelTask, ShapeNormalizeOption, VerticalSortOrder } from '@/lib'
+import { basename, dirname, join, relative } from 'node:path'
+import { IMAGE_BASE_DIR_INPUT_DIR } from '@/constants'
 import {
-  FullOCRLabelStudioOutput,
-  type HorizontalSortOrder,
-  MinOCRLabelStudioOutput,
-  PPOCRInput,
-  type PPOCRLabelTask,
-  Processor,
-  type ShapeNormalizeOption,
-  type VerticalSortOrder,
   adaptResizeTransformer,
   checkPointNum,
+  FullOCRLabelStudioOutput,
+  MinOCRLabelStudioOutput,
   normalizeTransformer,
+  PPOCRInput,
+  Processor,
   resizeTransformer,
   roundTransformer,
   sortTransformer,
   withOptions,
-} from '@/lib';
+} from '@/lib'
 
-export type PPOCRToLabelStudioOptions = BaseEnhanceOptions &
-  BaseCheckOptions & {
-    baseServerUrl?: string;
-    defaultLabelName?: string;
-    outputMode?: string;
-    outDir?: string;
-    copyImages?: boolean;
-    imageBaseDir?: string;
-    inputBaseDir?: string;
-    outputRootDir?: string;
-  };
+export type PPOCRToLabelStudioOptions = BaseEnhanceOptions
+  & BaseCheckOptions & {
+    baseServerUrl?: string
+    defaultLabelName?: string
+    outputMode?: string
+    outDir?: string
+    copyImages?: boolean
+    imageBaseDir?: string
+    inputBaseDir?: string
+    outputRootDir?: string
+  }
 
-export const ppocrToFullLabelStudioConverters = async (
-  inputTasks: PPOCRLabelTask[],
-  taskFilePath: string,
-  options: PPOCRToLabelStudioOptions,
-) => {
+export async function ppocrToFullLabelStudioConverters(inputTasks: PPOCRLabelTask[], taskFilePath: string, options: PPOCRToLabelStudioOptions) {
   const {
     baseServerUrl,
     defaultLabelName,
@@ -66,7 +59,7 @@ export const ppocrToFullLabelStudioConverters = async (
     precision,
     numPointCheck,
     thresholdAreaCheck,
-  } = options;
+  } = options
 
   const transformerParams = [
     withOptions(normalizeTransformer, {
@@ -103,7 +96,7 @@ export const ppocrToFullLabelStudioConverters = async (
       verticalSort: sortVertical as VerticalSortOrder,
     }),
     withOptions(checkPointNum, { numPointCheck, thresholdAreaCheck }),
-  ];
+  ]
 
   const resolveInputImagePath = (
     taskImagePath: string,
@@ -112,18 +105,19 @@ export const ppocrToFullLabelStudioConverters = async (
     // PPOCRLabel stores paths relative to the opened folder
     // e.g., opening "fixtures/" creates Label.txt with "fixtures/example.jpg"
     // If the image path starts with the task directory name, resolve from parent
-    const fileDir = dirname(taskFilePath);
-    const folderName = fileDir.split('/').pop() || '';
+    const fileDir = dirname(taskFilePath)
+    const folderName = fileDir.split('/').pop() ?? ''
 
-    if (taskImagePath.startsWith(folderName + '/')) {
+    if (taskImagePath.startsWith(`${folderName}/`)) {
       // Path includes folder name, resolve from parent
-      const parentDir = dirname(fileDir);
-      return join(parentDir, taskImagePath);
-    } else {
-      // Path is relative to task file location
-      return join(fileDir, taskImagePath);
+      const parentDir = dirname(fileDir)
+      return join(parentDir, taskImagePath)
     }
-  };
+    else {
+      // Path is relative to task file location
+      return join(fileDir, taskImagePath)
+    }
+  }
 
   const resolveOutputImagePath = (
     taskImagePath: string,
@@ -131,14 +125,14 @@ export const ppocrToFullLabelStudioConverters = async (
   ) => {
     // Determine the relative path based on imageBaseDir mode
     // This is the path that will be written in the JSON file
-    const relativePath =
-      imageBaseDir === IMAGE_BASE_DIR_INPUT_DIR && inputBaseDir
+    const relativePath
+      = imageBaseDir === IMAGE_BASE_DIR_INPUT_DIR && inputBaseDir !== undefined
         ? relative(inputBaseDir, taskImagePath) // input-dir: path from inputBaseDir
-        : basename(taskImagePath); // task-file: filename only
+        : basename(taskImagePath) // task-file: filename only
 
     // The path in JSON is always just relativePath (not prepended with outDir)
     // because outDir affects where the JSON+images are written, not the path IN the JSON
-    const resolvedPath = relativePath;
+    const resolvedPath = relativePath
 
     // Handle baseServerUrl:
     // - Empty string: absolute path with leading slash for Docker mount
@@ -146,14 +140,14 @@ export const ppocrToFullLabelStudioConverters = async (
     // - Undefined: return path as-is
     if (baseServerUrl !== undefined) {
       if (baseServerUrl === '') {
-        return encodeURI(`/${resolvedPath}`);
+        return encodeURI(`/${resolvedPath}`)
       }
-      const normalizedBaseUrl = baseServerUrl.replace(/\/+$/, '');
-      return encodeURI(`${normalizedBaseUrl}/${resolvedPath}`);
+      const normalizedBaseUrl = baseServerUrl.replace(/\/+$/, '')
+      return encodeURI(`${normalizedBaseUrl}/${resolvedPath}`)
     }
 
-    return resolvedPath;
-  };
+    return resolvedPath
+  }
 
   const processor = new Processor({
     input: PPOCRInput,
@@ -162,26 +156,22 @@ export const ppocrToFullLabelStudioConverters = async (
       outputMode,
     }),
     transformers: transformerParams,
-  });
+  })
 
-  return await Promise.all(
+  return Promise.all(
     inputTasks.map(async (task) => {
       const outputData = await processor.process({
         inputData: task,
         taskFilePath,
         resolveInputImagePath,
         resolveOutputImagePath,
-      });
-      return outputData;
+      })
+      return outputData
     }),
-  );
-};
+  )
+}
 
-export const ppocrToMinLabelStudioConverters = async (
-  inputTasks: PPOCRLabelTask[],
-  taskFilePath: string,
-  options: PPOCRToLabelStudioOptions,
-) => {
+export async function ppocrToMinLabelStudioConverters(inputTasks: PPOCRLabelTask[], taskFilePath: string, options: PPOCRToLabelStudioOptions) {
   const {
     baseServerUrl,
     defaultLabelName,
@@ -196,7 +186,7 @@ export const ppocrToMinLabelStudioConverters = async (
     widthIncrement,
     heightIncrement,
     precision,
-  } = options;
+  } = options
 
   const transformerParams = [
     withOptions(normalizeTransformer, {
@@ -214,25 +204,26 @@ export const ppocrToMinLabelStudioConverters = async (
       horizontalSort: sortHorizontal as HorizontalSortOrder,
       verticalSort: sortVertical as VerticalSortOrder,
     }),
-  ];
+  ]
 
   const resolveInputImagePath = (
     taskImagePath: string,
     taskFilePath: string,
   ) => {
     // PPOCRLabel stores paths relative to the opened folder
-    const fileDir = dirname(taskFilePath);
-    const folderName = fileDir.split('/').pop() || '';
+    const fileDir = dirname(taskFilePath)
+    const folderName = fileDir.split('/').pop() ?? ''
 
-    if (taskImagePath.startsWith(folderName + '/')) {
+    if (taskImagePath.startsWith(`${folderName}/`)) {
       // Path includes folder name, resolve from parent
-      const parentDir = dirname(fileDir);
-      return join(parentDir, taskImagePath);
-    } else {
-      // Path is relative to task file location
-      return join(fileDir, taskImagePath);
+      const parentDir = dirname(fileDir)
+      return join(parentDir, taskImagePath)
     }
-  };
+    else {
+      // Path is relative to task file location
+      return join(fileDir, taskImagePath)
+    }
+  }
 
   const resolveOutputImagePath = (
     taskImagePath: string,
@@ -240,14 +231,14 @@ export const ppocrToMinLabelStudioConverters = async (
   ) => {
     // Determine the relative path based on imageBaseDir mode
     // This is the path that will be written in the JSON file
-    const relativePath =
-      imageBaseDir === IMAGE_BASE_DIR_INPUT_DIR && inputBaseDir
+    const relativePath
+      = imageBaseDir === IMAGE_BASE_DIR_INPUT_DIR && inputBaseDir !== undefined
         ? relative(inputBaseDir, taskImagePath) // input-dir: path from inputBaseDir
-        : basename(taskImagePath); // task-file: filename only
+        : basename(taskImagePath) // task-file: filename only
 
     // The path in JSON is always just relativePath (not prepended with outDir)
     // because outDir affects where the JSON+images are written, not the path IN the JSON
-    const resolvedPath = relativePath;
+    const resolvedPath = relativePath
 
     // Handle baseServerUrl:
     // - Empty string: absolute path with leading slash for Docker mount
@@ -255,14 +246,14 @@ export const ppocrToMinLabelStudioConverters = async (
     // - Undefined: return path as-is
     if (baseServerUrl !== undefined) {
       if (baseServerUrl === '') {
-        return encodeURI(`/${resolvedPath}`);
+        return encodeURI(`/${resolvedPath}`)
       }
-      const normalizedBaseUrl = baseServerUrl.replace(/\/+$/, '');
-      return encodeURI(`${normalizedBaseUrl}/${resolvedPath}`);
+      const normalizedBaseUrl = baseServerUrl.replace(/\/+$/, '')
+      return encodeURI(`${normalizedBaseUrl}/${resolvedPath}`)
     }
 
-    return resolvedPath;
-  };
+    return resolvedPath
+  }
 
   const processor = new Processor({
     input: PPOCRInput,
@@ -271,17 +262,17 @@ export const ppocrToMinLabelStudioConverters = async (
       minified: true,
     }),
     transformers: transformerParams,
-  });
+  })
 
-  return await Promise.all(
+  return Promise.all(
     inputTasks.map(async (task) => {
       const outputData = await processor.process({
         inputData: task,
         taskFilePath,
         resolveInputImagePath,
         resolveOutputImagePath,
-      });
-      return outputData;
+      })
+      return outputData
     }),
-  );
-};
+  )
+}

@@ -40,9 +40,9 @@ jobs:
       - name: Setup Node.js for npm
         uses: actions/setup-node@v4
         with:
-          node-version: 'latest'
+          node-version: latest
           registry-url: 'https://registry.npmjs.org/'
-          cache: 'pnpm'
+          cache: pnpm
 
       - name: Install Dependencies
         run: pnpm install

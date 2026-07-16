@@ -1,5 +1,5 @@
-import { readdir, stat } from 'fs/promises';
-import { join } from 'path';
+import { readdir, stat } from 'node:fs/promises'
+import { join } from 'node:path'
 
 /**
  * Recursively find all files in directories matching a pattern
@@ -13,45 +13,49 @@ export async function findFiles(
   pattern?: string,
   recursive?: boolean,
 ): Promise<string[]> {
-  const allFiles: string[] = [];
+  const allFiles: string[] = []
 
-  const regex = pattern ? new RegExp(pattern) : null;
+  const regex = pattern !== undefined ? new RegExp(pattern) : null
 
   async function scanDirectory(dirPath: string): Promise<void> {
-    const entries = await readdir(dirPath, { withFileTypes: true });
+    const entries = await readdir(dirPath, { withFileTypes: true })
 
     for (const entry of entries) {
-      const fullPath = join(dirPath, entry.name);
+      const fullPath = join(dirPath, entry.name)
 
       if (entry.isDirectory()) {
         if (recursive) {
-          await scanDirectory(fullPath);
+          await scanDirectory(fullPath)
         }
-      } else if (entry.isFile()) {
+      }
+      else if (entry.isFile()) {
         // Check if file matches pattern
         if (regex && regex.test(entry.name)) {
-          allFiles.push(fullPath);
-        } else if (!regex) {
+          allFiles.push(fullPath)
+        }
+        else if (!regex) {
           // If no pattern provided, include all files
-          allFiles.push(fullPath);
+          allFiles.push(fullPath)
         }
       }
     }
   }
 
   for (const dir of dirs) {
-    const dirStat = await stat(dir);
+    const dirStat = await stat(dir)
     if (dirStat.isDirectory()) {
-      await scanDirectory(dir);
-    } else if (dirStat.isFile()) {
+      await scanDirectory(dir)
+    }
+    else if (dirStat.isFile()) {
       // If a file path is provided directly, check if it matches
       if (regex && regex.test(dir)) {
-        allFiles.push(dir);
-      } else if (!regex) {
-        allFiles.push(dir);
+        allFiles.push(dir)
+      }
+      else if (!regex) {
+        allFiles.push(dir)
       }
     }
   }
 
-  return allFiles;
+  return allFiles
 }

@@ -1,6 +1,6 @@
 [
   {
-    "ocr": "\/example.jpg",
+    "ocr": "/example.jpg",
     "id": 1,
     "bbox": [
       {

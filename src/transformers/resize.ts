@@ -1,11 +1,11 @@
-import { calculateCenter, getMinimumBoundingRect } from '@/lib/geometry';
-import { type Transformer } from '@/lib/processor';
-import { type UnifiedPoint } from '@/lib/unified';
+import type { Transformer } from '@/lib/processor'
+import type { UnifiedPoint } from '@/lib/unified'
+import { calculateCenter, getMinimumBoundingRect } from '@/lib/geometry'
 
 export type ResizeTransformerOptions = {
-  widthIncrement?: number;
-  heightIncrement?: number;
-};
+  widthIncrement?: number
+  heightIncrement?: number
+}
 
 /**
  * Resize bounding box by a certain amount while keeping it centered
@@ -20,33 +20,33 @@ export function resizeBoundingBox(
   heightIncrement: number,
 ): UnifiedPoint[] {
   if (points.length === 0) {
-    return points;
+    return points
   }
 
   // Calculate center
-  const center = calculateCenter(points);
+  const center = calculateCenter(points)
 
   // Calculate current bounding box
-  const bbox = getMinimumBoundingRect(points);
+  const bbox = getMinimumBoundingRect(points)
 
   // Calculate new dimensions
-  const newWidth = Math.max(1, bbox.width + widthIncrement);
-  const newHeight = Math.max(1, bbox.height + heightIncrement);
+  const newWidth = Math.max(1, bbox.width + widthIncrement)
+  const newHeight = Math.max(1, bbox.height + heightIncrement)
 
   // Calculate scale factors
-  const scaleX = newWidth / bbox.width;
-  const scaleY = newHeight / bbox.height;
+  const scaleX = newWidth / bbox.width
+  const scaleY = newHeight / bbox.height
 
   // Transform each point: translate to origin, scale, translate back
   return points.map(({ x, y }) => {
-    const relX = x - center.x;
-    const relY = y - center.y;
+    const relX = x - center.x
+    const relY = y - center.y
 
     return {
       x: center.x + relX * scaleX,
       y: center.y + relY * scaleY,
-    } as UnifiedPoint;
-  });
+    }
+  })
 }
 
 export const resizeTransformer = (async (
@@ -54,10 +54,10 @@ export const resizeTransformer = (async (
   imageFilePath: string,
   options,
 ) => {
-  const { widthIncrement, heightIncrement } = options;
+  const { widthIncrement, heightIncrement } = options
 
   if (widthIncrement === undefined && heightIncrement === undefined) {
-    return boxes;
+    return boxes
   }
 
   const resized = boxes.map((box) => {
@@ -65,13 +65,13 @@ export const resizeTransformer = (async (
       box.points,
       widthIncrement ?? 0,
       heightIncrement ?? 0,
-    );
+    )
 
     return {
       ...box,
       points: resizedPoints,
-    };
-  });
+    }
+  })
 
-  return resized;
-}) satisfies Transformer<ResizeTransformerOptions>;
+  return resized
+}) satisfies Transformer<ResizeTransformerOptions>

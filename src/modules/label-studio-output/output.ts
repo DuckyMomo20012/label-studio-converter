@@ -1,25 +1,25 @@
-import { randomUUID } from 'crypto';
-import { DEFAULT_LABEL_NAME } from '@/constants';
-import { pixelToPercentage, pointsToTuple } from '@/lib/geometry';
-import { type ProcessorOutput } from '@/lib/processor';
-import { type LabelStudioResultItem } from '@/modules/label-studio-full/schema';
-import { type OutputLabelStudioTask } from '@/modules/label-studio-output/schema';
+import type { ProcessorOutput } from '@/lib/processor'
+import type { LabelStudioResultItem } from '@/modules/label-studio-full/schema'
+import type { OutputLabelStudioTask } from '@/modules/label-studio-output/schema'
+import { randomUUID } from 'node:crypto'
+import { DEFAULT_LABEL_NAME } from '@/constants'
+import { pixelToPercentage, pointsToTuple } from '@/lib/geometry'
 
 export type OutputLabelStudioOutputOptions = {
-  taskId?: number;
-  defaultLabelName?: string;
-};
+  taskId?: number
+  defaultLabelName?: string
+}
 
 export const OutputLabelStudioOutput = (async (
   outputTask,
   resolveImagePath,
   options,
 ) => {
-  const imageFilePath = await resolveImagePath(outputTask.imagePath);
+  const imageFilePath = await resolveImagePath(outputTask.imagePath)
 
-  const { taskId = 1, defaultLabelName = DEFAULT_LABEL_NAME } = options || {};
+  const { taskId = 1, defaultLabelName = DEFAULT_LABEL_NAME } = options
 
-  const now = new Date().toISOString();
+  const now = new Date().toISOString()
 
   const {
     id: baseTaskId,
@@ -27,30 +27,30 @@ export const OutputLabelStudioOutput = (async (
     height: imgHeight,
     boxes,
     metadata,
-  } = outputTask;
+  } = outputTask
 
-  const newTaskId =
-    baseTaskId !== undefined ? parseInt(baseTaskId, 10) : taskId;
+  const newTaskId
+    = baseTaskId !== undefined ? parseInt(baseTaskId, 10) : taskId
 
-  const fileName = imageFilePath.split('/').pop() || imageFilePath;
+  const fileName = imageFilePath.split('/').pop() ?? `image_${newTaskId}`
 
   const resultItems = boxes
     .map((box) => {
-      const { id: baseBoxId, points, text, score } = box;
+      const { id: baseBoxId, points, text, score } = box
 
-      const newPoints = pointsToTuple(points);
+      const newPoints = pointsToTuple(points)
 
       // Convert from absolute pixel coordinates to percentage (0-100)
       const percentagePoints = pixelToPercentage(
         newPoints,
         imgWidth,
         imgHeight,
-      );
+      )
 
-      const newBoxId = baseBoxId || randomUUID().slice(0, 10);
+      const newBoxId = baseBoxId ?? randomUUID().slice(0, 10)
 
       // For predictions, add score from dt_score
-      const scoreField = { score };
+      const scoreField = { score }
 
       // Create result items: polygon, labels, and textarea
       return [
@@ -97,7 +97,7 @@ export const OutputLabelStudioOutput = (async (
           value: {
             points: percentagePoints,
             closed: true,
-            text: [text || ''],
+            text: [text ?? ''],
           },
           id: newBoxId,
           from_name: 'transcription',
@@ -107,9 +107,9 @@ export const OutputLabelStudioOutput = (async (
           // ...boxMeta,
           ...scoreField,
         },
-      ] satisfies LabelStudioResultItem[];
+      ] satisfies LabelStudioResultItem[]
     })
-    .flat();
+    .flat()
 
   return {
     id: newTaskId,
@@ -162,8 +162,8 @@ export const OutputLabelStudioOutput = (async (
     parent_prediction: null,
     parent_annotation: null,
     last_created_by: null,
-  };
+  }
 }) satisfies ProcessorOutput<
   OutputLabelStudioTask,
   OutputLabelStudioOutputOptions
->;
+>

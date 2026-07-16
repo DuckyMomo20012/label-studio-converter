@@ -290,8 +290,8 @@ Rationale:
 
 ```typescript
 // Save intermediate binary image to check threshold
-const binary = await image.threshold(options.threshold);
-await binary.toFile('debug_binary.png');
+const binary = await image.threshold(options.threshold)
+await binary.toFile('debug_binary.png')
 ```
 
 ### Boxes overlapping adjacent columns

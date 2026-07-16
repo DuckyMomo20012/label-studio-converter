@@ -1,4 +1,4 @@
-import z from 'zod';
+import z from 'zod'
 
 // Reusable result item schemas
 const RectangleResultSchema = z.union([
@@ -28,7 +28,7 @@ const RectangleResultSchema = z.union([
     height: z.number(),
     rotation: z.number(),
   }),
-]);
+])
 
 const PolygonResultSchema = z.union([
   // Value from <TextArea /> of <Polygon />
@@ -48,7 +48,7 @@ const PolygonResultSchema = z.union([
     points: z.array(z.array(z.number())),
     closed: z.boolean(),
   }),
-]);
+])
 
 export const ResultItemSchema = z.object({
   original_width: z.number(),
@@ -63,7 +63,7 @@ export const ResultItemSchema = z.object({
   score: z.number().optional(), // Confidence score for predictions
   readonly: z.boolean().optional(),
   hidden: z.boolean().optional(),
-});
+})
 
 // Reusable annotation schema (for annotations field)
 export const AnnotationSchema = z.object({
@@ -88,7 +88,7 @@ export const AnnotationSchema = z.object({
   parent_prediction: z.null(),
   parent_annotation: z.null(),
   last_created_by: z.null(),
-});
+})
 
 // Reusable prediction schema (for predictions field)
 const PredictionSchema = z.object({
@@ -98,7 +98,7 @@ const PredictionSchema = z.object({
   created_ago: z.string().optional(),
   task: z.number().optional(),
   score: z.number().optional(), // Overall prediction score (optional)
-});
+})
 
 export const FullOCRLabelStudioSchema = z.object({
   id: z.number(),
@@ -136,16 +136,16 @@ export const FullOCRLabelStudioSchema = z.object({
   project: z.number(),
   updated_by: z.number(),
   comment_authors: z.array(z.unknown()),
-});
+})
 
-export type RectangleResult = z.infer<typeof RectangleResultSchema>;
-export type PolygonResult = z.infer<typeof PolygonResultSchema>;
-export type FullOCRLabelStudio = z.infer<typeof FullOCRLabelStudioSchema>;
+export type RectangleResult = z.infer<typeof RectangleResultSchema>
+export type PolygonResult = z.infer<typeof PolygonResultSchema>
+export type FullOCRLabelStudio = z.infer<typeof FullOCRLabelStudioSchema>
 
 // Extract nested types for better reusability
-export type LabelStudioTask = FullOCRLabelStudio;
-export type LabelStudioAnnotation = LabelStudioTask['annotations'][number];
+export type LabelStudioTask = FullOCRLabelStudio
+export type LabelStudioAnnotation = LabelStudioTask['annotations'][number]
 export type LabelStudioPrediction = NonNullable<
   LabelStudioTask['predictions']
->[number];
-export type LabelStudioResultItem = LabelStudioAnnotation['result'][number];
+>[number]
+export type LabelStudioResultItem = LabelStudioAnnotation['result'][number]

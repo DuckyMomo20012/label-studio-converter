@@ -1,21 +1,16 @@
+import type { BaseCheckOptions, OutputLabelStudioTask } from '@/lib'
 import {
-  type BaseCheckOptions,
+  checkPointNum,
   OutputLabelStudioInput,
-  type OutputLabelStudioTask,
   PPOCROutput,
   Processor,
-  checkPointNum,
   withOptions,
-} from '@/lib';
+} from '@/lib'
 
-export type OutputLabelStudioToPPOCRConverterOptions = BaseCheckOptions;
+export type OutputLabelStudioToPPOCRConverterOptions = BaseCheckOptions
 
-export const outputLabelStudioToPPOCRConverters = async (
-  inputTasks: OutputLabelStudioTask[],
-  taskFilePath: string,
-  options: OutputLabelStudioToPPOCRConverterOptions,
-) => {
-  const { numPointCheck, thresholdAreaCheck } = options;
+export async function outputLabelStudioToPPOCRConverters(inputTasks: OutputLabelStudioTask[], taskFilePath: string, options: OutputLabelStudioToPPOCRConverterOptions) {
+  const { numPointCheck, thresholdAreaCheck } = options
 
   const processor = new Processor({
     input: OutputLabelStudioInput,
@@ -23,17 +18,17 @@ export const outputLabelStudioToPPOCRConverters = async (
     transformers: [
       withOptions(checkPointNum, { numPointCheck, thresholdAreaCheck }),
     ],
-  });
+  })
 
-  return await Promise.all(
+  return Promise.all(
     inputTasks.map(async (task) => {
       const outputData = await processor.process({
         inputData: task,
         taskFilePath,
-        resolveOutputImagePath: (taskImagePath) =>
+        resolveOutputImagePath: taskImagePath =>
           decodeURIComponent(taskImagePath),
-      });
-      return outputData;
+      })
+      return outputData
     }),
-  );
-};
+  )
+}

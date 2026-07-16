@@ -1,6 +1,9 @@
-import { copyFile, mkdir, readFile, writeFile } from 'fs/promises';
-import { basename, dirname, join, relative, resolve } from 'path';
-import chalk from 'chalk';
+import type { LocalContext } from '@/context'
+import type { BaseCheckOptions, BaseEnhanceOptions, LabelStudioTask, LabelStudioTaskMin, PPOCRLabelTask } from '@/lib'
+import { copyFile, mkdir, readFile, writeFile } from 'node:fs/promises'
+import { basename, dirname, join, relative, resolve } from 'node:path'
+import process from 'node:process'
+import chalk from 'chalk'
 import {
   DEFAULT_ADAPT_RESIZE,
   DEFAULT_ADAPT_RESIZE_MARGIN,
@@ -29,38 +32,33 @@ import {
   DEFAULT_SORT_VERTICAL,
   DEFAULT_WIDTH_INCREMENT,
   IMAGE_BASE_DIR_INPUT_DIR,
-} from '@/constants';
-import type { LocalContext } from '@/context';
+} from '@/constants'
 import {
-  type BaseCheckOptions,
-  type BaseEnhanceOptions,
-  type LabelStudioTask,
-  type LabelStudioTaskMin,
   PPOCRLabelSchema,
-  type PPOCRLabelTask,
   ppocrToFullLabelStudioConverters,
   ppocrToMinLabelStudioConverters,
-} from '@/lib';
-import { backupFileIfExists } from '@/lib/backup-utils';
-import { findFiles } from '@/lib/file-utils';
+} from '@/lib'
+import { backupFileIfExists } from '@/lib/backup-utils'
+import { findFiles } from '@/lib/file-utils'
+import { logger } from '@/logger/logger'
 
 type CommandFlags = {
-  outDir?: string;
-  fileName?: string;
-  backup?: boolean;
-  copyImages?: boolean;
-  defaultLabelName?: string;
-  toFullJson?: boolean;
-  createFilePerImage?: boolean;
-  createFileListForServing?: boolean;
-  fileListName?: string;
-  baseServerUrl?: string;
-  recursive?: boolean;
-  filePattern?: string;
-  outputMode?: string;
-  imageBaseDir?: string;
-} & BaseEnhanceOptions &
-  BaseCheckOptions;
+  outDir?: string
+  fileName?: string
+  backup?: boolean
+  copyImages?: boolean
+  defaultLabelName?: string
+  toFullJson?: boolean
+  createFilePerImage?: boolean
+  createFileListForServing?: boolean
+  fileListName?: string
+  baseServerUrl?: string
+  recursive?: boolean
+  filePattern?: string
+  outputMode?: string
+  imageBaseDir?: string
+} & BaseEnhanceOptions
+& BaseCheckOptions
 
 export async function convertToLabelStudio(
   this: LocalContext,
@@ -98,132 +96,127 @@ export async function convertToLabelStudio(
     outputMode = DEFAULT_OUTPUT_MODE,
     numPointCheck,
     thresholdAreaCheck,
-  } = flags;
+  } = flags
 
   // Validate outputMode is only used with Full JSON format
   if (outputMode !== DEFAULT_OUTPUT_MODE && !toFullJson) {
-    console.log(
-      chalk.red(
-        'Error: --outputMode can only be used with --toFullJson (Full JSON format). Min JSON format does not support annotations/predictions distinction.',
-      ),
-    );
-    return;
+    logger.error(
+      '--outputMode can only be used with --toFullJson (Full JSON format). Min JSON format does not support annotations/predictions distinction.',
+    )
+    return
   }
 
   // Find all files matching the pattern
-  console.log(chalk.blue('Finding files...'));
-  const filePaths = await findFiles(inputDirs, filePattern, recursive);
+  logger.info(`Finding files matching pattern: ${filePattern} in directories: ${inputDirs.join(', ')} (recursive: ${recursive})`)
+  const filePaths = await findFiles(inputDirs, filePattern, recursive)
 
   if (filePaths.length === 0) {
-    console.log(chalk.yellow('No files found matching the pattern.'));
-    return;
+    logger.warn('No files found matching the pattern.')
+    return
   }
 
-  console.log(chalk.blue(`Found ${filePaths.length} files to process\n`));
+  logger.info(`Found ${filePaths.length} files to process`)
 
   // Resolve outDir to absolute path if provided
-  const resolvedOutDir = outDir ? resolve(outDir) : undefined;
+  const resolvedOutDir = outDir !== undefined ? resolve(outDir) : undefined
 
   // Prepare file list for serving if needed
-  let fileListPath: string | null = null;
-  if (createFileListForServing && resolvedOutDir) {
-    fileListPath = join(resolvedOutDir, fileListName);
+  let fileListPath: string | null = null
+  if (createFileListForServing && resolvedOutDir !== undefined) {
+    fileListPath = join(resolvedOutDir, fileListName)
     // Create output directory and file list file
-    await mkdir(resolvedOutDir, { recursive: true });
-    await writeFile(fileListPath, '', 'utf-8');
+    await mkdir(resolvedOutDir, { recursive: true })
+    await writeFile(fileListPath, '', 'utf-8')
   }
 
   // Use first input directory as base for relative paths (resolve to absolute)
   // If no input dirs, use current working directory
-  const baseDir = inputDirs.length > 0 ? resolve(inputDirs[0]!) : process.cwd();
+  const baseDir = inputDirs.length > 0 ? resolve(inputDirs[0]!) : process.cwd()
 
   for (const filePath of filePaths) {
-    const file = basename(filePath);
+    const file = basename(filePath)
 
     // Get relative path to preserve directory structure
-    const relativePath = relative(baseDir, filePath);
-    const relativeDir = dirname(relativePath);
+    const relativePath = relative(baseDir, filePath)
+    const relativeDir = dirname(relativePath)
 
-    console.log(chalk.gray(`Processing file: \"${filePath}\"`));
+    logger.info(`Processing file: \"${filePath}\"`)
 
     try {
-      const fileData = await readFile(filePath, 'utf-8');
-      const trimmedData = fileData.trim();
+      const fileData = await readFile(filePath, 'utf-8')
+      const trimmedData = fileData.trim()
 
       // Handle empty files
       if (trimmedData === '') {
-        console.log(chalk.yellow(`  Skipping empty file: \"${filePath}\"`));
-        continue;
+        logger.warn(`Skipping empty file: \"${filePath}\"`)
+        continue
       }
 
-      const lines = trimmedData.split('\n');
+      const lines = trimmedData.split('\n')
 
       // Parse PPOCRLabelV2 format: <filename>\t<json_array_of_annotations>
-      const inputTasks: PPOCRLabelTask[] = [];
+      const inputTasks: PPOCRLabelTask[] = []
 
       for (const line of lines) {
         // Skip empty lines
         if (line.trim() === '') {
-          continue;
+          continue
         }
 
-        const parts = line.split('\t');
+        const parts = line.split('\t')
 
         if (parts.length !== 2) {
-          console.warn(`Skipping invalid PPOCRLabelV2 format in line: ${line}`);
-          continue;
+          logger.warn(`Skipping invalid PPOCRLabelV2 format in line: ${line}`)
+          continue
         }
-        const [imagePath, annotationsStr] = parts;
+        const [imagePath, annotationsStr] = parts
 
-        if (!imagePath || !annotationsStr) {
-          console.warn(
+        if (imagePath === undefined || annotationsStr === undefined) {
+          logger.warn(
             `Skipping line with missing imagePath or annotations: ${line}`,
-          );
-          continue;
+          )
+          continue
         }
 
         try {
-          const inputTask = JSON.parse(annotationsStr);
-
           // Each annotation already has the structure: {transcription, points, dt_score}
           // Validate each annotation
-          PPOCRLabelSchema.parse(inputTask);
+          const inputTask = PPOCRLabelSchema.parse(JSON.parse(annotationsStr))
 
-          inputTasks.push({ imagePath, data: inputTask });
-        } catch (error) {
-          console.warn(
+          inputTasks.push({ imagePath, data: inputTask })
+        }
+        catch (error) {
+          logger.warn(
             `Skipping line due to parse/validation error: ${line}`,
             error,
-          );
-          continue;
+          )
+          continue
         }
       }
 
       // If no valid lines were found, skip this file
       if (inputTasks.length === 0) {
-        console.log(
-          chalk.yellow(`  Skipping file with no valid data: \"${filePath}\"`),
-        );
-        continue;
+        logger.warn(`  Skipping file with no valid data: \"${filePath}\"`)
+        continue
       }
 
       // Convert each image's annotations to Label Studio format
-      let outputTasks: (LabelStudioTask | LabelStudioTaskMin)[] = [];
+      let outputTasks: (LabelStudioTask | LabelStudioTaskMin)[] = []
 
       // Determine output directory for converter (where JSON will be written)
-      const converterOutputDir = resolvedOutDir
+      const converterOutputDir = resolvedOutDir !== undefined
         ? join(resolvedOutDir, relativeDir)
-        : dirname(filePath);
+        : dirname(filePath)
 
       const convertParams = {
         defaultLabelName,
         baseServerUrl,
         outputMode,
         outDir: converterOutputDir,
-        copyImages: resolvedOutDir ? copyImages : false,
+        copyImages: resolvedOutDir !== undefined ? copyImages : false,
         inputBaseDir: baseDir,
         outputRootDir: resolvedOutDir,
-      };
+      }
 
       const enhanceParams = {
         sortVertical,
@@ -241,12 +234,12 @@ export async function convertToLabelStudio(
         adaptResizeMaxHorizontalExpansion,
         precision,
         imageBaseDir,
-      };
+      }
 
       const checkParams = {
         numPointCheck,
         thresholdAreaCheck,
-      };
+      }
 
       if (toFullJson) {
         outputTasks = await ppocrToFullLabelStudioConverters(
@@ -257,8 +250,9 @@ export async function convertToLabelStudio(
             ...enhanceParams,
             ...checkParams,
           },
-        );
-      } else {
+        )
+      }
+      else {
         outputTasks = await ppocrToMinLabelStudioConverters(
           inputTasks,
           filePath,
@@ -267,136 +261,136 @@ export async function convertToLabelStudio(
             ...enhanceParams,
             ...checkParams,
           },
-        );
+        )
       }
 
       // Copy images to output directory if requested
-      if (resolvedOutDir && copyImages) {
-        const taskFileDir = dirname(filePath);
-        const outputSubDir = join(resolvedOutDir, relativeDir);
+      if (resolvedOutDir !== undefined && copyImages) {
+        const taskFileDir = dirname(filePath)
+        const outputSubDir = join(resolvedOutDir, relativeDir)
 
         for (const task of inputTasks) {
           try {
             // Resolve imagePath from PPOCR Label.txt
             // The path is like "folder/file.jpg" where folder is the opened directory name
-            const parts = task.imagePath.split('/');
-            const folderName = parts.length > 1 ? parts[0] : '';
-            const fileName =
-              parts.length > 1 ? parts.slice(1).join('/') : task.imagePath;
+            const parts = task.imagePath.split('/')
+            const folderName = parts.length > 1 ? parts[0] : ''
+            const fileName
+              = parts.length > 1 ? parts.slice(1).join('/') : task.imagePath
 
             // Resolve from parent directory of task file
-            const sourceImagePath = folderName
+            const sourceImagePath = folderName !== undefined && folderName !== ''
               ? resolve(dirname(taskFileDir), folderName, fileName)
-              : resolve(taskFileDir, fileName);
+              : resolve(taskFileDir, fileName)
 
             // Calculate destination path based on imageBaseDir flag
-            let destImagePath: string;
+            let destImagePath: string
             if (imageBaseDir === IMAGE_BASE_DIR_INPUT_DIR) {
               // Keep full path structure from input directory
-              const relativeFromInput = relative(baseDir, sourceImagePath);
-              destImagePath = join(resolvedOutDir, relativeFromInput);
-            } else {
+              const relativeFromInput = relative(baseDir, sourceImagePath)
+              destImagePath = join(resolvedOutDir, relativeFromInput)
+            }
+            else {
               // Default: task-file - relative to task file location
-              const relativeFromTask = relative(taskFileDir, sourceImagePath);
-              destImagePath = join(outputSubDir, relativeFromTask);
+              const relativeFromTask = relative(taskFileDir, sourceImagePath)
+              destImagePath = join(outputSubDir, relativeFromTask)
             }
 
-            await mkdir(dirname(destImagePath), { recursive: true });
-            await copyFile(sourceImagePath, destImagePath);
-            console.log(
-              chalk.gray(`  ✓ Copied image: \"${basename(sourceImagePath)}\"`),
-            );
-          } catch (error) {
-            console.warn(
+            await mkdir(dirname(destImagePath), { recursive: true })
+            await copyFile(sourceImagePath, destImagePath)
+            logger.info(`Copied image: \"${basename(sourceImagePath)}\"`)
+          }
+          catch (error) {
+            logger.warn(
               chalk.yellow(
+                // eslint-disable-next-line ts/restrict-template-expressions
                 `  ⚠ Failed to copy image \"${task.imagePath}\": ${error instanceof Error ? error.message : error}`,
               ),
-            );
+            )
           }
         }
       }
 
       // Create individual file per image if requested
       if (createFilePerImage) {
-        for await (const taskOutput of outputTasks) {
+        for (const taskOutput of outputTasks) {
           const imageFilePath = toFullJson
             ? (taskOutput as LabelStudioTask).data.ocr
-            : (taskOutput as LabelStudioTaskMin).ocr;
+            : (taskOutput as LabelStudioTaskMin).ocr
 
           const imageBaseName = imageFilePath
             .split('/')
             .pop()!
             .replace(/\//g, '_')
-            .replace(/\.[^.]+$/, '');
+            .replace(/\.[^.]+$/, '')
 
           // Use resolvedOutDir if specified, otherwise use source file directory
-          const outputSubDir = resolvedOutDir
+          const outputSubDir = resolvedOutDir !== undefined
             ? join(resolvedOutDir, relativeDir)
-            : dirname(filePath);
-          await mkdir(outputSubDir, { recursive: true });
+            : dirname(filePath)
+          await mkdir(outputSubDir, { recursive: true })
 
           const individualOutputPath = join(
             outputSubDir,
             `${imageBaseName}_${toFullJson ? 'full' : 'min'}.json`,
-          );
+          )
           await writeFile(
             individualOutputPath,
             JSON.stringify(taskOutput, null, 2),
             'utf-8',
-          );
-          console.log(
-            chalk.gray(
-              `  ✓ Created individual file: \"${individualOutputPath}\"`,
-            ),
-          );
+          )
+          logger.info(
+            `Created individual file: \"${individualOutputPath}\"`,
+          )
 
           // Add to file list for serving (write incrementally)
-          if (fileListPath) {
+          if (fileListPath !== null) {
             await writeFile(fileListPath, `${imageFilePath}\n`, {
               encoding: 'utf-8',
               flag: 'a',
-            });
+            })
           }
         }
       }
 
       // Write combined output file
-      const baseName = fileName || file.replace('.txt', '');
+      const baseName = fileName ?? file.replace('.txt', '')
 
       // Use resolvedOutDir if specified, otherwise use source file directory
-      const outputSubDir = resolvedOutDir
+      const outputSubDir = resolvedOutDir !== undefined
         ? join(resolvedOutDir, relativeDir)
-        : dirname(filePath);
-      await mkdir(outputSubDir, { recursive: true });
+        : dirname(filePath)
+      await mkdir(outputSubDir, { recursive: true })
 
       const outputPath = join(
         outputSubDir,
-        fileName
+        fileName !== undefined
           ? `${fileName}.json`
           : `${baseName}_${toFullJson ? 'full' : 'min'}.json`,
-      );
+      )
 
       // Backup existing file if requested
       if (backup) {
-        const backupPath = await backupFileIfExists(outputPath);
-        if (backupPath) {
-          console.log(chalk.gray(`  ✓ Created backup: ${backupPath}`));
+        const backupPath = await backupFileIfExists(outputPath)
+        if (backupPath !== null) {
+          logger.info(`Created backup: ${backupPath}`)
         }
       }
       await writeFile(
         outputPath,
         JSON.stringify(outputTasks, null, 2),
         'utf-8',
-      );
+      )
 
-      console.log(chalk.green(`✓ Converted \"${file}\" -> \"${outputPath}\"`));
-    } catch (error) {
+      logger.info(`Converted \"${file}\" -> \"${outputPath}\"`)
+    }
+    catch (error) {
       console.error(
         chalk.red(`✗ Failed to process \"${file}\":`),
         error instanceof Error ? error.message : error,
-      );
+      )
     }
   }
 
-  console.log(chalk.green('\n✓ Conversion completed!'));
+  logger.info('Conversion completed!')
 }

@@ -1,18 +1,18 @@
-import { buildCommand } from '@stricli/core';
+import { buildCommand } from '@stricli/core'
 import {
   DEFAULT_LABEL_STUDIO_FILE_PATTERN,
   DEFAULT_PPOCR_FILE_NAME,
-} from '@/constants';
+} from '@/constants'
 import {
   baseCheckFlagOptions,
   baseEnhanceFlagOptions,
   baseFileIOFlagOptions,
-} from '@/lib';
+} from '@/lib'
 
 export const toPPOCRCommand = buildCommand({
   loader: async () => {
-    const { convertToPPOCR } = await import('./impl');
-    return convertToPPOCR;
+    const { convertToPPOCR } = await import('./impl')
+    return convertToPPOCR
   },
   parameters: {
     positional: {
@@ -56,4 +56,4 @@ export const toPPOCRCommand = buildCommand({
   docs: {
     brief: 'Convert Label Studio files to PPOCRLabel format',
   },
-});
+})

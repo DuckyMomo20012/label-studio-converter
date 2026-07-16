@@ -1,26 +1,26 @@
 import {
   buildInstallCommand,
   buildUninstallCommand,
-} from '@stricli/auto-complete';
-import { buildApplication, buildRouteMap } from '@stricli/core';
-import { description, version } from '@/../package.json';
-import { enhanceLabelStudioCommand } from '@/commands/enhance-labelstudio/command';
-import { enhancePPOCRCommand } from '@/commands/enhance-ppocr/command';
-import { labelStudioOutputToPPOCRCommand } from '@/commands/labelStudioOutputToPPOCR/commands';
-import { toLabelStudioCommand } from '@/commands/toLabelStudio/command';
-import { toPPOCRCommand } from '@/commands/toPPOCR/commands';
+} from '@stricli/auto-complete'
+import { buildApplication, buildRouteMap } from '@stricli/core'
+import { description, version } from '@/../package.json'
+import { enhanceLabelStudioCommand } from '@/commands/enhance-labelstudio/command'
+import { enhancePPOCRCommand } from '@/commands/enhance-ppocr/command'
+import { labelStudioOutputToPPOCRCommand } from '@/commands/labelStudioOutputToPPOCR/commands'
+import { toLabelStudioCommand } from '@/commands/toLabelStudio/command'
+import { toPPOCRCommand } from '@/commands/toPPOCR/commands'
 
 const routes = buildRouteMap({
   routes: {
-    toLabelStudio: toLabelStudioCommand,
-    toPPOCR: toPPOCRCommand,
+    'toLabelStudio': toLabelStudioCommand,
+    'toPPOCR': toPPOCRCommand,
     'enhance-labelstudio': enhanceLabelStudioCommand,
     'enhance-ppocr': enhancePPOCRCommand,
     'label-studio-output-to-ppocr': labelStudioOutputToPPOCRCommand,
-    install: buildInstallCommand('label-studio-converter', {
+    'install': buildInstallCommand('label-studio-converter', {
       bash: '__label-studio-converter_bash_complete',
     }),
-    uninstall: buildUninstallCommand('label-studio-converter', { bash: true }),
+    'uninstall': buildUninstallCommand('label-studio-converter', { bash: true }),
   },
   docs: {
     brief: description,
@@ -29,11 +29,11 @@ const routes = buildRouteMap({
       uninstall: true,
     },
   },
-});
+})
 
 export const app = buildApplication(routes, {
   name: 'label-studio-converter',
   versionInfo: {
     currentVersion: version,
   },
-});
+})

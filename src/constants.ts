@@ -1,110 +1,107 @@
-export const DEFAULT_DETECT_IMAGE_SIZE = true;
+export const DEFAULT_DETECT_IMAGE_SIZE = true
 
-export const DEFAULT_LABEL_NAME = 'Text';
-export const DEFAULT_LABEL_STUDIO_FULL_JSON = true;
-export const DEFAULT_CREATE_FILE_PER_IMAGE = false;
-export const DEFAULT_CREATE_FILE_LIST_FOR_SERVING = true;
-export const DEFAULT_FILE_LIST_NAME = 'files.txt';
-export const DEFAULT_BASE_SERVER_URL = 'http://localhost:8081';
+export const DEFAULT_LABEL_NAME = 'Text'
+export const DEFAULT_LABEL_STUDIO_FULL_JSON = true
+export const DEFAULT_CREATE_FILE_PER_IMAGE = false
+export const DEFAULT_CREATE_FILE_LIST_FOR_SERVING = true
+export const DEFAULT_FILE_LIST_NAME = 'files.txt'
+export const DEFAULT_BASE_SERVER_URL = 'http://localhost:8081'
 
-export const DEFAULT_PPOCR_FILE_NAME = 'Label.txt';
+export const DEFAULT_PPOCR_FILE_NAME = 'Label.txt'
 
 // Vertical sorting options
-export const SORT_VERTICAL_NONE = 'none';
-export const SORT_VERTICAL_TOP_BOTTOM = 'top-bottom';
-export const SORT_VERTICAL_BOTTOM_TOP = 'bottom-top';
-export const DEFAULT_SORT_VERTICAL = SORT_VERTICAL_NONE;
+export const SORT_VERTICAL_NONE = 'none'
+export const SORT_VERTICAL_TOP_BOTTOM = 'top-bottom'
+export const SORT_VERTICAL_BOTTOM_TOP = 'bottom-top'
+export const DEFAULT_SORT_VERTICAL = SORT_VERTICAL_NONE
 
 // Horizontal sorting options
-export const SORT_HORIZONTAL_NONE = 'none';
-export const SORT_HORIZONTAL_LTR = 'ltr';
-export const SORT_HORIZONTAL_RTL = 'rtl';
-export const DEFAULT_SORT_HORIZONTAL = SORT_HORIZONTAL_NONE;
+export const SORT_HORIZONTAL_NONE = 'none'
+export const SORT_HORIZONTAL_LTR = 'ltr'
+export const SORT_HORIZONTAL_RTL = 'rtl'
+export const DEFAULT_SORT_HORIZONTAL = SORT_HORIZONTAL_NONE
 
-export type VerticalSortOrder =
-  | typeof SORT_VERTICAL_NONE
-  | typeof SORT_VERTICAL_TOP_BOTTOM
-  | typeof SORT_VERTICAL_BOTTOM_TOP;
+export type VerticalSortOrder
+  = | typeof SORT_VERTICAL_NONE
+    | typeof SORT_VERTICAL_TOP_BOTTOM
+    | typeof SORT_VERTICAL_BOTTOM_TOP
 
-export type HorizontalSortOrder =
-  | typeof SORT_HORIZONTAL_NONE
-  | typeof SORT_HORIZONTAL_LTR
-  | typeof SORT_HORIZONTAL_RTL;
+export type HorizontalSortOrder
+  = | typeof SORT_HORIZONTAL_NONE
+    | typeof SORT_HORIZONTAL_LTR
+    | typeof SORT_HORIZONTAL_RTL
 
 // Shape normalization options
-export const SHAPE_NORMALIZE_NONE = 'none';
-export const SHAPE_NORMALIZE_RECTANGLE = 'rectangle';
-export const DEFAULT_SHAPE_NORMALIZE = SHAPE_NORMALIZE_NONE;
+export const SHAPE_NORMALIZE_NONE = 'none'
+export const SHAPE_NORMALIZE_RECTANGLE = 'rectangle'
+export const DEFAULT_SHAPE_NORMALIZE = SHAPE_NORMALIZE_NONE
 
-export type ShapeNormalizeOption =
-  | typeof SHAPE_NORMALIZE_NONE
-  | typeof SHAPE_NORMALIZE_RECTANGLE;
+export type ShapeNormalizeOption
+  = typeof SHAPE_NORMALIZE_NONE | typeof SHAPE_NORMALIZE_RECTANGLE
 
 // Normalize transformer options
-export const DEFAULT_USE_ORIENTED_BOX = false;
+export const DEFAULT_USE_ORIENTED_BOX = false
 
 // Bounding box resize options
-export const DEFAULT_WIDTH_INCREMENT = 0;
-export const DEFAULT_HEIGHT_INCREMENT = 0;
+export const DEFAULT_WIDTH_INCREMENT = 0
+export const DEFAULT_HEIGHT_INCREMENT = 0
 
 // Adaptive resize options
-export const DEFAULT_ADAPT_RESIZE = false;
-export const DEFAULT_ADAPT_RESIZE_THRESHOLD = 128;
-export const DEFAULT_ADAPT_RESIZE_MARGIN = 5;
-export const DEFAULT_ADAPT_RESIZE_MIN_COMPONENT_SIZE = 10;
-export const DEFAULT_ADAPT_RESIZE_MAX_COMPONENT_SIZE = 100000;
-export const DEFAULT_ADAPT_RESIZE_OUTLIER_PERCENTILE = 2;
-export const DEFAULT_ADAPT_RESIZE_MORPHOLOGY_SIZE = 2;
-export const DEFAULT_ADAPT_RESIZE_MAX_HORIZONTAL_EXPANSION = 50;
-export const DEFAULT_ADAPT_RESIZE_TIMEOUT_MS = 15000;
-export const DEFAULT_ADAPT_RESIZE_MAX_BOX_SIZE = 3000;
+export const DEFAULT_ADAPT_RESIZE = false
+export const DEFAULT_ADAPT_RESIZE_THRESHOLD = 128
+export const DEFAULT_ADAPT_RESIZE_MARGIN = 5
+export const DEFAULT_ADAPT_RESIZE_MIN_COMPONENT_SIZE = 10
+export const DEFAULT_ADAPT_RESIZE_MAX_COMPONENT_SIZE = 100000
+export const DEFAULT_ADAPT_RESIZE_OUTLIER_PERCENTILE = 2
+export const DEFAULT_ADAPT_RESIZE_MORPHOLOGY_SIZE = 2
+export const DEFAULT_ADAPT_RESIZE_MAX_HORIZONTAL_EXPANSION = 50
+export const DEFAULT_ADAPT_RESIZE_TIMEOUT_MS = 15000
+export const DEFAULT_ADAPT_RESIZE_MAX_BOX_SIZE = 3000
 // New: Padding validation options
-export const DEFAULT_ADAPT_RESIZE_PADDING_CHECK_WIDTH = 3; // Width of strip to check for white space
-export const DEFAULT_ADAPT_RESIZE_MIN_PADDING_BRIGHTNESS = 200; // Min brightness for "white" padding (0-255)
-export const DEFAULT_ADAPT_RESIZE_MIN_PADDING_RATIO = 0.85; // Min % of white pixels in padding strip (85%)
+export const DEFAULT_ADAPT_RESIZE_PADDING_CHECK_WIDTH = 3 // Width of strip to check for white space
+export const DEFAULT_ADAPT_RESIZE_MIN_PADDING_BRIGHTNESS = 200 // Min brightness for "white" padding (0-255)
+export const DEFAULT_ADAPT_RESIZE_MIN_PADDING_RATIO = 0.85 // Min % of white pixels in padding strip (85%)
 // New: Adaptive threshold options
-export const DEFAULT_ADAPT_RESIZE_USE_ADAPTIVE_THRESHOLD = true; // Auto-detect threshold from image
-export const DEFAULT_ADAPT_RESIZE_ADAPTIVE_BLOCK_SIZE = 50; // Block size for local thresholding
+export const DEFAULT_ADAPT_RESIZE_USE_ADAPTIVE_THRESHOLD = true // Auto-detect threshold from image
+export const DEFAULT_ADAPT_RESIZE_ADAPTIVE_BLOCK_SIZE = 50 // Block size for local thresholding
 
 // Number precision options
 // For Label Studio: keep full precision (no rounding) by default
-export const DEFAULT_LABEL_STUDIO_PRECISION = -1; // -1 means no rounding
+export const DEFAULT_LABEL_STUDIO_PRECISION = -1 // -1 means no rounding
 // For PPOCR: round to integers
-export const DEFAULT_PPOCR_PRECISION = 0;
+export const DEFAULT_PPOCR_PRECISION = 0
 
 // File reading options
-export const DEFAULT_RECURSIVE = false;
+export const DEFAULT_RECURSIVE = false
 // Default patterns for matching files - users can customize these
-export const DEFAULT_PPOCR_FILE_PATTERN = '.*\\.txt$'; // Recommended: match .txt files
-export const DEFAULT_LABEL_STUDIO_FILE_PATTERN = '.*\\.json$'; // Recommended: match .json files
+export const DEFAULT_PPOCR_FILE_PATTERN = '.*\\.txt$' // Recommended: match .txt files
+export const DEFAULT_LABEL_STUDIO_FILE_PATTERN = '.*\\.json$' // Recommended: match .json files
 
 // Output mode options (annotations vs predictions)
-export const OUTPUT_MODE_ANNOTATIONS = 'annotations';
-export const OUTPUT_MODE_PREDICTIONS = 'predictions';
-export const DEFAULT_OUTPUT_MODE = OUTPUT_MODE_ANNOTATIONS;
+export const OUTPUT_MODE_ANNOTATIONS = 'annotations'
+export const OUTPUT_MODE_PREDICTIONS = 'predictions'
+export const DEFAULT_OUTPUT_MODE = OUTPUT_MODE_ANNOTATIONS
 
-export type OutputMode =
-  | typeof OUTPUT_MODE_ANNOTATIONS
-  | typeof OUTPUT_MODE_PREDICTIONS;
+export type OutputMode
+  = typeof OUTPUT_MODE_ANNOTATIONS | typeof OUTPUT_MODE_PREDICTIONS
 
 // Backup options
-export const DEFAULT_BACKUP = false;
-export const BACKUP_SUFFIX_PREFIX = 'backup-';
-export const BACKUP_TIMESTAMP_FORMAT = 'YYYY-MM-DDTHH-MM-SS'; // ISO format with colons replaced by hyphens
+export const DEFAULT_BACKUP = false
+export const BACKUP_SUFFIX_PREFIX = 'backup-'
+export const BACKUP_TIMESTAMP_FORMAT = 'YYYY-MM-DDTHH-MM-SS' // ISO format with colons replaced by hyphens
 
 // Image copying options
-export const DEFAULT_COPY_IMAGES = true;
+export const DEFAULT_COPY_IMAGES = true
 
 // Image base directory options
-export const IMAGE_BASE_DIR_TASK_FILE = 'task-file';
-export const IMAGE_BASE_DIR_INPUT_DIR = 'input-dir';
-export const DEFAULT_IMAGE_BASE_DIR = IMAGE_BASE_DIR_TASK_FILE;
+export const IMAGE_BASE_DIR_TASK_FILE = 'task-file'
+export const IMAGE_BASE_DIR_INPUT_DIR = 'input-dir'
+export const DEFAULT_IMAGE_BASE_DIR = IMAGE_BASE_DIR_TASK_FILE
 
-export type ImageBaseDir =
-  | typeof IMAGE_BASE_DIR_TASK_FILE
-  | typeof IMAGE_BASE_DIR_INPUT_DIR;
+export type ImageBaseDir
+  = typeof IMAGE_BASE_DIR_TASK_FILE | typeof IMAGE_BASE_DIR_INPUT_DIR
 
-export const DEFAULT_LABEL_STUDIO_OUTPUT_IMAGE_BASE_DIR =
-  '/data/local-files/?d=';
+export const DEFAULT_LABEL_STUDIO_OUTPUT_IMAGE_BASE_DIR
+  = '/data/local-files/?d='
 
-export const DEFAULT_GENERATE_FILE_STATE = true;
+export const DEFAULT_GENERATE_FILE_STATE = true

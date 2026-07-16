@@ -1,4 +1,4 @@
-import type { CommandContext, TypedCommandFlagParameters } from '@stricli/core';
+import type { CommandContext, TypedCommandFlagParameters } from '@stricli/core'
 import {
   DEFAULT_ADAPT_RESIZE,
   DEFAULT_ADAPT_RESIZE_ADAPTIVE_BLOCK_SIZE,
@@ -34,45 +34,45 @@ import {
   SORT_VERTICAL_BOTTOM_TOP,
   SORT_VERTICAL_NONE,
   SORT_VERTICAL_TOP_BOTTOM,
-} from '@/constants';
+} from '@/constants'
 
 export type BaseFileIOOptions = {
-  outDir?: string;
-  fileName?: string;
-  backup?: boolean;
-  recursive?: boolean;
-  filePattern?: string;
-  copyImages?: boolean;
-  imageBaseDir?: string;
-};
+  outDir?: string
+  fileName?: string
+  backup?: boolean
+  recursive?: boolean
+  filePattern?: string
+  copyImages?: boolean
+  imageBaseDir?: string
+}
 
 export type BaseEnhanceOptions = {
-  sortVertical?: string;
-  sortHorizontal?: string;
-  normalizeShape?: string;
-  useOrientedBox?: boolean;
-  widthIncrement?: number;
-  heightIncrement?: number;
-  adaptResize?: boolean;
-  adaptResizeThreshold?: number;
-  adaptResizeMargin?: number;
-  adaptResizeMinComponentSize?: number;
-  adaptResizeMaxComponentSize?: number;
-  adaptResizeOutlierPercentile?: number;
-  adaptResizeMorphologySize?: number;
-  adaptResizeMaxHorizontalExpansion?: number;
-  adaptResizePaddingCheckWidth?: number;
-  adaptResizeMinPaddingBrightness?: number;
-  adaptResizeMinPaddingRatio?: number;
-  adaptResizeUseAdaptiveThreshold?: boolean;
-  adaptResizeAdaptiveBlockSize?: number;
-  precision?: number;
-};
+  sortVertical?: string
+  sortHorizontal?: string
+  normalizeShape?: string
+  useOrientedBox?: boolean
+  widthIncrement?: number
+  heightIncrement?: number
+  adaptResize?: boolean
+  adaptResizeThreshold?: number
+  adaptResizeMargin?: number
+  adaptResizeMinComponentSize?: number
+  adaptResizeMaxComponentSize?: number
+  adaptResizeOutlierPercentile?: number
+  adaptResizeMorphologySize?: number
+  adaptResizeMaxHorizontalExpansion?: number
+  adaptResizePaddingCheckWidth?: number
+  adaptResizeMinPaddingBrightness?: number
+  adaptResizeMinPaddingRatio?: number
+  adaptResizeUseAdaptiveThreshold?: boolean
+  adaptResizeAdaptiveBlockSize?: number
+  precision?: number
+}
 
 export type BaseCheckOptions = {
-  numPointCheck?: number;
-  thresholdAreaCheck?: number;
-};
+  numPointCheck?: number
+  thresholdAreaCheck?: number
+}
 
 export const baseFileIOFlagOptions = {
   outDir: {
@@ -119,7 +119,7 @@ export const baseFileIOFlagOptions = {
 } satisfies TypedCommandFlagParameters<
   BaseFileIOOptions,
   CommandContext
->['flags'];
+>['flags']
 
 export const baseEnhanceFlagOptions = {
   sortVertical: {
@@ -242,7 +242,7 @@ export const baseEnhanceFlagOptions = {
 } satisfies TypedCommandFlagParameters<
   BaseEnhanceOptions,
   CommandContext
->['flags'];
+>['flags']
 
 export const baseCheckFlagOptions = {
   numPointCheck: {
@@ -260,4 +260,4 @@ export const baseCheckFlagOptions = {
 } satisfies TypedCommandFlagParameters<
   BaseCheckOptions,
   CommandContext
->['flags'];
+>['flags']
